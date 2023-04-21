@@ -12,8 +12,87 @@
 // @license              MIT
 // @match                https://*/*
 // @match                http://*/*
+// @run-at               document-end
 // ==/UserScript==
 //
 ;(() => {
   "use strict"
+  var doc = document
+  var $$ = (element, selectors) =>
+    element && typeof element === "object"
+      ? [...element.querySelectorAll(selectors)]
+      : [...doc.querySelectorAll(element)]
+  var addEventListener = (element, type, listener, options) => {
+    if (!element) {
+      return
+    }
+    if (typeof type === "object") {
+      for (const type1 in type) {
+        if (Object.hasOwn(type, type1)) {
+          element.addEventListener(type1, type[type1])
+        }
+      }
+    } else if (typeof type === "string" && typeof listener === "function") {
+      element.addEventListener(type, listener, options)
+    }
+  }
+  var getAttribute = (element, name) =>
+    element ? element.getAttribute(name) : null
+  var setAttribute = (element, name, value) =>
+    element ? element.setAttribute(name, value) : void 0
+  if (typeof Object.hasOwn !== "function") {
+    Object.hasOwn = (instance, prop) =>
+      Object.prototype.hasOwnProperty.call(instance, prop)
+  }
+  var origin = location.origin
+  var config = {
+    run_at: "document_end",
+  }
+  var addAttribute = (element, name, value) => {
+    const orgValue = getAttribute(element, name)
+    if (!orgValue) {
+      setAttribute(element, name, value)
+    } else if (!orgValue.includes(value)) {
+      setAttribute(element, name, orgValue + " " + value)
+    }
+  }
+  var getOrigin = (url) => {
+    var _a
+    return (_a = /(^https?:\/\/[^/]+)/.exec(url)) == null ? void 0 : _a[1]
+  }
+  var shouldOpenInNewTab = (url) => {
+    if (!url || !/^https?:\/\//.test(url)) {
+      return false
+    }
+    if (getOrigin(url) !== origin) {
+      return true
+    }
+  }
+  var setAttributeAsOpenInNewTab = (element) => {
+    const href = element.href
+    if (shouldOpenInNewTab(href)) {
+      setAttribute(element, "target", "_blank")
+      addAttribute(element, "rel", "noopener")
+    }
+  }
+  function main() {
+    addEventListener(
+      document,
+      "click",
+      (event) => {
+        let linkElement = event.target
+        while (linkElement && linkElement.tagName !== "A") {
+          linkElement = linkElement.parentNode
+        }
+        if (linkElement) {
+          setAttributeAsOpenInNewTab(linkElement)
+        }
+      },
+      true
+    )
+    for (const element of $$("a")) {
+      setAttributeAsOpenInNewTab(element)
+    }
+  }
+  main()
 })()
