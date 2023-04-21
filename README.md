@@ -1,4 +1,22 @@
-# Browser Extension Starter and Userscript Starter
+# 🔗 Links Helper
+
+Open external links in a new tab, open links matching the specified rules in a new tab.
+
+Support all sites includes Google search, GitHub, Greasy Fork etc.
+
+- Open external links in a new tab ✅
+- Setting for url rules, open links matching the specified rules in a new tab (Comming soon)
+
+## Installation
+
+- Chrome Extension: [Manual Installation](manual-installation.md)
+- Edge Extension: [Manual Installation](manual-installation.md)
+- Firefox Addon: [Manual Installation](manual-installation.md)
+- Userscript: [https://greasyfork.org/scripts/464541-links-helper](https://greasyfork.org/scripts/464541-links-helper)
+
+## Development
+
+This extension/userscript is built from [Browser Extension Starter and Userscript Starter](https://github.com/PipecraftNet/browser-extension-starter)
 
 ## Features
 
