@@ -12,5 +12,6 @@
 // @license              {license}
 // @match                https://*/*
 // @match                http://*/*
+// @run-at               document-end
 // ==/UserScript==
 //
