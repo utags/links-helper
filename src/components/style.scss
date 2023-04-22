@@ -1,0 +1,149 @@
+#browser_extension_settings {
+  --browser-extension-settings-background-color: #f3f3f3;
+  --browser-extension-settings-text-color: #444444;
+  position: fixed;
+  top: 10px;
+  right: 30px;
+  min-width: 250px;
+  max-height: 90%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: none;
+  box-sizing: border-box;
+  padding: 10px 15px;
+  background-color: var(--browser-extension-settings-background-color);
+  color: var(--browser-extension-settings-text-color);
+  z-index: 100000;
+  border-radius: 5px;
+  -webkit-box-shadow: 0px 10px 39px 10px rgba(62, 66, 66, 0.22);
+  -moz-box-shadow: 0px 10px 39px 10px rgba(62, 66, 66, 0.22);
+  box-shadow: 0px 10px 39px 10px rgba(62, 66, 66, 0.22) !important;
+
+  h2 {
+    text-align: center;
+    margin: 5px 0 0;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+  }
+
+  footer {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    font-size: 11px;
+    margin: 10px auto 0px;
+    background-color: var(--browser-extension-settings-background-color);
+    color: var(--browser-extension-settings-text-color);
+  }
+
+  footer a {
+    color: #217dfc;
+    text-decoration: none;
+    padding: 0;
+  }
+
+  footer p {
+    text-align: center;
+    padding: 0;
+    margin: 2px;
+    line-height: 13px;
+  }
+
+  .option_groups {
+    background-color: #fff;
+    padding: 6px 0 6px 15px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    margin: 10px 0 0;
+  }
+
+  .option_groups .action {
+    font-size: 14px;
+    border-top: 1px solid #cccccc;
+    padding: 6px 15px 6px 0;
+    color: #217dfc;
+    cursor: pointer;
+  }
+
+  .option_groups:nth-of-type(2) {
+    display: none;
+  }
+
+  .option_groups textarea {
+    margin: 10px 15px 10px 0;
+    height: 200px;
+    width: 300px;
+    border: 1px solid darkgray;
+  }
+
+  .switch_option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #cccccc;
+    padding: 6px 15px 6px 0;
+    font-size: 14px;
+  }
+  .switch_option:first-of-type,
+  .option_groups .action:first-of-type {
+    border-top: none;
+  }
+
+  /* https://uiverse.io/zanina-yassine/afraid-eel-50 */
+  /* The switch - the box around the slider */
+  .container {
+    --button-width: 51px;
+    --button-height: 24px;
+    --toggle-diameter: 20px;
+    --color-off: #e9e9eb;
+    --color-on: #34c759;
+    width: var(--button-width);
+    height: var(--button-height);
+    position: relative;
+    padding: 0;
+    margin: 0;
+    flex: none;
+  }
+
+  /* Hide default HTML checkbox */
+  input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+
+  .switch {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background-color: var(--color-off);
+    border-radius: calc(var(--button-height) / 2);
+    cursor: pointer;
+    transition: all 0.2s ease-out;
+  }
+
+  /* The slider */
+  .slider {
+    width: var(--toggle-diameter);
+    height: var(--toggle-diameter);
+    position: absolute;
+    left: 2px;
+    top: calc(50% - var(--toggle-diameter) / 2);
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.15), 0px 3px 1px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease-out;
+    cursor: pointer;
+  }
+
+  input[type="checkbox"]:checked + .switch {
+    background-color: var(--color-on);
+  }
+
+  input[type="checkbox"]:checked + .switch .slider {
+    left: calc(var(--button-width) - var(--toggle-diameter) - 2px);
+  }
+}
