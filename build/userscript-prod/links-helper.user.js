@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.0.2
+// @version              0.1.0
 // @description          Open external links in a new tab, open links matching the specified rules in a new tab
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接，在新标签页中打开符合指定规则的链接
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
@@ -23,6 +23,8 @@
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.1.0 2023.04.23
+////    - Setting for url rules, open links matching the specified rules in a new tab
 //// - 0.0.2 2023.04.22
 ////    - Add settings menu
 ////    - Enable/Disable userscript
@@ -145,7 +147,7 @@
     }
   }
   var style_default =
-    "#browser_extension_settings{--browser-extension-settings-background-color: #f3f3f3;--browser-extension-settings-text-color: #444444;position:fixed;top:10px;right:30px;min-width:250px;max-height:90%;overflow-y:auto;overflow-x:hidden;display:none;box-sizing:border-box;padding:10px 15px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);z-index:100000;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}#browser_extension_settings h2{text-align:center;margin:5px 0 0;font-size:18px;font-weight:600;border:none}#browser_extension_settings footer{display:flex;justify-content:center;flex-direction:column;font-size:11px;margin:10px auto 0px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color)}#browser_extension_settings footer a{color:#217dfc;text-decoration:none;padding:0}#browser_extension_settings footer p{text-align:center;padding:0;margin:2px;line-height:13px}#browser_extension_settings .option_groups{background-color:#fff;padding:6px 0 6px 15px;border-radius:10px;display:flex;flex-direction:column;margin:10px 0 0}#browser_extension_settings .option_groups .action{font-size:14px;border-top:1px solid #ccc;padding:6px 15px 6px 0;color:#217dfc;cursor:pointer}#browser_extension_settings .option_groups:nth-of-type(2){display:none}#browser_extension_settings .option_groups textarea{margin:10px 15px 10px 0;height:200px;width:300px;border:1px solid #a9a9a9}#browser_extension_settings .switch_option{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #ccc;padding:6px 15px 6px 0;font-size:14px}#browser_extension_settings .switch_option:first-of-type,#browser_extension_settings .option_groups .action:first-of-type{border-top:none}#browser_extension_settings .container{--button-width: 51px;--button-height: 24px;--toggle-diameter: 20px;--color-off: #e9e9eb;--color-on: #34c759;width:var(--button-width);height:var(--button-height);position:relative;padding:0;margin:0;flex:none}#browser_extension_settings input[type=checkbox]{opacity:0;width:0;height:0;position:absolute}#browser_extension_settings .switch{width:100%;height:100%;display:block;background-color:var(--color-off);border-radius:calc(var(--button-height)/2);cursor:pointer;transition:all .2s ease-out}#browser_extension_settings .slider{width:var(--toggle-diameter);height:var(--toggle-diameter);position:absolute;left:2px;top:calc(50% - var(--toggle-diameter)/2);border-radius:50%;background:#fff;box-shadow:0px 3px 8px rgba(0,0,0,.15),0px 3px 1px rgba(0,0,0,.06);transition:all .2s ease-out;cursor:pointer}#browser_extension_settings input[type=checkbox]:checked+.switch{background-color:var(--color-on)}#browser_extension_settings input[type=checkbox]:checked+.switch .slider{left:calc(var(--button-width) - var(--toggle-diameter) - 2px)}"
+    "#browser_extension_settings{--browser-extension-settings-background-color: #f3f3f3;--browser-extension-settings-text-color: #444444;position:fixed;top:10px;right:30px;min-width:250px;max-height:90%;overflow-y:auto;overflow-x:hidden;display:none;box-sizing:border-box;padding:10px 15px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);z-index:100000;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}#browser_extension_settings h2{text-align:center;margin:5px 0 0;font-size:18px;font-weight:600;border:none}#browser_extension_settings footer{display:flex;justify-content:center;flex-direction:column;font-size:11px;margin:10px auto 0px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color)}#browser_extension_settings footer a{color:#217dfc;text-decoration:none;padding:0}#browser_extension_settings footer p{text-align:center;padding:0;margin:2px;line-height:13px}#browser_extension_settings .option_groups{background-color:#fff;padding:6px 15px 6px 15px;border-radius:10px;display:flex;flex-direction:column;margin:10px 0 0}#browser_extension_settings .option_groups .action{font-size:14px;border-top:1px solid #ccc;padding:6px 0 6px 0;color:#217dfc;cursor:pointer}#browser_extension_settings .option_groups textarea{margin:10px 0 10px 0;height:100px;width:100%;border:1px solid #a9a9a9;border-radius:4px;box-sizing:border-box}#browser_extension_settings .switch_option{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #ccc;padding:6px 0 6px 0;font-size:14px}#browser_extension_settings .switch_option:first-of-type,#browser_extension_settings .option_groups .action:first-of-type{border-top:none}#browser_extension_settings .switch_option>span{margin-right:10px}#browser_extension_settings .option_groups .tip{position:relative;margin:0;padding:0 15px 0 0;border:none;max-width:none;font-size:14px}#browser_extension_settings .option_groups .tip .tip_anchor{cursor:help;text-decoration:underline}#browser_extension_settings .option_groups .tip .tip_content{position:absolute;bottom:15px;left:0;background-color:#fff;color:var(--browser-extension-settings-text-color);text-align:left;padding:10px;display:none;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}#browser_extension_settings .option_groups .tip .tip_anchor:hover+.tip_content,#browser_extension_settings .option_groups .tip .tip_content:hover{display:block}#browser_extension_settings .option_groups .tip p,#browser_extension_settings .option_groups .tip pre{margin:revert;padding:revert}#browser_extension_settings .option_groups .tip pre{font-family:Consolas,panic sans,bitstream vera sans mono,Menlo,microsoft yahei,monospace;font-size:13px;letter-spacing:.015em;line-height:120%;white-space:pre;overflow:auto;background-color:#f5f5f5;word-break:normal;overflow-wrap:normal;padding:.5em;border:none}#browser_extension_settings .container{--button-width: 51px;--button-height: 24px;--toggle-diameter: 20px;--color-off: #e9e9eb;--color-on: #34c759;width:var(--button-width);height:var(--button-height);position:relative;padding:0;margin:0;flex:none}#browser_extension_settings input[type=checkbox]{opacity:0;width:0;height:0;position:absolute}#browser_extension_settings .switch{width:100%;height:100%;display:block;background-color:var(--color-off);border-radius:calc(var(--button-height)/2);cursor:pointer;transition:all .2s ease-out}#browser_extension_settings .slider{width:var(--toggle-diameter);height:var(--toggle-diameter);position:absolute;left:2px;top:calc(50% - var(--toggle-diameter)/2);border-radius:50%;background:#fff;box-shadow:0px 3px 8px rgba(0,0,0,.15),0px 3px 1px rgba(0,0,0,.06);transition:all .2s ease-out;cursor:pointer}#browser_extension_settings input[type=checkbox]:checked+.switch{background-color:var(--color-on)}#browser_extension_settings input[type=checkbox]:checked+.switch .slider{left:calc(var(--button-width) - var(--toggle-diameter) - 2px)}"
   function createSwitch(options = {}) {
     const container = createElement("label", { class: "container" })
     const checkbox = createElement(
@@ -182,7 +184,10 @@
   }
   async function saveSattingsValue(key, value) {
     const settings2 = await getSettings()
-    settings2[key] = value
+    settings2[key] =
+      settingsTable[key] && settingsTable[key].defaultValue === value
+        ? void 0
+        : value
     await setValue(storageKey, settings2)
   }
   function getSettingsValue(key) {
@@ -221,6 +226,20 @@
         }
       }
     }
+    const host2 = location.host
+    const group2 = $(`#${settingsElementId} .option_groups:nth-of-type(2)`)
+    if (group2) {
+      group2.style.display = getSettingsValue(
+        `enableCustomRulesForCurrentSite_${host2}`
+      )
+        ? "block"
+        : "none"
+    }
+    const customStyleValue = $(`#${settingsElementId} .option_groups textarea`)
+    if (customStyleValue) {
+      customStyleValue.value =
+        settings[`customRulesForCurrentSite_${host2}`] || ""
+    }
   }
   function createSettingsElement() {
     let settingsLayer = getSettingsElement()
@@ -238,15 +257,57 @@
       for (const key in settingsTable) {
         if (Object.hasOwn(settingsTable, key)) {
           const item = settingsTable[key]
-          const switchOption = createSwitchOption(item.title, {
-            async onchange(event) {
-              await saveSattingsValue(key, event.target.checked)
-            },
-          })
-          switchOption.dataset.key = key
-          addElement(options, switchOption)
+          if (!item.type || item.type === "switch") {
+            const switchOption = createSwitchOption(item.title, {
+              async onchange(event) {
+                await saveSattingsValue(key, event.target.checked)
+              },
+            })
+            switchOption.dataset.key = key
+            addElement(options, switchOption)
+          }
         }
       }
+      const options2 = addElement(settingsLayer, "div", {
+        class: "option_groups",
+      })
+      let timeoutId
+      addElement(options2, "textarea", {
+        placeholder: `/* Custom rules for internal URLs, matching URLs will be opened in new tabs */`,
+        onkeyup(event) {
+          if (timeoutId) {
+            clearTimeout(timeoutId)
+            timeoutId = null
+          }
+          timeoutId = setTimeout(async () => {
+            const host2 = location.host
+            await saveSattingsValue(
+              `customRulesForCurrentSite_${host2}`,
+              event.target.value.trim()
+            )
+          }, 100)
+        },
+      })
+      const tip = addElement(options2, "div", {
+        class: "tip",
+      })
+      addElement(tip, "a", {
+        class: "tip_anchor",
+        textContent: "Examples",
+      })
+      const tipContent = addElement(tip, "div", {
+        class: "tip_content",
+        innerHTML: `<p>Custom rules for internal URLs, matching URLs will be opened in new tabs</p>
+      <p>
+      - One line per url pattern<br>
+      - All URLs contains '/posts' or '/users/'<br>
+      <pre>/posts/
+/users/</pre>
+      - Regex is supported<br>
+      <pre>^/(posts|members)/d+</pre>
+      - '*' for all URLs
+      </p>`,
+      })
       if (settingsOptions.footer) {
         const footer = addElement(settingsLayer, "footer")
         footer.innerHTML =
@@ -289,6 +350,15 @@
       title: "Enable current site",
       defaultValue: true,
     },
+    [`enableCustomRulesForCurrentSite_${host}`]: {
+      title: "Enable custom rules for current site",
+      defaultValue: false,
+    },
+    [`customRulesForCurrentSite_${host}`]: {
+      title: "Enable custom rules for current site",
+      defaultValue: "",
+      type: "textarea",
+    },
   }
   function registerMenuCommands() {
     registerMenuCommand("\u2699\uFE0F \u8BBE\u7F6E", showSettings, "o")
@@ -301,21 +371,50 @@
       setAttribute(element, name, orgValue + " " + value)
     }
   }
-  var getOrigin = (url) => {
+  var shouldOpenInNewTab = (element) => {
     var _a
-    return (_a = /(^https?:\/\/[^/]+)/.exec(url)) == null ? void 0 : _a[1]
-  }
-  var shouldOpenInNewTab = (url) => {
-    if (!url || !/^https?:\/\//.test(url)) {
+    const url = element.href
+    if (
+      !url ||
+      !/^https?:\/\//.test(url) ||
+      ((_a = element.getAttribute("href")) == null
+        ? void 0
+        : _a.startsWith("#"))
+    ) {
       return false
     }
-    if (getOrigin(url) !== origin) {
+    if (element.origin !== origin) {
       return true
+    }
+    if (getSettingsValue(`enableCustomRulesForCurrentSite_${host}`)) {
+      const rules = (
+        getSettingsValue(`customRulesForCurrentSite_${host}`) || ""
+      ).split("\n")
+      if (rules.includes("*")) {
+        return true
+      }
+      const pathname = element.pathname
+      for (let rule of rules) {
+        rule = rule.trim()
+        if (rule.length === 0) {
+          continue
+        }
+        try {
+          const regexp = new RegExp(rule)
+          if (regexp.test(pathname)) {
+            return true
+          }
+        } catch (error) {
+          console.log(error.message)
+          if (pathname.includes(rule)) {
+            return true
+          }
+        }
+      }
     }
   }
   var setAttributeAsOpenInNewTab = (element) => {
-    const href = element.href
-    if (shouldOpenInNewTab(href)) {
+    if (shouldOpenInNewTab(element)) {
       setAttribute(element, "target", "_blank")
       addAttribute(element, "rel", "noopener")
     }
@@ -324,7 +423,7 @@
     await initSettings({
       title: "\u{1F517} Links Helper",
       footer: `
-    <p>Reload the page to take effect</p>
+    <p>After change settings, reload the page to take effect</p>
     <p>
     <a href="https://github.com/utags/links-helper/issues" target="_blank">
     Report and Issue...
@@ -338,7 +437,7 @@
     registerMenuCommands()
     if (
       !getSettingsValue("enable") ||
-      !getSettingsValue(`enableThisSite_${host}`)
+      !getSettingsValue(`enableCurrentSite_${host}`)
     ) {
       return
     }

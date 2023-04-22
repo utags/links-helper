@@ -6,9 +6,10 @@ Support all sites includes Google search, GitHub, Greasy Fork etc.
 
 - Open external links in a new tab ✅
 - Enable/Disable userscript per site ✅
-- Setting for url rules, open links matching the specified rules in a new tab (Comming soon)
+- Setting for url rules, open links matching the specified rules in a new tab ✅
 
-![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/88e5o8wnsiqn4bvrnbul423rpoqb)
+![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/zbbbksxhu0ntfxbryzp84s3dz88b)
+![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/64sziug83grudizqd5n0znt29uk1)
 
 ## About
 
