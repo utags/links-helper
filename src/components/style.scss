@@ -52,7 +52,7 @@
 
   .option_groups {
     background-color: #fff;
-    padding: 6px 0 6px 15px;
+    padding: 6px 15px 6px 15px;
     border-radius: 10px;
     display: flex;
     flex-direction: column;
@@ -62,20 +62,18 @@
   .option_groups .action {
     font-size: 14px;
     border-top: 1px solid #cccccc;
-    padding: 6px 15px 6px 0;
+    padding: 6px 0 6px 0;
     color: #217dfc;
     cursor: pointer;
   }
 
-  .option_groups:nth-of-type(2) {
-    display: none;
-  }
-
   .option_groups textarea {
-    margin: 10px 15px 10px 0;
-    height: 200px;
-    width: 300px;
+    margin: 10px 0 10px 0;
+    height: 100px;
+    width: 100%;
     border: 1px solid darkgray;
+    border-radius: 4px;
+    box-sizing: border-box;
   }
 
   .switch_option {
@@ -83,12 +81,70 @@
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid #cccccc;
-    padding: 6px 15px 6px 0;
+    padding: 6px 0 6px 0;
     font-size: 14px;
   }
   .switch_option:first-of-type,
   .option_groups .action:first-of-type {
     border-top: none;
+  }
+
+  .switch_option > span {
+    margin-right: 10px;
+  }
+
+  .option_groups .tip {
+    position: relative;
+    margin: 0;
+    padding: 0 15px 0 0;
+    border: none;
+    max-width: none;
+    font-size: 14px;
+
+    .tip_anchor {
+      cursor: help;
+      text-decoration: underline;
+    }
+    .tip_content {
+      position: absolute;
+      bottom: 15px;
+      left: 0;
+      background-color: #ffffff;
+      color: var(--browser-extension-settings-text-color);
+      text-align: left;
+      padding: 10px;
+      display: none;
+      border-radius: 5px;
+      -webkit-box-shadow: 0px 10px 39px 10px rgba(62, 66, 66, 0.22);
+      -moz-box-shadow: 0px 10px 39px 10px rgba(62, 66, 66, 0.22);
+      box-shadow: 0px 10px 39px 10px rgba(62, 66, 66, 0.22) !important;
+    }
+
+    .tip_anchor:hover + .tip_content,
+    .tip_content:hover {
+      display: block;
+    }
+
+    p,
+    pre {
+      margin: revert;
+      padding: revert;
+    }
+
+    pre {
+      font-family: Consolas, panic sans, bitstream vera sans mono, Menlo,
+        microsoft yahei, monospace;
+      font-size: 13px;
+      letter-spacing: 0.015em;
+      line-height: 120%;
+      white-space: pre;
+      overflow: auto;
+      background-color: #f5f5f5;
+      word-break: normal;
+      overflow-wrap: normal;
+      padding: 0.5em;
+      border: none;
+    }
   }
 
   /* https://uiverse.io/zanina-yassine/afraid-eel-50 */

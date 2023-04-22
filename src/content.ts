@@ -30,6 +30,15 @@ const settingsTable = {
     title: "Enable current site",
     defaultValue: true,
   },
+  [`enableCustomRulesForCurrentSite_${host}`]: {
+    title: "Enable custom rules for current site",
+    defaultValue: false,
+  },
+  [`customRulesForCurrentSite_${host}`]: {
+    title: "Enable custom rules for current site",
+    defaultValue: "",
+    type: "textarea",
+  },
 }
 
 function registerMenuCommands() {
@@ -47,28 +56,54 @@ const addAttribute = (element: HTMLElement, name: string, value: string) => {
 
 const getOrigin = (url: string) => /(^https?:\/\/[^/]+)/.exec(url)?.[1]
 
-const shouldOpenInNewTab = (url: string | undefined) => {
-  if (!url || !/^https?:\/\//.test(url)) {
+const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
+  const url = element.href as string | undefined
+  if (
+    !url ||
+    !/^https?:\/\//.test(url) ||
+    element.getAttribute("href")?.startsWith("#")
+  ) {
     return false
   }
 
   // Open external links in a new tab
-  if (getOrigin(url) !== origin) {
+  if (element.origin !== origin) {
     return true
   }
 
-  // TODO: check custom rules
+  // Open matched internal links in a new tab
+  if (getSettingsValue(`enableCustomRulesForCurrentSite_${host}`)) {
+    const rules = (
+      (getSettingsValue(`customRulesForCurrentSite_${host}`) as string) || ""
+    ).split("\n")
+    if (rules.includes("*")) {
+      return true
+    }
+
+    const pathname = element.pathname
+    for (let rule of rules) {
+      rule = rule.trim()
+      if (rule.length === 0) {
+        continue
+      }
+
+      try {
+        const regexp = new RegExp(rule)
+        if (regexp.test(pathname)) {
+          return true
+        }
+      } catch (error) {
+        console.log(error.message)
+        if (pathname.includes(rule)) {
+          return true
+        }
+      }
+    }
+  }
 }
 
-const setAttributeAsOpenInNewTab = (element: HTMLElement) => {
-  // console.log(element)
-  // console.log(element.getAttribute("href"))
-  // console.log(element.href)
-  // console.log(element.hostname)
-  // console.log(element.origin)
-  // console.log(element.pathname)
-  const href = element.href as string | undefined
-  if (shouldOpenInNewTab(href)) {
+const setAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
+  if (shouldOpenInNewTab(element)) {
     setAttribute(element, "target", "_blank")
     addAttribute(element, "rel", "noopener")
   }
@@ -78,7 +113,7 @@ async function main() {
   await initSettings({
     title: "🔗 Links Helper",
     footer: `
-    <p>Reload the page to take effect</p>
+    <p>After change settings, reload the page to take effect</p>
     <p>
     <a href="https://github.com/utags/links-helper/issues" target="_blank">
     Report and Issue...
@@ -93,7 +128,7 @@ async function main() {
 
   if (
     !getSettingsValue("enable") ||
-    !getSettingsValue(`enableThisSite_${host}`)
+    !getSettingsValue(`enableCurrentSite_${host}`)
   ) {
     return
   }
@@ -109,14 +144,14 @@ async function main() {
       }
 
       if (anchorElement) {
-        setAttributeAsOpenInNewTab(anchorElement)
+        setAttributeAsOpenInNewTab(anchorElement as HTMLAnchorElement)
       }
     },
     true
   )
 
   for (const element of $$("a")) {
-    setAttributeAsOpenInNewTab(element)
+    setAttributeAsOpenInNewTab(element as HTMLAnchorElement)
   }
 }
 

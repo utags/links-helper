@@ -32,11 +32,15 @@ async function getSettings() {
 
 async function saveSattingsValue(key: string, value: any) {
   const settings = await getSettings()
-  settings[key] = value
+  settings[key] =
+    settingsTable[key] && settingsTable[key].defaultValue === value
+      ? undefined
+      : value
+
   await setValue(storageKey, settings)
 }
 
-export function getSettingsValue(key: string): boolean | undefined {
+export function getSettingsValue(key: string): boolean | string | undefined {
   return Object.hasOwn(settings, key)
     ? settings[key]
     : settingsTable[key]?.defaultValue
@@ -75,6 +79,21 @@ async function updateOptions() {
       }
     }
   }
+
+  const host = location.host
+  const group2 = $(`#${settingsElementId} .option_groups:nth-of-type(2)`)
+  if (group2) {
+    group2.style.display = getSettingsValue(
+      `enableCustomRulesForCurrentSite_${host}`
+    )
+      ? "block"
+      : "none"
+  }
+
+  const customStyleValue = $(`#${settingsElementId} .option_groups textarea`)
+  if (customStyleValue) {
+    customStyleValue.value = settings[`customRulesForCurrentSite_${host}`] || ""
+  }
 }
 
 function createSettingsElement() {
@@ -93,17 +112,64 @@ function createSettingsElement() {
     for (const key in settingsTable) {
       if (Object.hasOwn(settingsTable, key)) {
         const item = settingsTable[key]
-        const switchOption = createSwitchOption(item.title, {
-          async onchange(event) {
-            await saveSattingsValue(key, event.target.checked)
-          },
-        })
+        if (!item.type || item.type === "switch") {
+          const switchOption = createSwitchOption(item.title, {
+            async onchange(event) {
+              await saveSattingsValue(key, event.target.checked)
+            },
+          })
 
-        switchOption.dataset.key = key
+          switchOption.dataset.key = key
 
-        addElement(options, switchOption)
+          addElement(options, switchOption)
+        }
       }
     }
+
+    const options2 = addElement(settingsLayer, "div", {
+      class: "option_groups",
+    })
+    let timeoutId
+    addElement(options2, "textarea", {
+      placeholder: `/* Custom rules for internal URLs, matching URLs will be opened in new tabs */`,
+      onkeyup(event) {
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+          timeoutId = null
+        }
+
+        timeoutId = setTimeout(async () => {
+          const host = location.host
+          await saveSattingsValue(
+            `customRulesForCurrentSite_${host}`,
+            event.target.value.trim()
+          )
+        }, 100)
+      },
+    })
+
+    const tip = addElement(options2, "div", {
+      class: "tip",
+    })
+    addElement(tip, "a", {
+      class: "tip_anchor",
+      textContent: "Examples",
+    })
+    const tipContent = addElement(tip, "div", {
+      class: "tip_content",
+      innerHTML: `<p>Custom rules for internal URLs, matching URLs will be opened in new tabs</p>
+      <p>
+      - One line per url pattern<br>
+      - All URLs contains '/posts' or '/users/'<br>
+      <pre>/posts/
+/users/</pre>
+
+      - Regex is supported<br>
+      <pre>^/(posts|members)/d+</pre>
+
+      - '*' for all URLs
+      </p>`,
+    })
 
     if (settingsOptions.footer) {
       const footer = addElement(settingsLayer, "footer")
