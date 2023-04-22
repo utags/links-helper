@@ -15,3 +15,9 @@
 // @run-at               document-end
 // ==/UserScript==
 //
+//// Recent Updates
+//// - 0.0.2 2023.04.22
+////    - Add settings menu
+////    - Enable/Disable userscript
+////    - Enable/Disable current site
+////

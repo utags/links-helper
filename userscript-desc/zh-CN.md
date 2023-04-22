@@ -5,7 +5,10 @@
 支持谷歌搜索，GitHub, Greasy Fork, V2EX 等所有网站。
 
 - 在新标签页中打开第三方网站链接 ✅
+- 每个站点可以单独设置开关此脚本 ✅
 - 设置规则功能，在新标签页中打开符合指定规则的链接（进行中）
+
+![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/88e5o8wnsiqn4bvrnbul423rpoqb)
 
 ## About
 
