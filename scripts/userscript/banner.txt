@@ -16,6 +16,8 @@
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.1.0 2023.04.23
+////    - Setting for url rules, open links matching the specified rules in a new tab
 //// - 0.0.2 2023.04.22
 ////    - Add settings menu
 ////    - Enable/Disable userscript
