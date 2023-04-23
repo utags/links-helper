@@ -1,14 +1,17 @@
 # 🔗 链接助手
 
-支持所有网站在新标签页中打开第三方网站链接，在新标签页中打开符合指定规则的链接。
+支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的链接。
 
 支持谷歌搜索，GitHub, Greasy Fork, V2EX 等所有网站。
 
-- 在新标签页中打开第三方网站链接 ✅
+- 在新标签页中打开第三方网站链接（外链） ✅
 - 每个站点可以单独设置开关此脚本 ✅
 - 设置规则功能，在新标签页中打开符合指定规则的链接 ✅
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/zbbbksxhu0ntfxbryzp84s3dz88b)
+
+---
+
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/64sziug83grudizqd5n0znt29uk1)
 
 ## About
