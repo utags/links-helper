@@ -18,7 +18,7 @@ const host = location.host
 
 export const config: PlasmoCSConfig = {
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  run_at: "document_end",
+  run_at: "document_start",
 }
 
 const settingsTable = {
@@ -150,9 +150,26 @@ async function main() {
     true
   )
 
-  for (const element of $$("a")) {
-    setAttributeAsOpenInNewTab(element as HTMLAnchorElement)
+  const scanAnchors = () => {
+    for (const element of $$("a")) {
+      if (element.__links_helper_scaned) {
+        continue
+      }
+
+      element.__links_helper_scaned = 1
+      setAttributeAsOpenInNewTab(element as HTMLAnchorElement)
+    }
   }
+
+  if (config.run_at === "document_start") {
+    const intervalId = setInterval(scanAnchors, 200)
+    addEventListener(document, "DOMContentLoaded", () => {
+      clearInterval(intervalId)
+      scanAnchors()
+    })
+  }
+
+  scanAnchors()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises, unicorn/prefer-top-level-await
