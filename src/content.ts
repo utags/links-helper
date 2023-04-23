@@ -55,6 +55,7 @@ const addAttribute = (element: HTMLElement, name: string, value: string) => {
 }
 
 const getOrigin = (url: string) => /(^https?:\/\/[^/]+)/.exec(url)?.[1]
+const getWithoutOrigin = (url: string) => url.replace(/(^https?:\/\/[^/]+)/, "")
 
 const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
   const url = element.href as string | undefined
@@ -80,7 +81,7 @@ const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
       return true
     }
 
-    const pathname = element.pathname
+    const hrefWithoutOrigin = getWithoutOrigin(url)
     for (let rule of rules) {
       rule = rule.trim()
       if (rule.length === 0) {
@@ -89,12 +90,12 @@ const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
 
       try {
         const regexp = new RegExp(rule)
-        if (regexp.test(pathname)) {
+        if (regexp.test(hrefWithoutOrigin)) {
           return true
         }
       } catch (error) {
         console.log(error.message)
-        if (pathname.includes(rule)) {
+        if (hrefWithoutOrigin.includes(rule)) {
           return true
         }
       }
