@@ -12,7 +12,7 @@
 // @license              {license}
 // @match                https://*/*
 // @match                http://*/*
-// @run-at               document-end
+// @run-at               document-start
 // ==/UserScript==
 //
 //// Recent Updates
