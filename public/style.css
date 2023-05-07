@@ -1,0 +1,33 @@
+html,
+body {
+  height: 100%;
+
+  width: 100%;
+
+  margin: 0;
+
+  padding: 0;
+}
+
+ul {
+  list-style-type: none;
+  padding: 40px;
+  margin: 0 auto;
+  width: 80%;
+}
+
+a,
+a:visited {
+  color: blue;
+}
+a:hover {
+  color: blueviolet;
+}
+
+.list a::after {
+  content: 'target="' attr(target) '" rel="' attr(rel) '" href="' attr(href) '"';
+  margin-left: 5px;
+  font-size: 0.75em;
+  color: #aaa;
+  text-decoration: none;
+}
