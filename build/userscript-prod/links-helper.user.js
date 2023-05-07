@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.1.2
+// @version              0.1.3
 // @description          Open external links in a new tab, open links matching the specified rules in a new tab
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的链接
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
@@ -15,14 +15,16 @@
 // @run-at               document-start
 // @grant                GM_addElement
 // @grant                GM_addStyle
-// @grant                GM_registerMenuCommand
-// @grant                GM_getValue
-// @grant                GM_setValue
+// @grant                GM.registerMenuCommand
+// @grant                GM.getValue
+// @grant                GM.setValue
 // @grant                GM_addValueChangeListener
 // @grant                GM_removeValueChangeListener
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.1.3 2023.05.08
+////    - Fix compatibility issues on Violentmonkey, Greasemonkey(Firefox), Userscripts(Safari)
 //// - 0.1.1 2023.04.23
 ////    - Change to run_at: document_start
 //// - 0.1.0 2023.04.23
@@ -35,16 +37,35 @@
 ;(() => {
   "use strict"
   var doc = document
-  var $ = (element, selectors) =>
-    element && typeof element === "object"
-      ? element.querySelector(selectors)
-      : doc.querySelector(element)
-  var $$ = (element, selectors) =>
-    element && typeof element === "object"
-      ? [...element.querySelectorAll(selectors)]
-      : [...doc.querySelectorAll(element)]
+  var $ = (selectors, element) => (element || doc).querySelector(selectors)
+  var $$ = (selectors, element) => [
+    ...(element || doc).querySelectorAll(selectors),
+  ]
   var createElement = (tagName, attributes) =>
     setAttributes(doc.createElement(tagName), attributes)
+  var addElement = (parentNode, tagName, attributes) => {
+    if (!parentNode) {
+      return
+    }
+    if (typeof parentNode === "string") {
+      attributes = tagName
+      tagName = parentNode
+      parentNode = doc.head
+    }
+    if (typeof tagName === "string") {
+      const element = createElement(tagName, attributes)
+      parentNode.append(element)
+      return element
+    }
+    setAttributes(tagName, attributes)
+    parentNode.append(tagName)
+    return tagName
+  }
+  var addStyle = (styleText) => {
+    const element = createElement("style", { textContent: styleText })
+    doc.head.append(element)
+    return element
+  }
   var addEventListener = (element, type, listener, options) => {
     if (!element) {
       return
@@ -122,27 +143,54 @@
     Object.hasOwn = (instance, prop) =>
       Object.prototype.hasOwnProperty.call(instance, prop)
   }
-  var addElement = (parentNode, tagName, attributes) => {
-    if (typeof parentNode === "string" || typeof tagName === "string") {
-      const element = GM_addElement(parentNode, tagName, attributes)
-      setAttributes(element, attributes)
-      return element
+  var addElement2 =
+    typeof GM_addElement === "function"
+      ? (parentNode, tagName, attributes) => {
+          if (!parentNode) {
+            return
+          }
+          if (typeof parentNode === "string") {
+            attributes = tagName
+            tagName = parentNode
+            parentNode = doc.head
+          }
+          if (typeof tagName === "string") {
+            const element = GM_addElement(tagName)
+            setAttributes(element, attributes)
+            parentNode.append(element)
+            return element
+          }
+          setAttributes(tagName, attributes)
+          parentNode.append(tagName)
+          return tagName
+        }
+      : addElement
+  var addStyle2 =
+    typeof GM_addStyle === "function"
+      ? (styleText) => GM_addStyle(styleText)
+      : addStyle
+  var registerMenuCommand = (name, callback, accessKey) => {
+    if (window !== top) {
+      return
     }
-    setAttributes(tagName, attributes)
-    parentNode.append(tagName)
-    return tagName
+    if (typeof GM.registerMenuCommand !== "function") {
+      console.warn("Do not support GM.registerMenuCommand!")
+      return
+    }
+    GM.registerMenuCommand(name, callback, accessKey)
   }
-  var addStyle = (styleText) => GM_addStyle(styleText)
-  var registerMenuCommand = (name, callback, accessKey) =>
-    window === top && GM_registerMenuCommand(name, callback, accessKey)
-  var getValue = (key) => {
-    const value = GM_getValue(key)
+  var getValue = async (key) => {
+    const value = await GM.getValue(key)
     return value && value !== "undefined" ? JSON.parse(value) : void 0
   }
-  var setValue = (key, value) => {
-    if (value !== void 0) GM_setValue(key, JSON.stringify(value))
+  var setValue = async (key, value) => {
+    if (value !== void 0) GM.setValue(key, JSON.stringify(value))
   }
   var addValueChangeListener = (key, func) => {
+    if (typeof GM_addValueChangeListener !== "function") {
+      console.warn("Do not support GM_addValueChangeListener!")
+      return () => void 0
+    }
     const listenerId = GM_addValueChangeListener(key, func)
     return () => {
       GM_removeValueChangeListener(listenerId)
@@ -156,10 +204,10 @@
       "input",
       options.checked ? { type: "checkbox", checked: "" } : { type: "checkbox" }
     )
-    addElement(container, checkbox)
+    addElement2(container, checkbox)
     const switchElm = createElement("span", { class: "switch" })
-    addElement(switchElm, "span", { class: "slider" })
-    addElement(container, switchElm)
+    addElement2(switchElm, "span", { class: "slider" })
+    addElement2(container, switchElm)
     if (options.onchange) {
       addEventListener(checkbox, "change", options.onchange)
     }
@@ -167,7 +215,7 @@
   }
   function createSwitchOption(text, options) {
     const div = createElement("div", { class: "switch_option" })
-    addElement(div, "span", { textContent: text })
+    addElement2(div, "span", { textContent: text })
     div.append(createSwitch(options))
     return div
   }
@@ -246,14 +294,14 @@
   function createSettingsElement() {
     let settingsLayer = getSettingsElement()
     if (!settingsLayer) {
-      addStyle(getSettingsStyle())
-      settingsLayer = addElement(document.body, "div", {
+      addStyle2(getSettingsStyle())
+      settingsLayer = addElement2(document.body, "div", {
         id: settingsElementId,
       })
       if (settingsOptions.title) {
-        addElement(settingsLayer, "h2", { textContent: settingsOptions.title })
+        addElement2(settingsLayer, "h2", { textContent: settingsOptions.title })
       }
-      const options = addElement(settingsLayer, "div", {
+      const options = addElement2(settingsLayer, "div", {
         class: "option_groups",
       })
       for (const key in settingsTable) {
@@ -266,15 +314,15 @@
               },
             })
             switchOption.dataset.key = key
-            addElement(options, switchOption)
+            addElement2(options, switchOption)
           }
         }
       }
-      const options2 = addElement(settingsLayer, "div", {
+      const options2 = addElement2(settingsLayer, "div", {
         class: "option_groups",
       })
       let timeoutId
-      addElement(options2, "textarea", {
+      addElement2(options2, "textarea", {
         placeholder: `/* Custom rules for internal URLs, matching URLs will be opened in new tabs */`,
         onkeyup(event) {
           if (timeoutId) {
@@ -290,14 +338,14 @@
           }, 100)
         },
       })
-      const tip = addElement(options2, "div", {
+      const tip = addElement2(options2, "div", {
         class: "tip",
       })
-      addElement(tip, "a", {
+      addElement2(tip, "a", {
         class: "tip_anchor",
         textContent: "Examples",
       })
-      const tipContent = addElement(tip, "div", {
+      const tipContent = addElement2(tip, "div", {
         class: "tip_content",
         innerHTML: `<p>Custom rules for internal URLs, matching URLs will be opened in new tabs</p>
       <p>
@@ -311,7 +359,7 @@
       </p>`,
       })
       if (settingsOptions.footer) {
-        const footer = addElement(settingsLayer, "footer")
+        const footer = addElement2(settingsLayer, "footer")
         footer.innerHTML =
           typeof settingsOptions.footer === "string"
             ? settingsOptions.footer
