@@ -14,6 +14,15 @@
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/64sziug83grudizqd5n0znt29uk1)
 
+## 其他
+
+兼容以下用户脚本管理器
+
+- Tampermonkey (推荐)
+- Violentmonkey
+- Greasemonkey
+- Userscripts (Safari)
+
 ## About
 
 - Repository: [https://github.com/utags/links-helper](https://github.com/utags/links-helper)

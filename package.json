@@ -2,7 +2,7 @@
   "name": "links-helper",
   "displayName": "🔗 Links Helper",
   "displayName:zh-CN": "🔗 链接助手",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Open external links in a new tab, open links matching the specified rules in a new tab",
   "description:zh-CN": "支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的链接",
   "author": "Pipecraft",
