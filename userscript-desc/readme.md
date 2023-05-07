@@ -14,6 +14,15 @@ Support all sites includes Google search, GitHub, Greasy Fork etc.
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/64sziug83grudizqd5n0znt29uk1)
 
+## Other
+
+Compatible with the following userscript managers
+
+- Tampermonkey (Recommended)
+- Violentmonkey
+- Greasemonkey
+- Userscripts (Safari)
+
 ## About
 
 - Repository: [https://github.com/utags/links-helper](https://github.com/utags/links-helper)
