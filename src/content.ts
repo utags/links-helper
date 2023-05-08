@@ -1,6 +1,8 @@
 import {
   $$,
   addEventListener,
+  createElement,
+  doc,
   getAttribute,
   registerMenuCommand,
   setAttribute,
@@ -144,8 +146,13 @@ async function main() {
         anchorElement = anchorElement.parentNode as HTMLElement | undefined
       }
 
+      // Handle SPA apps
       if (anchorElement) {
         setAttributeAsOpenInNewTab(anchorElement as HTMLAnchorElement)
+        if (getAttribute(anchorElement, "target") === "_blank") {
+          event.stopImmediatePropagation()
+          event.stopPropagation()
+        }
       }
     },
     true
