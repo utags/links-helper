@@ -6,6 +6,7 @@ import {
   getAttribute,
   registerMenuCommand,
   setAttribute,
+  throttle,
 } from "browser-extension-utils"
 import type { PlasmoCSConfig } from "plasmo"
 
@@ -14,6 +15,7 @@ import {
   initSettings,
   showSettings,
 } from "./components/settings"
+import { scanAndConvertChildNodes } from "./modules/text-to-links"
 
 const origin = location.origin
 const host = location.host
@@ -169,12 +171,37 @@ async function main() {
     }
   }
 
-  if (config.run_at === "document_start") {
-    const intervalId = setInterval(scanAnchors, 200)
-    addEventListener(document, "DOMContentLoaded", () => {
-      clearInterval(intervalId)
-      scanAnchors()
+  const scanNodes = throttle(() => {
+    // console.error("mutation - scanAndConvertChildNodes, scanAnchors", Date.now())
+    scanAndConvertChildNodes(doc.body)
+    scanAnchors()
+  }, 500)
+
+  const observer = new MutationObserver(() => {
+    // console.error("mutation", Date.now())
+    scanNodes()
+  })
+
+  const startObserver = () => {
+    observer.observe(doc.body, {
+      // attributes: true,
+      childList: true,
+      subtree: true,
+      characterData: true,
     })
+  }
+
+  if (doc.body) {
+    startObserver()
+    scanAndConvertChildNodes(doc.body)
+  } else {
+    const intervalId = setInterval(() => {
+      if (doc.body) {
+        clearInterval(intervalId)
+        startObserver()
+        scanAndConvertChildNodes(doc.body)
+      }
+    }, 100)
   }
 
   scanAnchors()
