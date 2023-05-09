@@ -1,12 +1,13 @@
 # 🔗 Links Helper
 
-Open external links in a new tab, open links matching the specified rules in a new tab.
+Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks.
 
-Support all sites includes Google search, GitHub, Greasy Fork etc.
+Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 
 - Open external links in a new tab ✅
 - Enable/Disable userscript per site ✅
 - Setting for url rules, open links matching the specified rules in a new tab ✅
+- Convert text to hyperlinks ✅
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/zbbbksxhu0ntfxbryzp84s3dz88b)
 
@@ -38,6 +39,9 @@ Compatible with the following userscript managers
 - [新标签页打开链接](https://greasyfork.org/scripts/429714-%E6%96%B0%E6%A0%87%E7%AD%BE%E9%A1%B5%E6%89%93%E5%BC%80%E9%93%BE%E6%8E%A5) (Author X.I.U) - Open all links in a new tab
 - [External link newtaber](https://greasyfork.org/scripts/40304-external-link-newtaber) (Author almaceleste)
 - [Open external link in new tab](https://greasyfork.org/scripts/9499-open-external-link-in-new-tab) (Author eight)
+- [文本链接自动识别为超链接](https://greasyfork.org/scripts/452150-textlink-to-hyperlink) (Author DreamNya)
+- [微信公众号文本地址转超链接](https://greasyfork.org/scripts/461343-wechat-text-link-to-hyperlink) (Author runningcheese)
+- [链接助手](https://greasyfork.org/scripts/422773-%E9%93%BE%E6%8E%A5%E5%8A%A9%E6%89%8B) (Author 一个北七)
 
 ## License
 
