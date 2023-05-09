@@ -1,7 +1,7 @@
 import {
   $$,
+  addAttribute,
   addEventListener,
-  createElement,
   doc,
   getAttribute,
   registerMenuCommand,
@@ -15,6 +15,7 @@ import {
   initSettings,
   showSettings,
 } from "./components/settings"
+import { linkToImg } from "./modules/link-to-img"
 import { scanAndConvertChildNodes } from "./modules/text-to-links"
 
 const origin = location.origin
@@ -47,15 +48,6 @@ const settingsTable = {
 
 function registerMenuCommands() {
   registerMenuCommand("⚙️ 设置", showSettings, "o")
-}
-
-const addAttribute = (element: HTMLElement, name: string, value: string) => {
-  const orgValue = getAttribute(element, name)
-  if (!orgValue) {
-    setAttribute(element, name, value)
-  } else if (!orgValue.includes(value)) {
-    setAttribute(element, name, orgValue + " " + value)
-  }
 }
 
 const getOrigin = (url: string) => /(^https?:\/\/[^/]+)/.exec(url)?.[1]
@@ -168,6 +160,7 @@ async function main() {
 
       element.__links_helper_scaned = 1
       setAttributeAsOpenInNewTab(element as HTMLAnchorElement)
+      linkToImg(element as HTMLAnchorElement)
     }
   }
 
