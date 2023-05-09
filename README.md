@@ -1,12 +1,13 @@
 # 🔗 Links Helper
 
-Open external links in a new tab, open links matching the specified rules in a new tab.
+Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks.
 
-Support all sites includes Google search, GitHub, Greasy Fork etc.
+Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 
 - Open external links in a new tab ✅
 - Enable/Disable userscript per site ✅
 - Setting for url rules, open links matching the specified rules in a new tab ✅
+- Convert text to hyperlinks ✅
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/zbbbksxhu0ntfxbryzp84s3dz88b)
 
