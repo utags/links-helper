@@ -4,9 +4,9 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.2.0
-// @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks
-// @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接
+// @version              0.3.0
+// @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags
+// @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
 // @author               Pipecraft
 // @license              MIT
@@ -23,6 +23,8 @@
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.3.0 2023.05.10
+////    - Convert image links to image tags
 //// - 0.2.0 2023.05.09
 ////    - Convert text to hyperlinks
 ////    - Fix opening internal links in a new tab in SPA apps
@@ -123,6 +125,14 @@
       }
     }
     return element
+  }
+  var addAttribute = (element, name, value) => {
+    const orgValue = getAttribute(element, name)
+    if (!orgValue) {
+      setAttribute(element, name, value)
+    } else if (!orgValue.includes(value)) {
+      setAttribute(element, name, orgValue + " " + value)
+    }
   }
   var setStyle = (element, values, overwrite) => {
     if (!element) {
@@ -408,6 +418,86 @@
     })
     settings = await getSettings()
   }
+  var image_url_default =
+    '{\n  "imgur.com": [\n    "https?://imgur.com/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.com/gi2b1rj",\n    "https?://imgur.com/(\\\\w+)\\\\.(\\\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.com/gi2b1rj.png"\n  ],\n  "imgur.io": [\n    "https?://imgur.io/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.io/gi2b1rj",\n    "https?://imgur.io/(\\\\w+)\\\\.(\\\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.io/gi2b1rj.png"\n  ],\n  "i.imgur.com": [\n    "https?://i.imgur.com/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png"\n  ],\n  "camo.githubusercontent.com": [\n    "https://camo.githubusercontent.com/.* # This is a img url, no need to replace value"\n  ]\n}\n'
+  var rules = JSON.parse(image_url_default)
+  var cachedRules = {}
+  var processRule = (rule, href) => {
+    var _a
+    let pattern
+    let replacement
+    const cachedRule = cachedRules[rule]
+    try {
+      if (cachedRule) {
+        pattern = cachedRule.pattern
+        replacement = cachedRule.replacement
+      } else {
+        const result = rule.replace(/ #.*/, "").split("->")
+        const patternString = result[0].trim()
+        pattern = new RegExp(
+          patternString.startsWith("http")
+            ? "^" + patternString
+            : patternString,
+          "i"
+        )
+        replacement = (_a = result[1]) == null ? void 0 : _a.trim()
+        cachedRules[rule] = { pattern, replacement }
+      }
+      if (pattern.test(href)) {
+        let newHref
+        if (replacement) {
+          newHref = href.replace(pattern, replacement)
+        } else {
+          newHref = href
+        }
+        return newHref
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+  var anchorElementToImgElement = (anchor, href, text) => {
+    anchor.innerHTML = `<img src="${href}" title="${text}" alt="${text}" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer"/>`
+    setAttribute(anchor, "target", "_blank")
+    addAttribute(anchor, "rel", "noopener")
+    addAttribute(anchor, "rel", "noreferrer")
+    setAttributes(anchor.childNodes[0], {
+      onerror(event) {
+        const img = event.srcElement
+        img.outerHTML =
+          text + '<i class="lh_img_load_failed"> (failed to load)</i>'
+      },
+    })
+  }
+  var linkToImg = (anchor) => {
+    if (
+      !anchor ||
+      anchor.childElementCount !== 0 ||
+      anchor.childNodes[0].nodeType !== 3
+    ) {
+      return
+    }
+    const href = anchor.href
+    const hostname = anchor.hostname
+    const text = anchor.textContent
+    let matched = false
+    if (Object.hasOwn(rules, hostname)) {
+      for (const rule of rules[hostname]) {
+        const newHref = processRule(rule, href)
+        if (newHref) {
+          anchorElementToImgElement(anchor, newHref, text)
+          matched = true
+          break
+        }
+      }
+    }
+    if (
+      !matched &&
+      /^https?[^?]+\.(?:jpg|jpeg|jpe|bmp|png|gif|webp|ico|svg)/i.test(href)
+    ) {
+      anchorElementToImgElement(anchor, href, text)
+    }
+  }
   var ignoredTags = /* @__PURE__ */ new Set([
     "A",
     "BUTTON",
@@ -485,14 +575,6 @@
   function registerMenuCommands() {
     registerMenuCommand("\u2699\uFE0F \u8BBE\u7F6E", showSettings, "o")
   }
-  var addAttribute = (element, name, value) => {
-    const orgValue = getAttribute(element, name)
-    if (!orgValue) {
-      setAttribute(element, name, value)
-    } else if (!orgValue.includes(value)) {
-      setAttribute(element, name, orgValue + " " + value)
-    }
-  }
   var getWithoutOrigin = (url) => url.replace(/(^https?:\/\/[^/]+)/, "")
   var shouldOpenInNewTab = (element) => {
     var _a
@@ -510,14 +592,14 @@
       return true
     }
     if (getSettingsValue(`enableCustomRulesForCurrentSite_${host}`)) {
-      const rules = (
+      const rules2 = (
         getSettingsValue(`customRulesForCurrentSite_${host}`) || ""
       ).split("\n")
-      if (rules.includes("*")) {
+      if (rules2.includes("*")) {
         return true
       }
       const hrefWithoutOrigin = getWithoutOrigin(url)
-      for (let rule of rules) {
+      for (let rule of rules2) {
         rule = rule.trim()
         if (rule.length === 0) {
           continue
@@ -589,6 +671,7 @@
         }
         element.__links_helper_scaned = 1
         setAttributeAsOpenInNewTab(element)
+        linkToImg(element)
       }
     }
     const scanNodes = throttle(() => {
