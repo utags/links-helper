@@ -16,6 +16,8 @@
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.3.0 2023.05.10
+////    - Convert image links to image tags
 //// - 0.2.0 2023.05.09
 ////    - Convert text to hyperlinks
 ////    - Fix opening internal links in a new tab in SPA apps
