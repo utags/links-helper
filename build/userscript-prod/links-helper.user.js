@@ -4,9 +4,9 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.1.3
-// @description          Open external links in a new tab, open links matching the specified rules in a new tab
-// @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的链接
+// @version              0.2.0
+// @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks
+// @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
 // @author               Pipecraft
 // @license              MIT
@@ -23,6 +23,9 @@
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.2.0 2023.05.09
+////    - Convert text to hyperlinks
+////    - Fix opening internal links in a new tab in SPA apps
 //// - 0.1.3 2023.05.08
 ////    - Fix compatibility issues on Violentmonkey, Greasemonkey(Firefox), Userscripts(Safari)
 //// - 0.1.1 2023.04.23
@@ -138,6 +141,25 @@
         style[key] = values[key].replace("!important", "")
       }
     }
+  }
+  var throttle = (func, interval) => {
+    let timeoutId = null
+    let next = false
+    const handler = (...args) => {
+      if (timeoutId) {
+        next = true
+      } else {
+        func.apply(void 0, args)
+        timeoutId = setTimeout(() => {
+          timeoutId = null
+          if (next) {
+            next = false
+            handler()
+          }
+        }, interval)
+      }
+    }
+    return handler
   }
   if (typeof Object.hasOwn !== "function") {
     Object.hasOwn = (instance, prop) =>
@@ -386,6 +408,56 @@
     })
     settings = await getSettings()
   }
+  var ignoredTags = /* @__PURE__ */ new Set([
+    "A",
+    "BUTTON",
+    "SVG",
+    "PATH",
+    "G",
+    "SCRIPT",
+    "STYLE",
+    "TEXTAREA",
+    "CODE",
+    "NOSCRIPT",
+    "TITLE",
+  ])
+  var linkPattern =
+    /\b(https?:\/\/([\w-.]+\.[a-z]{2,15}|localhost|(\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/[\w-/%.~+:!@=&?#]*)?/gim
+  var textToLink = (textNode) => {
+    if (
+      textNode.nodeName !== "#text" ||
+      !textNode.textContent ||
+      textNode.textContent.trim().length < 10
+    ) {
+      return
+    }
+    const matched = linkPattern.exec(textNode.textContent)
+    if (matched && matched[0]) {
+      const span = createElement("span")
+      span.innerHTML = textNode.textContent.replace(linkPattern, (m) => {
+        return `<a href='${m}'>${m}</a>`
+      })
+      textNode.after(span)
+      textNode.remove()
+    }
+  }
+  var scanAndConvertChildNodes = (parentNode) => {
+    if (
+      !parentNode ||
+      parentNode.nodeType === 8 ||
+      !parentNode.tagName ||
+      ignoredTags.has(parentNode.tagName.toUpperCase())
+    ) {
+      return
+    }
+    for (const child of parentNode.childNodes) {
+      if (child.nodeName === "#text") {
+        textToLink(child)
+      } else {
+        scanAndConvertChildNodes(child)
+      }
+    }
+  }
   var origin = location.origin
   var host = location.host
   var config = {
@@ -502,6 +574,10 @@
         }
         if (anchorElement) {
           setAttributeAsOpenInNewTab(anchorElement)
+          if (getAttribute(anchorElement, "target") === "_blank") {
+            event.stopImmediatePropagation()
+            event.stopPropagation()
+          }
         }
       },
       true
@@ -515,12 +591,31 @@
         setAttributeAsOpenInNewTab(element)
       }
     }
-    if (config.run_at === "document_start") {
-      const intervalId = setInterval(scanAnchors, 200)
-      addEventListener(document, "DOMContentLoaded", () => {
-        clearInterval(intervalId)
-        scanAnchors()
+    const scanNodes = throttle(() => {
+      scanAndConvertChildNodes(doc.body)
+      scanAnchors()
+    }, 500)
+    const observer = new MutationObserver(() => {
+      scanNodes()
+    })
+    const startObserver = () => {
+      observer.observe(doc.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
       })
+    }
+    if (doc.body) {
+      startObserver()
+      scanAndConvertChildNodes(doc.body)
+    } else {
+      const intervalId = setInterval(() => {
+        if (doc.body) {
+          clearInterval(intervalId)
+          startObserver()
+          scanAndConvertChildNodes(doc.body)
+        }
+      }, 100)
     }
     scanAnchors()
   }
