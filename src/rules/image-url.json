@@ -1,0 +1,16 @@
+{
+  "imgur.com": [
+    "https?://imgur.com/(\\w+)($|\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.com/gi2b1rj",
+    "https?://imgur.com/(\\w+)\\.(\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.com/gi2b1rj.png"
+  ],
+  "imgur.io": [
+    "https?://imgur.io/(\\w+)($|\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.io/gi2b1rj",
+    "https?://imgur.io/(\\w+)\\.(\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.io/gi2b1rj.png"
+  ],
+  "i.imgur.com": [
+    "https?://i.imgur.com/(\\w+)($|\\?) -> https://i.imgur.com/$1.png"
+  ],
+  "camo.githubusercontent.com": [
+    "https://camo.githubusercontent.com/.* # This is a img url, no need to replace value"
+  ]
+}
