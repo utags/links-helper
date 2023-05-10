@@ -4,9 +4,9 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.3.0
-// @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags
-// @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签
+// @version              0.3.2
+// @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags
+// @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
 // @author               Pipecraft
 // @license              MIT
@@ -23,6 +23,8 @@
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.3.2 2023.05.10
+////    - Parse Markdown style links and image tags
 //// - 0.3.0 2023.05.10
 ////    - Convert image links to image tags
 //// - 0.2.0 2023.05.09
@@ -422,6 +424,7 @@
     '{\n  "imgur.com": [\n    "https?://imgur.com/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.com/gi2b1rj",\n    "https?://imgur.com/(\\\\w+)\\\\.(\\\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.com/gi2b1rj.png"\n  ],\n  "imgur.io": [\n    "https?://imgur.io/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.io/gi2b1rj",\n    "https?://imgur.io/(\\\\w+)\\\\.(\\\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.io/gi2b1rj.png"\n  ],\n  "i.imgur.com": [\n    "https?://i.imgur.com/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png"\n  ],\n  "camo.githubusercontent.com": [\n    "https://camo.githubusercontent.com/.* # This is a img url, no need to replace value"\n  ]\n}\n'
   var rules = JSON.parse(image_url_default)
   var cachedRules = {}
+  var getHostname = (url) => (/https?:\/\/([^/]+)/.exec(url) || [])[1]
   var processRule = (rule, href) => {
     var _a
     let pattern
@@ -444,20 +447,33 @@
         cachedRules[rule] = { pattern, replacement }
       }
       if (pattern.test(href)) {
-        let newHref
-        if (replacement) {
-          newHref = href.replace(pattern, replacement)
-        } else {
-          newHref = href
-        }
-        return newHref
+        return replacement ? href.replace(pattern, replacement) : href
       }
     } catch (error) {
       console.error(error)
     }
   }
+  var convertImgUrl = (href) => {
+    if (!href) {
+      return
+    }
+    const hostname = getHostname(href)
+    if (Object.hasOwn(rules, hostname)) {
+      for (const rule of rules[hostname]) {
+        const newHref = processRule(rule, href)
+        if (newHref) {
+          return newHref
+        }
+      }
+    }
+  }
+  var createImgTagString = (src, text) =>
+    `<img src="${src}" title="${text || "image"}" alt="${
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      text || "image"
+    }" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer"/>`
   var anchorElementToImgElement = (anchor, href, text) => {
-    anchor.innerHTML = `<img src="${href}" title="${text}" alt="${text}" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer"/>`
+    anchor.innerHTML = createImgTagString(href, text)
     setAttribute(anchor, "target", "_blank")
     addAttribute(anchor, "rel", "noopener")
     addAttribute(anchor, "rel", "noreferrer")
@@ -478,22 +494,12 @@
       return
     }
     const href = anchor.href
-    const hostname = anchor.hostname
     const text = anchor.textContent
-    let matched = false
-    if (Object.hasOwn(rules, hostname)) {
-      for (const rule of rules[hostname]) {
-        const newHref = processRule(rule, href)
-        if (newHref) {
-          anchorElementToImgElement(anchor, newHref, text)
-          matched = true
-          break
-        }
-      }
-    }
-    if (
-      !matched &&
-      /^https?[^?]+\.(?:jpg|jpeg|jpe|bmp|png|gif|webp|ico|svg)/i.test(href)
+    const newHref = convertImgUrl(href)
+    if (newHref) {
+      anchorElementToImgElement(anchor, newHref, text)
+    } else if (
+      /^https:[^?]+\.(?:jpg|jpeg|jpe|bmp|png|gif|webp|ico|svg)/i.test(href)
     ) {
       anchorElementToImgElement(anchor, href, text)
     }
@@ -508,27 +514,95 @@
     "STYLE",
     "TEXTAREA",
     "CODE",
+    "PRE",
+    "TEMPLATE",
     "NOSCRIPT",
     "TITLE",
   ])
-  var linkPattern =
-    /\b(https?:\/\/([\w-.]+\.[a-z]{2,15}|localhost|(\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/[\w-/%.~+:!@=&?#]*)?/gim
+  var urlPattern =
+    "\\b((?:https?:\\/\\/(?:[\\w-.]+\\.[a-z]{2,15}|localhost|(?:\\d{1,3}\\.){3}\\d{1,3}))(?::\\d+)?(?:\\/[\\w-/%.~+:!@=&?#]*)?)"
+  var linkPattern1 = new RegExp(
+    `!\\[([^\\[\\]]*)\\]\\(\\s*${urlPattern}\\)`,
+    "gim"
+  )
+  var linkPattern2 = new RegExp(
+    `\\[([^\\[\\]]*)\\]\\(\\s*${urlPattern}\\)`,
+    "gim"
+  )
+  var linkPattern3 = new RegExp(urlPattern, "gim")
+  var replaceMarkdownImgLinks = (text) => {
+    if (text.search(linkPattern1) >= 0) {
+      text = text.replace(linkPattern1, (m, p1, p2) => {
+        return createImgTagString(convertImgUrl(p2) || p2, p1)
+      })
+    }
+    return text
+  }
+  var replaceMarkdownLinks = (text) => {
+    if (text.search(linkPattern2) >= 0) {
+      text = text.replace(linkPattern2, (m, p1, p2) => {
+        return `<a href='${p2}'>${p1}</a>`
+      })
+    }
+    return text
+  }
+  var replaceTextLinks = (text) => {
+    if (text.search(linkPattern3) >= 0) {
+      text = text.replace(linkPattern3, (m, p1) => {
+        return `<a href='${p1}'>${p1}</a>`
+      })
+    }
+    return text
+  }
   var textToLink = (textNode) => {
+    const textContent = textNode.textContent
     if (
       textNode.nodeName !== "#text" ||
-      !textNode.textContent ||
-      textNode.textContent.trim().length < 10
+      !textContent ||
+      textContent.trim().length < 3
     ) {
       return
     }
-    const matched = linkPattern.exec(textNode.textContent)
-    if (matched && matched[0]) {
-      const span = createElement("span")
-      span.innerHTML = textNode.textContent.replace(linkPattern, (m) => {
-        return `<a href='${m}'>${m}</a>`
-      })
-      textNode.after(span)
-      textNode.remove()
+    if (textContent.includes("://")) {
+      const original = textContent
+      let newContent = original
+      if (/\[.*]\(/.test(original)) {
+        newContent = replaceMarkdownImgLinks(newContent)
+        newContent = replaceMarkdownLinks(newContent)
+      }
+      if (newContent === original) {
+        newContent = replaceTextLinks(original)
+      }
+      if (newContent === original) {
+        console.error(newContent)
+      } else {
+        const span = createElement("span")
+        span.innerHTML = newContent
+        textNode.after(span)
+        textNode.remove()
+        return true
+      }
+    }
+    const parentNode = textNode.parentNode
+    if (
+      /\[.*]\(/.test(textContent) &&
+      parentNode &&
+      parentNode.textContent &&
+      parentNode.textContent.search(linkPattern2) >= 0
+    ) {
+      const original = parentNode.innerHTML
+      const newContent = original.replace(
+        /\(\s*<a[^<>]*\shref=['"](http[^'"]+)['"]\s[^<>]*>\1<\/a>\)/gim,
+        "($1)"
+      )
+      if (newContent !== original) {
+        let newContent2 = replaceMarkdownImgLinks(newContent)
+        newContent2 = replaceMarkdownLinks(newContent2)
+        if (newContent2 !== newContent) {
+          parentNode.innerHTML = newContent2
+          return true
+        }
+      }
     }
   }
   var scanAndConvertChildNodes = (parentNode) => {
@@ -542,7 +616,10 @@
     }
     for (const child of parentNode.childNodes) {
       if (child.nodeName === "#text") {
-        textToLink(child)
+        if (textToLink(child)) {
+          scanAndConvertChildNodes(parentNode)
+          break
+        }
       } else {
         scanAndConvertChildNodes(child)
       }
