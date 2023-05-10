@@ -86,7 +86,7 @@ export const linkToImg = (anchor: HTMLAnchorElement) => {
 
   if (
     !matched &&
-    /^https?[^?]+\.(?:jpg|jpeg|jpe|bmp|png|gif|webp|ico|svg)/i.test(href)
+    /^https:[^?]+\.(?:jpg|jpeg|jpe|bmp|png|gif|webp|ico|svg)/i.test(href)
   ) {
     anchorElementToImgElement(anchor, href, text)
   }
