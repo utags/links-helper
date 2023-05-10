@@ -8,6 +8,10 @@ import rulesText from "data-text:../rules/image-url.json"
 const rules = JSON.parse(rulesText)
 
 const cachedRules = {}
+
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+const getHostname = (url: string) => (/https?:\/\/([^/]+)/.exec(url) || [])[1]
+
 const processRule = (rule: string, href: string) => {
   let pattern: RegExp
   let replacement: string | undefined
@@ -31,23 +35,42 @@ const processRule = (rule: string, href: string) => {
     }
 
     if (pattern.test(href)) {
-      let newHref
-      if (replacement) {
-        newHref = href.replace(pattern, replacement)
-        // console.log("matched", href, "->", newHref)
-      } else {
-        newHref = href
-      }
-
-      return newHref
+      return replacement ? href.replace(pattern, replacement) : href
     }
   } catch (error) {
     console.error(error)
   }
 }
 
-const anchorElementToImgElement = (anchor: HTMLAnchorElement, href, text) => {
-  anchor.innerHTML = `<img src="${href}" title="${text}" alt="${text}" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer"/>`
+export const convertImgUrl = (href: string | undefined) => {
+  if (!href) {
+    return
+  }
+
+  const hostname = getHostname(href)
+  if (Object.hasOwn(rules, hostname)) {
+    for (const rule of rules[hostname]) {
+      const newHref = processRule(rule, href)
+      if (newHref) {
+        return newHref
+      }
+    }
+  }
+}
+
+export const createImgTagString = (src: string, text: string | undefined) =>
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+  `<img src="${src}" title="${text || "image"}" alt="${
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    text || "image"
+  }" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer"/>`
+
+const anchorElementToImgElement = (
+  anchor: HTMLAnchorElement,
+  href: string,
+  text: string | undefined
+) => {
+  anchor.innerHTML = createImgTagString(href, text)
   setAttribute(anchor, "target", "_blank")
   addAttribute(anchor, "rel", "noopener")
   addAttribute(anchor, "rel", "noreferrer")
@@ -70,22 +93,11 @@ export const linkToImg = (anchor: HTMLAnchorElement) => {
   }
 
   const href = anchor.href
-  const hostname = anchor.hostname
-  const text = anchor.textContent
-  let matched = false
-  if (Object.hasOwn(rules, hostname)) {
-    for (const rule of rules[hostname]) {
-      const newHref = processRule(rule, href)
-      if (newHref) {
-        anchorElementToImgElement(anchor, newHref, text)
-        matched = true
-        break
-      }
-    }
-  }
-
-  if (
-    !matched &&
+  const text = anchor.textContent as string | undefined
+  const newHref = convertImgUrl(href)
+  if (newHref) {
+    anchorElementToImgElement(anchor, newHref, text)
+  } else if (
     /^https:[^?]+\.(?:jpg|jpeg|jpe|bmp|png|gif|webp|ico|svg)/i.test(href)
   ) {
     anchorElementToImgElement(anchor, href, text)

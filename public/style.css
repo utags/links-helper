@@ -24,10 +24,18 @@ a:hover {
   color: blueviolet;
 }
 
-.list a::after {
+a[target="_blank"] {
+  color: darkgreen;
+}
+
+xxx .list a::after {
   content: 'target="' attr(target) '" rel="' attr(rel) '" href="' attr(href) '"';
   margin-left: 5px;
   font-size: 0.75em;
   color: #aaa;
   text-decoration: none;
+}
+
+img {
+  max-height: 200px !important;
 }
