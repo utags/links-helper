@@ -60,10 +60,6 @@
         <p>测试（https://v2hot.pipecraft.net/hot/newest/）</p>
       </li>
       <li>
-        <h2>测试文本转链接</h2>
-        <p>[测试](https://v2hot.pipecraft.net/hot/newest/)</p>
-      </li>
-      <li>
         <h2>测试多个文本转链接</h2>
         <p>
           测试（https://v2hot.pipecraft.net/hot/newest/）测试（https://v2hot.pipecraft.net/hot/hottest-3/）
@@ -96,7 +92,7 @@
         </p>
       </li>
       <li>
-        <h2>测试图床预览链接转图片链接</h2>
+        <h2>测试图床详细页（预览）链接转图片链接</h2>
         <p>
           测试https://imgur.com/gi2b1rj测试
           测试https://imgur.com/gi2b1rj.png测试
@@ -105,6 +101,48 @@
           测试https://camo.githubusercontent.com/673211e46a77289d075c1c39d4aebfa4fa3032e911a21c4385302ddf2b2572fc/68747470733a2f2f677265617379666f726b2e73332e75732d656173742d322e616d617a6f6e6177732e636f6d2f7a6262626b73786875306e7466786272797a7038347333647a383862测试
           测试https://imgur.io/R3fytUm测试 测试https://imgur.io/R3fytUm.jpg测试
         </p>
+      </li>
+      <li>
+        <h2>测试 markdown 格式文本转链接</h2>
+        <p>
+          测试[测试](https://v2hot.pipecraft.net/hot/newest/)测试<br />
+          测试[测试]( https://v2hot.pipecraft.net/hot/newest/)测试(v2ex
+          不会解析评论中的 markdown 格式，并在
+          <code>(</code>后面加一个空格)<br />
+          测试![myimg](https://assets.bestxtools.com/s2/main/images/2023-03-14-16-20-03.png)测试<br />
+          测试![](https://assets.bestxtools.com/s2/main/images/2023-03-14-16-20-03.png)测试<br />
+          测试![](https://imgur.com/gi2b1rj)测试<br />
+        </p>
+      </li>
+      <li>
+        <h2>测试 markdown 嵌套格式文本转链接</h2>
+        <p>
+          测试[![iQQfVZ.png]( https://i.328888.xyz/2023/05/10/iQQfVZ.png)](
+          https://imgloc.com/i/iQQfVZ)测试<br />
+          测试[abc![iQQfVZ.png](
+          https://i.328888.xyz/2023/05/10/iQQfVZ.png)abc](
+          https://imgloc.com/i/iQQfVZ)测试<br />
+          测试[测[abc](https://v2hot.pipecraft.net/hot/newest/)试](https://v2hot.pipecraft.net/hot/newest/)测试(只应解析里面的
+          a 标签)<br />
+          ![[iQQfVZ.png](https://v2hot.pipecraft.net/hot/newest/)](
+          https://i.328888.xyz/2023/05/10/iQQfVZ.png)测试(只应解析里面的 a
+          标签)<br />
+        </p>
+        <div class="reply_content">
+          [![iQQfVZ.png](
+          <a
+            target="_blank"
+            href="https://i.328888.xyz/2023/05/10/iQQfVZ.png"
+            rel="nofollow noopener"
+            >https://i.328888.xyz/2023/05/10/iQQfVZ.png</a
+          >)](
+          <a
+            target="_blank"
+            href="https://imgloc.com/i/iQQfVZ"
+            rel="nofollow noopener"
+            >https://imgloc.com/i/iQQfVZ</a
+          >)<br />感谢分享，已经申请了
+        </div>
       </li>
     </ul>
     <script type="text/javascript"></script>
