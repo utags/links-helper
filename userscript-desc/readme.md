@@ -1,6 +1,6 @@
 # 🔗 Links Helper
 
-Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags.
+Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(`<img>`), parse Markdown style links and image tags.
 
 Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 
