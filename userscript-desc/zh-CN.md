@@ -16,6 +16,29 @@
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/64sziug83grudizqd5n0znt29uk1)
 
+## 使用技巧
+
+### 内部链接新标签页打开规则示例（仅供参考）
+
+#### V2EX
+
+主题页，用户主页，设置页
+
+```js
+^/t/\d+(#.*)?$
+^/member/[^?]*$
+^/settings/
+```
+
+#### Youtube
+
+播放页
+
+```js
+^/watch
+^/shorts
+```
+
 ## 其他
 
 兼容以下用户脚本管理器

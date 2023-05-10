@@ -16,6 +16,29 @@ Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/64sziug83grudizqd5n0znt29uk1)
 
+## Usages
+
+### Examples of rules that open links in a new tab
+
+#### Youtube
+
+Video player page
+
+```js
+^/watch
+^/shorts
+```
+
+#### V2EX
+
+Subject page, member page, settings page
+
+```js
+^/t/\d+(#.*)?$
+^/member/[^?]*$
+^/settings/
+```
+
 ## Other
 
 Compatible with the following userscript managers
