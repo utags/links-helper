@@ -16,6 +16,8 @@
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.3.3 2023.05.11
+////    - Fix parse markdown style text
 //// - 0.3.2 2023.05.10
 ////    - Parse Markdown style links and image tags
 //// - 0.3.0 2023.05.10
