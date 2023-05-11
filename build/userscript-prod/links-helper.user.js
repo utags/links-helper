@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.3.2
+// @version              0.3.3
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
@@ -23,6 +23,8 @@
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.3.3 2023.05.11
+////    - Fix parse markdown style text
 //// - 0.3.2 2023.05.10
 ////    - Parse Markdown style links and image tags
 //// - 0.3.0 2023.05.10
@@ -489,12 +491,12 @@
     if (
       !anchor ||
       anchor.childElementCount !== 0 ||
-      anchor.childNodes[0].nodeType !== 3
+      (anchor.childNodes[0] && anchor.childNodes[0].nodeType !== 3)
     ) {
       return
     }
     const href = anchor.href
-    const text = anchor.textContent
+    const text = anchor.textContent || href
     const newHref = convertImgUrl(href)
     if (newHref) {
       anchorElementToImgElement(anchor, newHref, text)
@@ -506,6 +508,7 @@
   }
   var ignoredTags = /* @__PURE__ */ new Set([
     "A",
+    "BR",
     "BUTTON",
     "SVG",
     "PATH",
@@ -520,13 +523,13 @@
     "TITLE",
   ])
   var urlPattern =
-    "\\b((?:https?:\\/\\/(?:[\\w-.]+\\.[a-z]{2,15}|localhost|(?:\\d{1,3}\\.){3}\\d{1,3}))(?::\\d+)?(?:\\/[\\w-/%.~+:!@=&?#]*)?)"
+    "\\b((?:https?:\\/\\/(?:[\\w-.]+\\.[a-z]{2,15}|localhost|(?:\\d{1,3}\\.){3}\\d{1,3}))(?::\\d+)?(?:\\/[\\w-/%.~+:;!@=&?#]*)?)"
   var linkPattern1 = new RegExp(
-    `!\\[([^\\[\\]]*)\\]\\(\\s*${urlPattern}\\)`,
+    `!\\[([^\\[\\]]*)\\]\\((?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\)`,
     "gim"
   )
   var linkPattern2 = new RegExp(
-    `\\[([^\\[\\]]*)\\]\\(\\s*${urlPattern}\\)`,
+    `\\[([^\\[\\]]*)\\]\\((?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\)`,
     "gim"
   )
   var linkPattern3 = new RegExp(urlPattern, "gim")
@@ -588,13 +591,16 @@
       /\[.*]\(/.test(textContent) &&
       parentNode &&
       parentNode.textContent &&
-      parentNode.textContent.search(linkPattern2) >= 0
+      (parentNode.textContent.search(linkPattern2) >= 0 ||
+        $$("img", parentNode).length > 0)
     ) {
       const original = parentNode.innerHTML
-      const newContent = original.replace(
-        /\(\s*<a[^<>]*\shref=['"](http[^'"]+)['"]\s[^<>]*>\1<\/a>\)/gim,
-        "($1)"
-      )
+      const newContent = original
+        .replace(/<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?\s[^<>]*>/gim, "$1")
+        .replace(
+          /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?\s[^<>]*>\1<\/a>(?:\s|<br\/?>)*\)/gim,
+          "($1)"
+        )
       if (newContent !== original) {
         let newContent2 = replaceMarkdownImgLinks(newContent)
         newContent2 = replaceMarkdownLinks(newContent2)
@@ -615,13 +621,17 @@
       return
     }
     for (const child of parentNode.childNodes) {
-      if (child.nodeName === "#text") {
-        if (textToLink(child)) {
-          scanAndConvertChildNodes(parentNode)
-          break
+      try {
+        if (child.nodeName === "#text") {
+          if (textToLink(child)) {
+            scanAndConvertChildNodes(parentNode)
+            break
+          }
+        } else {
+          scanAndConvertChildNodes(child)
         }
-      } else {
-        scanAndConvertChildNodes(child)
+      } catch (error) {
+        console.error(error)
       }
     }
   }
@@ -747,8 +757,16 @@
           continue
         }
         element.__links_helper_scaned = 1
-        setAttributeAsOpenInNewTab(element)
-        linkToImg(element)
+        try {
+          setAttributeAsOpenInNewTab(element)
+        } catch (error) {
+          console.error(error)
+        }
+        try {
+          linkToImg(element)
+        } catch (error) {
+          console.error(error)
+        }
       }
     }
     const scanNodes = throttle(() => {

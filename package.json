@@ -2,7 +2,7 @@
   "name": "links-helper",
   "displayName": "🔗 Links Helper",
   "displayName:zh-CN": "🔗 链接助手",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags",
   "description:zh-CN": "支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签",
   "author": "Pipecraft",

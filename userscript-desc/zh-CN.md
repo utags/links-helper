@@ -72,6 +72,28 @@
 - [微信公众号文本地址转超链接](https://greasyfork.org/scripts/461343-wechat-text-link-to-hyperlink) (作者 runningcheese)
 - [链接助手](https://greasyfork.org/scripts/422773-%E9%93%BE%E6%8E%A5%E5%8A%A9%E6%89%8B) (作者 一个北七)
 
+## Release Notes
+
+- 0.3.3 2023.05.11
+  - Fix parse markdown style text
+- 0.3.2 2023.05.10
+  - Parse Markdown style links and image tags
+- 0.3.0 2023.05.10
+  - Convert image links to image tags
+- 0.2.0 2023.05.09
+  - Convert text to hyperlinks
+  - Fix opening internal links in a new tab in SPA apps
+- 0.1.3 2023.05.08
+  - Fix compatibility issues on Violentmonkey, Greasemonkey(Firefox), Userscripts(Safari)
+- 0.1.1 2023.04.23
+  - Change to run\_at: document\_start
+- 0.1.0 2023.04.23
+  - Setting for url rules, open links matching the specified rules in a new tab
+- 0.0.2 2023.04.22
+  - Add settings menu
+  - Enable/Disable userscript
+  - Enable/Disable current site
+
 ## License
 
 Copyright (c) 2023 [Pipecraft](https://www.pipecraft.net). Licensed under the [MIT License](https://github.com/utags/links-helper/blob/main/LICENSE).
