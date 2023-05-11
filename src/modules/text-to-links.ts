@@ -1,9 +1,10 @@
-import { createElement } from "browser-extension-utils"
+import { $$, createElement } from "browser-extension-utils"
 
 import { convertImgUrl, createImgTagString } from "./link-to-img"
 
 const ignoredTags = new Set([
   "A",
+  "BR",
   "BUTTON",
   "SVG",
   "PATH",
@@ -19,16 +20,16 @@ const ignoredTags = new Set([
 ])
 
 const urlPattern =
-  "\\b((?:https?:\\/\\/(?:[\\w-.]+\\.[a-z]{2,15}|localhost|(?:\\d{1,3}\\.){3}\\d{1,3}))(?::\\d+)?(?:\\/[\\w-/%.~+:!@=&?#]*)?)"
+  "\\b((?:https?:\\/\\/(?:[\\w-.]+\\.[a-z]{2,15}|localhost|(?:\\d{1,3}\\.){3}\\d{1,3}))(?::\\d+)?(?:\\/[\\w-/%.~+:;!@=&?#]*)?)"
 
 // ![img](url)
 const linkPattern1 = new RegExp(
-  `!\\[([^\\[\\]]*)\\]\\(\\s*${urlPattern}\\)`,
+  `!\\[([^\\[\\]]*)\\]\\((?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\)`,
   "gim"
 )
 // [text](url)
 const linkPattern2 = new RegExp(
-  `\\[([^\\[\\]]*)\\]\\(\\s*${urlPattern}\\)`,
+  `\\[([^\\[\\]]*)\\]\\((?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\)`,
   "gim"
 )
 // url
@@ -101,18 +102,26 @@ const textToLink = (textNode: HTMLElement) => {
   }
 
   // markdown style + parsed <a> tags (eg: v2ex comment)
+  // [](<a href=xxx>xxx</a>) or ![](<a href=xxx>xxx</a>)
+  // ![](<img src="xx">) or ![](<a href=xxx><img src="xxx"></a>)
   const parentNode = textNode.parentNode as HTMLElement
+  // console.log(textContent,parentNode.textContent)
   if (
     /\[.*]\(/.test(textContent) &&
     parentNode &&
     parentNode.textContent &&
-    parentNode.textContent.search(linkPattern2) >= 0
+    (parentNode.textContent.search(linkPattern2) >= 0 ||
+      $$("img", parentNode).length > 0)
   ) {
     const original = parentNode.innerHTML
-    const newContent = original.replace(
-      /\(\s*<a[^<>]*\shref=['"](http[^'"]+)['"]\s[^<>]*>\1<\/a>\)/gim,
-      "($1)"
-    )
+    // console.log(textContent, " ========= ", original)
+    const newContent = original
+      .replace(/<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?\s[^<>]*>/gim, "$1")
+      .replace(
+        /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?\s[^<>]*>\1<\/a>(?:\s|<br\/?>)*\)/gim,
+        "($1)"
+      )
+    // console.log(newContent)
     if (newContent !== original) {
       let newContent2 = replaceMarkdownImgLinks(newContent)
       newContent2 = replaceMarkdownLinks(newContent2)
