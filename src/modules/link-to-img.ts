@@ -87,13 +87,15 @@ export const linkToImg = (anchor: HTMLAnchorElement) => {
   if (
     !anchor ||
     anchor.childElementCount !== 0 ||
-    anchor.childNodes[0].nodeType !== 3 /* TEXT_NODE */
+    (anchor.childNodes[0] &&
+      anchor.childNodes[0].nodeType !== 3) /* TEXT_NODE */
   ) {
     return
   }
 
   const href = anchor.href
-  const text = anchor.textContent as string | undefined
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+  const text = (anchor.textContent as string | undefined) || href
   const newHref = convertImgUrl(href)
   if (newHref) {
     anchorElementToImgElement(anchor, newHref, text)

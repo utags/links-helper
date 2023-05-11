@@ -136,14 +136,18 @@ export const scanAndConvertChildNodes = (parentNode: HTMLElement) => {
   }
 
   for (const child of parentNode.childNodes) {
-    if (child.nodeName === "#text") {
-      if (textToLink(child as HTMLElement)) {
-        // children has changed, re-scan parent node
-        scanAndConvertChildNodes(parentNode)
-        break
+    try {
+      if (child.nodeName === "#text") {
+        if (textToLink(child as HTMLElement)) {
+          // children has changed, re-scan parent node
+          scanAndConvertChildNodes(parentNode)
+          break
+        }
+      } else {
+        scanAndConvertChildNodes(child as HTMLElement)
       }
-    } else {
-      scanAndConvertChildNodes(child as HTMLElement)
+    } catch (error) {
+      console.error(error)
     }
   }
 }
