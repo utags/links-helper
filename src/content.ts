@@ -159,8 +159,17 @@ async function main() {
       }
 
       element.__links_helper_scaned = 1
-      setAttributeAsOpenInNewTab(element as HTMLAnchorElement)
-      linkToImg(element as HTMLAnchorElement)
+      try {
+        setAttributeAsOpenInNewTab(element as HTMLAnchorElement)
+      } catch (error) {
+        console.error(error)
+      }
+
+      try {
+        linkToImg(element as HTMLAnchorElement)
+      } catch (error) {
+        console.error(error)
+      }
     }
   }
 
