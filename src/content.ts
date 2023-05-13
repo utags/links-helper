@@ -15,7 +15,7 @@ import {
   initSettings,
   showSettings,
 } from "./components/settings"
-import { linkToImg } from "./modules/link-to-img"
+import { bindOnError, linkToImg } from "./modules/link-to-img"
 import { scanAndConvertChildNodes } from "./modules/text-to-links"
 
 const origin = location.origin
@@ -177,6 +177,7 @@ async function main() {
     // console.error("mutation - scanAndConvertChildNodes, scanAnchors", Date.now())
     scanAndConvertChildNodes(doc.body)
     scanAnchors()
+    bindOnError()
   }, 500)
 
   const observer = new MutationObserver(() => {

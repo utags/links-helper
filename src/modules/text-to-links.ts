@@ -91,7 +91,7 @@ const textToLink = (textNode: HTMLElement) => {
     }
 
     if (newContent === original) {
-      console.error(newContent)
+      // console.error(newContent)
     } else {
       const span = createElement("span")
       span.innerHTML = newContent
