@@ -1,7 +1,11 @@
 import {
+  $$,
   addAttribute,
+  addEventListener,
+  getAttribute,
   setAttribute,
   setAttributes,
+  setStyle,
 } from "browser-extension-utils"
 import rulesText from "data-text:../rules/image-url.json"
 
@@ -63,7 +67,22 @@ export const createImgTagString = (src: string, text: string | undefined) =>
   `<img src="${src}" title="${text || "image"}" alt="${
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     text || "image"
-  }" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer"/>`
+  }" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer" data-lh-status="1"/>`
+
+export const bindOnError = () => {
+  for (const element of $$('img[data-lh-status="1"]')) {
+    setAttribute(element as HTMLElement, "data-lh-status", "2")
+    addEventListener(element, "error", (event) => {
+      const img = event.target as HTMLElement
+      const anchor = img.parentElement
+      img.outerHTML = getAttribute(img, "src")
+      if (anchor?.tagName === "A") {
+        setStyle(anchor, "opacity: 50%;")
+        setAttribute(anchor, "data-message", "failed to load image")
+      }
+    })
+  }
+}
 
 const anchorElementToImgElement = (
   anchor: HTMLAnchorElement,
@@ -74,13 +93,6 @@ const anchorElementToImgElement = (
   setAttribute(anchor, "target", "_blank")
   addAttribute(anchor, "rel", "noopener")
   addAttribute(anchor, "rel", "noreferrer")
-  setAttributes(anchor.childNodes[0] as HTMLElement, {
-    onerror(event) {
-      const img = event.srcElement
-      img.outerHTML =
-        text + '<i class="lh_img_load_failed"> (failed to load)</i>'
-    },
-  })
 }
 
 export const linkToImg = (anchor: HTMLAnchorElement) => {
