@@ -4,9 +4,9 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.3.3
-// @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags
-// @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签
+// @version              0.3.4
+// @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
+// @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
 // @author               Pipecraft
 // @license              MIT
@@ -23,6 +23,9 @@
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.3.4 2023.05.16
+////    - Parse BBCode style links and image tags
+////    - Update parsing links logic
 //// - 0.3.3 2023.05.11
 ////    - Fix parse markdown style text
 //// - 0.3.2 2023.05.10
@@ -473,19 +476,26 @@
     `<img src="${src}" title="${text || "image"}" alt="${
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       text || "image"
-    }" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer"/>`
+    }" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer" rel="noreferrer" data-lh-status="1"/>`
+  var bindOnError = () => {
+    for (const element of $$('img[data-lh-status="1"]')) {
+      setAttribute(element, "data-lh-status", "2")
+      addEventListener(element, "error", (event) => {
+        const img = event.target
+        const anchor = img.parentElement
+        img.outerHTML = getAttribute(img, "src")
+        if ((anchor == null ? void 0 : anchor.tagName) === "A") {
+          setStyle(anchor, "opacity: 50%;")
+          setAttribute(anchor, "data-message", "failed to load image")
+        }
+      })
+    }
+  }
   var anchorElementToImgElement = (anchor, href, text) => {
     anchor.innerHTML = createImgTagString(href, text)
     setAttribute(anchor, "target", "_blank")
     addAttribute(anchor, "rel", "noopener")
     addAttribute(anchor, "rel", "noreferrer")
-    setAttributes(anchor.childNodes[0], {
-      onerror(event) {
-        const img = event.srcElement
-        img.outerHTML =
-          text + '<i class="lh_img_load_failed"> (failed to load)</i>'
-      },
-    })
   }
   var linkToImg = (anchor) => {
     if (
@@ -533,6 +543,18 @@
     "gim"
   )
   var linkPattern3 = new RegExp(urlPattern, "gim")
+  var linkPattern4 = new RegExp(
+    `\\[img\\](?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\[/img\\]`,
+    "gim"
+  )
+  var linkPattern5 = new RegExp(
+    `\\[url\\](?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\[/url\\]`,
+    "gim"
+  )
+  var linkPattern6 = new RegExp(
+    `\\[url=${urlPattern}\\]([^\\[\\]]+)\\[/url\\]`,
+    "gim"
+  )
   var replaceMarkdownImgLinks = (text) => {
     if (text.search(linkPattern1) >= 0) {
       text = text.replace(linkPattern1, (m, p1, p2) => {
@@ -544,7 +566,7 @@
   var replaceMarkdownLinks = (text) => {
     if (text.search(linkPattern2) >= 0) {
       text = text.replace(linkPattern2, (m, p1, p2) => {
-        return `<a href='${p2}'>${p1}</a>`
+        return `<a href="${p2}">${p1}</a>`
       })
     }
     return text
@@ -552,14 +574,38 @@
   var replaceTextLinks = (text) => {
     if (text.search(linkPattern3) >= 0) {
       text = text.replace(linkPattern3, (m, p1) => {
-        return `<a href='${p1}'>${p1}</a>`
+        return `<a href="${p1}">${p1}</a>`
+      })
+    }
+    return text
+  }
+  var replaceBBCodeImgLinks = (text) => {
+    if (text.search(linkPattern4) >= 0) {
+      text = text.replace(linkPattern4, (m, p1) => {
+        return createImgTagString(convertImgUrl(p1) || p1, p1)
+      })
+    }
+    return text
+  }
+  var replaceBBCodeLinks = (text) => {
+    if (text.search(linkPattern5) >= 0) {
+      text = text.replace(linkPattern5, (m, p1) => {
+        return `<a href="${p1}">${p1}</a>`
+      })
+    }
+    if (text.search(linkPattern6) >= 0) {
+      text = text.replace(linkPattern6, (m, p1, p2) => {
+        return `<a href="${p1}">${p2}</a>`
       })
     }
     return text
   }
   var textToLink = (textNode) => {
+    var _a
     const textContent = textNode.textContent
+    const parentNode = textNode.parentNode
     if (
+      !parentNode ||
       textNode.nodeName !== "#text" ||
       !textContent ||
       textContent.trim().length < 3
@@ -573,12 +619,22 @@
         newContent = replaceMarkdownImgLinks(newContent)
         newContent = replaceMarkdownLinks(newContent)
       }
-      if (newContent === original) {
-        newContent = replaceTextLinks(original)
+      if (/\[(img|url)]|\[url=/.test(textContent)) {
+        newContent = replaceBBCodeImgLinks(newContent)
+        newContent = replaceBBCodeLinks(newContent)
       }
       if (newContent === original) {
-        console.error(newContent)
+        newContent = replaceTextLinks(original)
       } else {
+        newContent = newContent.replace(
+          new RegExp(
+            "(<a(?:\\s[^<>]*)?>.*?<\\/a>)|(<img(?:\\s[^<>]*)?\\/?>)|(.+?(?=(?:<a|<img))|.+$)",
+            "gims"
+          ),
+          (m, p1, p2) => (p1 || p2 ? m : replaceTextLinks(m))
+        )
+      }
+      if (newContent !== original) {
         const span = createElement("span")
         span.innerHTML = newContent
         textNode.after(span)
@@ -586,20 +642,35 @@
         return true
       }
     }
-    const parentNode = textNode.parentNode
+    const parentTextContent = (_a = parentNode.textContent) != null ? _a : ""
     if (
       /\[.*]\(/.test(textContent) &&
-      parentNode &&
-      parentNode.textContent &&
-      (parentNode.textContent.search(linkPattern2) >= 0 ||
+      (parentTextContent.search(linkPattern2) >= 0 ||
         $$("img", parentNode).length > 0)
     ) {
       const original = parentNode.innerHTML
       const newContent = original
-        .replace(/<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?\s[^<>]*>/gim, "$1")
-        .replace(
-          /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?\s[^<>]*>\1<\/a>(?:\s|<br\/?>)*\)/gim,
-          "($1)"
+        .replace(/\[.*]\([^[\]()]+?\)/gim, (m) =>
+          m
+            .replace(
+              /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
+              "$1"
+            )
+            .replace(
+              /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
+              "($1)"
+            )
+        )
+        .replace(/\[!\[.*]\([^()]+\)]\([^[\]()]+?\)/gim, (m) =>
+          m
+            .replace(
+              /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
+              "$1"
+            )
+            .replace(
+              /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
+              "($1)"
+            )
         )
       if (newContent !== original) {
         let newContent2 = replaceMarkdownImgLinks(newContent)
@@ -610,6 +681,76 @@
         }
       }
     }
+    if (
+      /\[(img|url)]|\[url=/.test(textContent) &&
+      parentTextContent.search(/\[(img|url)[^\]]*]([^[\]]*?)\[\/\1]/) >= 0
+    ) {
+      const original = parentNode.innerHTML
+      let before = ""
+      let after = original
+      let count = 0
+      while (before !== after && count < 5) {
+        count++
+        before = after
+        after = before.replace(
+          /\[(img|url)[^\]]*]([^[\]]+?)\[\/\1]/gim,
+          (m, p1) => {
+            let tagsRemoved
+            let converted
+            if (p1 === "img") {
+              tagsRemoved = m
+                .replace(
+                  /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
+                  "$1"
+                )
+                .replace(
+                  /\[img](?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\[\/img]/gim,
+                  "[img]$1[/img]"
+                )
+              converted = replaceBBCodeImgLinks(tagsRemoved)
+            } else {
+              tagsRemoved = m
+                .replace(
+                  /\[url](?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\[\/url]/gim,
+                  "[url]$1[/url]"
+                )
+                .replace(
+                  /\[url=<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>]/gim,
+                  "[url=$1]"
+                )
+              converted = replaceBBCodeLinks(tagsRemoved)
+            }
+            return converted === tagsRemoved ? m : converted
+          }
+        )
+      }
+      const newContent = after
+      if (newContent !== original) {
+        parentNode.innerHTML = newContent
+        return true
+      }
+    }
+  }
+  var fixAnchorTag = (anchorElement) => {
+    const href = anchorElement.href
+    const textContent = anchorElement.textContent
+    const nextSibling = anchorElement.nextSibling
+    if (
+      anchorElement.childElementCount === 0 &&
+      nextSibling &&
+      nextSibling.nodeType === 3 &&
+      href.includes(")") &&
+      (textContent == null ? void 0 : textContent.includes(")"))
+    ) {
+      const index = textContent.indexOf(")")
+      const removed = textContent.slice(Math.max(0, index))
+      anchorElement.textContent = textContent.slice(0, Math.max(0, index))
+      anchorElement.href = anchorElement.href.slice(
+        0,
+        Math.max(0, href.indexOf(")"))
+      )
+      nextSibling.textContent = removed + nextSibling.textContent
+    }
   }
   var scanAndConvertChildNodes = (parentNode) => {
     if (
@@ -618,6 +759,9 @@
       !parentNode.tagName ||
       ignoredTags.has(parentNode.tagName.toUpperCase())
     ) {
+      if (parentNode.tagName === "A") {
+        fixAnchorTag(parentNode)
+      }
       return
     }
     for (const child of parentNode.childNodes) {
@@ -772,6 +916,7 @@
     const scanNodes = throttle(() => {
       scanAndConvertChildNodes(doc.body)
       scanAnchors()
+      bindOnError()
     }, 500)
     const observer = new MutationObserver(() => {
       scanNodes()

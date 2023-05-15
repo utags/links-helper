@@ -1,6 +1,6 @@
 # 🔗 Links Helper
 
-Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(`<img>`), parse Markdown style links and image tags.
+Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(`<img>`), parse Markdown style links and image tags, parse BBCode style links and image tags.
 
 Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 
@@ -9,6 +9,8 @@ Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 - Setting for url rules, open links matching the specified rules in a new tab ✅
 - Convert text to hyperlinks ✅
 - Convert image links to image tags ✅
+- Parse Markdown style links and image tags ✅
+- Parse BBCode style links and image tags ✅
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/zbbbksxhu0ntfxbryzp84s3dz88b)
 
@@ -73,6 +75,9 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.3.4 2023.05.16
+  - Parse BBCode style links and image tags
+  - Update parsing links logic
 - 0.3.3 2023.05.11
   - Fix parse markdown style text
 - 0.3.2 2023.05.10
@@ -85,7 +90,7 @@ Compatible with the following userscript managers
 - 0.1.3 2023.05.08
   - Fix compatibility issues on Violentmonkey, Greasemonkey(Firefox), Userscripts(Safari)
 - 0.1.1 2023.04.23
-  - Change to run\_at: document\_start
+  - Change to run_at: document_start
 - 0.1.0 2023.04.23
   - Setting for url rules, open links matching the specified rules in a new tab
 - 0.0.2 2023.04.22

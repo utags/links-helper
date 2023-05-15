@@ -1,6 +1,6 @@
 # 🔗 链接助手
 
-支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签。
+支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签。
 
 支持谷歌搜索，Youtube, GitHub, Greasy Fork, V2EX, 微信公众号等所有网站与论坛。
 
@@ -9,6 +9,8 @@
 - 设置规则功能，在新标签页中打开符合指定规则的链接 ✅
 - 解析文本链接为超链接，微信公众号文本转可点击的超链接 ✅
 - 自动识别图片链接，转成图片标签 ✅
+- 解析 Markdown 格式链接与图片标签 ✅
+- 解析 BBCode 格式链接与图片标签 ✅
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/zbbbksxhu0ntfxbryzp84s3dz88b)
 
@@ -74,6 +76,9 @@
 
 ## Release Notes
 
+- 0.3.4 2023.05.16
+  - 解析 BBCode 风格链接与图片标签
+  - 更细解析链接逻辑
 - 0.3.3 2023.05.11
   - Fix parse markdown style text
 - 0.3.2 2023.05.10
@@ -86,7 +91,7 @@
 - 0.1.3 2023.05.08
   - Fix compatibility issues on Violentmonkey, Greasemonkey(Firefox), Userscripts(Safari)
 - 0.1.1 2023.04.23
-  - Change to run\_at: document\_start
+  - Change to run_at: document_start
 - 0.1.0 2023.04.23
   - Setting for url rules, open links matching the specified rules in a new tab
 - 0.0.2 2023.04.22
