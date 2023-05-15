@@ -67,7 +67,7 @@ export const createImgTagString = (src: string, text: string | undefined) =>
   `<img src="${src}" title="${text || "image"}" alt="${
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     text || "image"
-  }" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer" data-lh-status="1"/>`
+  }" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer" rel="noreferrer" data-lh-status="1"/>`
 
 export const bindOnError = () => {
   for (const element of $$('img[data-lh-status="1"]')) {
