@@ -35,6 +35,24 @@ const linkPattern2 = new RegExp(
 // url
 const linkPattern3 = new RegExp(urlPattern, "gim")
 
+// [img]{url}[/img]
+const linkPattern4 = new RegExp(
+  `\\[img\\](?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\[/img\\]`,
+  "gim"
+)
+
+// [url]{url}[/url]
+const linkPattern5 = new RegExp(
+  `\\[url\\](?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\[/url\\]`,
+  "gim"
+)
+
+// [url={url}]{text}[/url]
+const linkPattern6 = new RegExp(
+  `\\[url=${urlPattern}\\]([^\\[\\]]+)\\[/url\\]`,
+  "gim"
+)
+
 const replaceMarkdownImgLinks = (text: string) => {
   if (text.search(linkPattern1) >= 0) {
     text = text.replace(linkPattern1, (m, p1: string, p2: string) => {
@@ -50,7 +68,7 @@ const replaceMarkdownImgLinks = (text: string) => {
 const replaceMarkdownLinks = (text: string) => {
   if (text.search(linkPattern2) >= 0) {
     text = text.replace(linkPattern2, (m, p1: string, p2: string) => {
-      return `<a href='${p2}'>${p1}</a>`
+      return `<a href="${p2}">${p1}</a>`
     })
   }
 
@@ -61,7 +79,36 @@ const replaceTextLinks = (text: string) => {
   if (text.search(linkPattern3) >= 0) {
     text = text.replace(linkPattern3, (m, p1: string) => {
       // console.log(m, p1)
-      return `<a href='${p1}'>${p1}</a>`
+      return `<a href="${p1}">${p1}</a>`
+    })
+  }
+
+  return text
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const replaceBBCodeImgLinks = (text: string) => {
+  if (text.search(linkPattern4) >= 0) {
+    text = text.replace(linkPattern4, (m, p1: string) => {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      return createImgTagString(convertImgUrl(p1) || p1, p1)
+    })
+  }
+
+  return text
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const replaceBBCodeLinks = (text: string) => {
+  if (text.search(linkPattern5) >= 0) {
+    text = text.replace(linkPattern5, (m, p1: string) => {
+      return `<a href="${p1}">${p1}</a>`
+    })
+  }
+
+  if (text.search(linkPattern6) >= 0) {
+    text = text.replace(linkPattern6, (m, p1: string, p2: string) => {
+      return `<a href="${p1}">${p2}</a>`
     })
   }
 
@@ -70,7 +117,9 @@ const replaceTextLinks = (text: string) => {
 
 const textToLink = (textNode: HTMLElement) => {
   const textContent = textNode.textContent
+  const parentNode = textNode.parentNode as HTMLElement
   if (
+    !parentNode ||
     textNode.nodeName !== "#text" ||
     !textContent ||
     textContent.trim().length < 3
@@ -86,13 +135,22 @@ const textToLink = (textNode: HTMLElement) => {
       newContent = replaceMarkdownLinks(newContent)
     }
 
-    if (newContent === original) {
-      newContent = replaceTextLinks(original)
+    if (/\[(img|url)]|\[url=/.test(textContent)) {
+      newContent = replaceBBCodeImgLinks(newContent)
+      newContent = replaceBBCodeLinks(newContent)
     }
 
     if (newContent === original) {
-      // console.error(newContent)
+      newContent = replaceTextLinks(original)
     } else {
+      // Don't replace <a ...>...</a> or <img .../>
+      newContent = newContent.replace(
+        /(<a(?:\s[^<>]*)?>.*?<\/a>)|(<img(?:\s[^<>]*)?\/?>)|(.+?(?=(?:<a|<img))|.+$)/gims,
+        (m, p1, p2) => (p1 || p2 ? m : replaceTextLinks(m))
+      )
+    }
+
+    if (newContent !== original) {
       const span = createElement("span")
       span.innerHTML = newContent
       textNode.after(span)
@@ -101,27 +159,43 @@ const textToLink = (textNode: HTMLElement) => {
     }
   }
 
+  const parentTextContent = parentNode.textContent ?? ""
+
   // markdown style + parsed <a> tags (eg: v2ex comment)
   // [](<a href=xxx>xxx</a>) or ![](<a href=xxx>xxx</a>)
   // ![](<img src="xx">) or ![](<a href=xxx><img src="xxx"></a>)
-  const parentNode = textNode.parentNode as HTMLElement
-  // console.log(textContent,parentNode.textContent)
   if (
     /\[.*]\(/.test(textContent) &&
-    parentNode &&
-    parentNode.textContent &&
-    (parentNode.textContent.search(linkPattern2) >= 0 ||
+    (parentTextContent.search(linkPattern2) >= 0 ||
       $$("img", parentNode).length > 0)
   ) {
     const original = parentNode.innerHTML
-    // console.log(textContent, " ========= ", original)
+    // console.log("Markdown", textContent, "=========", original)
     const newContent = original
-      .replace(/<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?\s[^<>]*>/gim, "$1")
-      .replace(
-        /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?\s[^<>]*>\1<\/a>(?:\s|<br\/?>)*\)/gim,
-        "($1)"
+      .replace(/\[.*]\([^[\]()]+?\)/gim, (m) =>
+        m
+          .replace(
+            /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
+            "$1"
+          )
+          .replace(
+            /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
+            "($1)"
+          )
       )
-    // console.log(newContent)
+      .replace(/\[!\[.*]\([^()]+\)]\([^[\]()]+?\)/gim, (m) =>
+        m
+          .replace(
+            /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
+            "$1"
+          )
+          .replace(
+            /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
+            "($1)"
+          )
+      )
+
+    // console.log("newContent", newContent)
     if (newContent !== original) {
       let newContent2 = replaceMarkdownImgLinks(newContent)
       newContent2 = replaceMarkdownLinks(newContent2)
@@ -132,6 +206,86 @@ const textToLink = (textNode: HTMLElement) => {
       }
     }
   }
+
+  // BBCode
+  if (
+    /\[(img|url)]|\[url=/.test(textContent) &&
+    parentTextContent.search(/\[(img|url)[^\]]*]([^[\]]*?)\[\/\1]/) >= 0
+  ) {
+    const original = parentNode.innerHTML
+    // console.log("BBCode", textContent, " ========= ", original)
+    let before = ""
+    let after: string = original
+    let count = 0
+    while (before !== after && count < 5) {
+      count++
+      before = after
+      after = before.replace(
+        // [img]{url}[/img], [url]{url}[/url] or [url={url}]{text}[/url]
+        /\[(img|url)[^\]]*]([^[\]]+?)\[\/\1]/gim,
+        (m: string, p1: string) => {
+          // console.error("m", m)
+          let tagsRemoved
+          let converted
+          if (p1 === "img") {
+            tagsRemoved = m
+              .replace(
+                /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
+                "$1"
+              )
+              .replace(
+                /\[img](?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\[\/img]/gim,
+                "[img]$1[/img]"
+              )
+            converted = replaceBBCodeImgLinks(tagsRemoved)
+          } else {
+            tagsRemoved = m
+              .replace(
+                /\[url](?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\[\/url]/gim,
+                "[url]$1[/url]"
+              )
+              .replace(
+                /\[url=<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>]/gim,
+                "[url=$1]"
+              )
+            converted = replaceBBCodeLinks(tagsRemoved)
+          }
+
+          return converted === tagsRemoved ? m : converted
+        }
+      )
+      // console.error("after", count, after)
+    }
+
+    const newContent = after
+
+    if (newContent !== original) {
+      parentNode.innerHTML = newContent
+      return true
+    }
+  }
+}
+
+const fixAnchorTag = (anchorElement: HTMLAnchorElement) => {
+  const href = anchorElement.href
+  const textContent = anchorElement.textContent
+  const nextSibling = anchorElement.nextSibling
+  if (
+    anchorElement.childElementCount === 0 &&
+    nextSibling &&
+    nextSibling.nodeType === 3 /* TEXT_NODE */ &&
+    href.includes(")") &&
+    textContent?.includes(")")
+  ) {
+    const index = textContent.indexOf(")")
+    const removed = textContent.slice(Math.max(0, index))
+    anchorElement.textContent = textContent.slice(0, Math.max(0, index))
+    anchorElement.href = anchorElement.href.slice(
+      0,
+      Math.max(0, href.indexOf(")"))
+    )
+    nextSibling.textContent = removed + nextSibling.textContent
+  }
 }
 
 export const scanAndConvertChildNodes = (parentNode: HTMLElement) => {
@@ -141,6 +295,10 @@ export const scanAndConvertChildNodes = (parentNode: HTMLElement) => {
     !parentNode.tagName ||
     ignoredTags.has(parentNode.tagName.toUpperCase())
   ) {
+    if (parentNode.tagName === "A") {
+      fixAnchorTag(parentNode as HTMLAnchorElement)
+    }
+
     return
   }
 
