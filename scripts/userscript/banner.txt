@@ -16,6 +16,9 @@
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.3.4 2023.05.16
+////    - Parse BBCode style links and image tags
+////    - Update parsing links logic
 //// - 0.3.3 2023.05.11
 ////    - Fix parse markdown style text
 //// - 0.3.2 2023.05.10
