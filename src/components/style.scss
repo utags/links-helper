@@ -177,8 +177,13 @@
     display: block;
     background-color: var(--color-off);
     border-radius: calc(var(--button-height) / 2);
+    border: none;
     cursor: pointer;
     transition: all 0.2s ease-out;
+  }
+
+  .switch::before {
+    display: none;
   }
 
   /* The slider */
