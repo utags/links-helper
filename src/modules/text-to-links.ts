@@ -1,10 +1,9 @@
-import { $$, createElement } from "browser-extension-utils"
+import { $$, createElement, doc } from "browser-extension-utils"
 
 import { convertImgUrl, createImgTagString } from "./link-to-img"
 
 const ignoredTags = new Set([
   "A",
-  "BR",
   "BUTTON",
   "SVG",
   "PATH",
@@ -68,7 +67,7 @@ const replaceMarkdownImgLinks = (text: string) => {
 const replaceMarkdownLinks = (text: string) => {
   if (text.search(linkPattern2) >= 0) {
     text = text.replace(linkPattern2, (m, p1: string, p2: string) => {
-      return `<a href="${p2}">${p1}</a>`
+      return `<a href="${p2}">${p1.replace(/<br>$/gi, "")}</a>`
     })
   }
 
@@ -115,14 +114,15 @@ const replaceBBCodeLinks = (text: string) => {
   return text
 }
 
-const textToLink = (textNode: HTMLElement) => {
-  const textContent = textNode.textContent
+const textToLink = (textNode: HTMLElement, previousText: string) => {
+  const textContent = textNode.textContent ?? ""
   const parentNode = textNode.parentNode as HTMLElement
+  const mergedText = previousText + textContent
   if (
     !parentNode ||
     textNode.nodeName !== "#text" ||
-    !textContent ||
-    textContent.trim().length < 3
+    textContent.trim().length === 0 ||
+    mergedText.trim().length < 3
   ) {
     return
   }
@@ -130,7 +130,7 @@ const textToLink = (textNode: HTMLElement) => {
   if (textContent.includes("://")) {
     const original = textContent
     let newContent = original
-    if (/\[.*]\(/.test(original)) {
+    if (/\[.*]\(/ms.test(original)) {
       newContent = replaceMarkdownImgLinks(newContent)
       newContent = replaceMarkdownLinks(newContent)
     }
@@ -165,14 +165,14 @@ const textToLink = (textNode: HTMLElement) => {
   // [](<a href=xxx>xxx</a>) or ![](<a href=xxx>xxx</a>)
   // ![](<img src="xx">) or ![](<a href=xxx><img src="xxx"></a>)
   if (
-    /\[.*]\(/.test(textContent) &&
+    /\[.*]\(/ms.test(mergedText) &&
     (parentTextContent.search(linkPattern2) >= 0 ||
       $$("img", parentNode).length > 0)
   ) {
     const original = parentNode.innerHTML
     // console.log("Markdown", textContent, "=========", original)
     const newContent = original
-      .replace(/\[.*]\([^[\]()]+?\)/gim, (m) =>
+      .replace(/\[.*]\([^[\]()]+?\)/gims, (m) =>
         m
           .replace(
             /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
@@ -183,7 +183,7 @@ const textToLink = (textNode: HTMLElement) => {
             "($1)"
           )
       )
-      .replace(/\[!\[.*]\([^()]+\)]\([^[\]()]+?\)/gim, (m) =>
+      .replace(/\[!\[.*]\([^()]+\)]\([^[\]()]+?\)/gims, (m) =>
         m
           .replace(
             /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
@@ -268,14 +268,12 @@ const textToLink = (textNode: HTMLElement) => {
 
 const fixAnchorTag = (anchorElement: HTMLAnchorElement) => {
   const href = anchorElement.href
-  const textContent = anchorElement.textContent
+  const textContent = anchorElement.textContent ?? ""
   const nextSibling = anchorElement.nextSibling
   if (
     anchorElement.childElementCount === 0 &&
-    nextSibling &&
-    nextSibling.nodeType === 3 /* TEXT_NODE */ &&
     href.includes(")") &&
-    textContent?.includes(")")
+    textContent.includes(")")
   ) {
     const index = textContent.indexOf(")")
     const removed = textContent.slice(Math.max(0, index))
@@ -284,7 +282,11 @@ const fixAnchorTag = (anchorElement: HTMLAnchorElement) => {
       0,
       Math.max(0, href.indexOf(")"))
     )
-    nextSibling.textContent = removed + nextSibling.textContent
+    if (nextSibling && nextSibling.nodeType === 3 /* TEXT_NODE */) {
+      nextSibling.textContent = removed + nextSibling.textContent
+    } else {
+      anchorElement.after(doc.createTextNode(removed))
+    }
   }
 }
 
@@ -302,15 +304,21 @@ export const scanAndConvertChildNodes = (parentNode: HTMLElement) => {
     return
   }
 
+  let previousText = ""
   for (const child of parentNode.childNodes) {
     try {
       if (child.nodeName === "#text") {
-        if (textToLink(child as HTMLElement)) {
+        if (textToLink(child as HTMLElement, previousText)) {
           // children has changed, re-scan parent node
           scanAndConvertChildNodes(parentNode)
           break
         }
+
+        previousText += child.textContent
+      } else if (child.nodeName === "BR") {
+        previousText += "\n"
       } else {
+        previousText = ""
         scanAndConvertChildNodes(child as HTMLElement)
       }
     } catch (error) {
