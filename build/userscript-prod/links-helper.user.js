@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.3.4
+// @version              0.3.5
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
@@ -23,6 +23,8 @@
 // ==/UserScript==
 //
 //// Recent Updates
+//// - 0.3.5 2023.05.17
+////    - Fix some edge cases
 //// - 0.3.4 2023.05.16
 ////    - Parse BBCode style links and image tags
 ////    - Update parsing links logic
@@ -236,7 +238,7 @@
     }
   }
   var style_default =
-    "#browser_extension_settings{--browser-extension-settings-background-color: #f3f3f3;--browser-extension-settings-text-color: #444444;position:fixed;top:10px;right:30px;min-width:250px;max-height:90%;overflow-y:auto;overflow-x:hidden;display:none;box-sizing:border-box;padding:10px 15px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);z-index:100000;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}#browser_extension_settings h2{text-align:center;margin:5px 0 0;font-size:18px;font-weight:600;border:none}#browser_extension_settings footer{display:flex;justify-content:center;flex-direction:column;font-size:11px;margin:10px auto 0px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color)}#browser_extension_settings footer a{color:#217dfc;text-decoration:none;padding:0}#browser_extension_settings footer p{text-align:center;padding:0;margin:2px;line-height:13px}#browser_extension_settings .option_groups{background-color:#fff;padding:6px 15px 6px 15px;border-radius:10px;display:flex;flex-direction:column;margin:10px 0 0}#browser_extension_settings .option_groups .action{font-size:14px;border-top:1px solid #ccc;padding:6px 0 6px 0;color:#217dfc;cursor:pointer}#browser_extension_settings .option_groups textarea{margin:10px 0 10px 0;height:100px;width:100%;border:1px solid #a9a9a9;border-radius:4px;box-sizing:border-box}#browser_extension_settings .switch_option{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #ccc;padding:6px 0 6px 0;font-size:14px}#browser_extension_settings .switch_option:first-of-type,#browser_extension_settings .option_groups .action:first-of-type{border-top:none}#browser_extension_settings .switch_option>span{margin-right:10px}#browser_extension_settings .option_groups .tip{position:relative;margin:0;padding:0 15px 0 0;border:none;max-width:none;font-size:14px}#browser_extension_settings .option_groups .tip .tip_anchor{cursor:help;text-decoration:underline}#browser_extension_settings .option_groups .tip .tip_content{position:absolute;bottom:15px;left:0;background-color:#fff;color:var(--browser-extension-settings-text-color);text-align:left;padding:10px;display:none;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}#browser_extension_settings .option_groups .tip .tip_anchor:hover+.tip_content,#browser_extension_settings .option_groups .tip .tip_content:hover{display:block}#browser_extension_settings .option_groups .tip p,#browser_extension_settings .option_groups .tip pre{margin:revert;padding:revert}#browser_extension_settings .option_groups .tip pre{font-family:Consolas,panic sans,bitstream vera sans mono,Menlo,microsoft yahei,monospace;font-size:13px;letter-spacing:.015em;line-height:120%;white-space:pre;overflow:auto;background-color:#f5f5f5;word-break:normal;overflow-wrap:normal;padding:.5em;border:none}#browser_extension_settings .container{--button-width: 51px;--button-height: 24px;--toggle-diameter: 20px;--color-off: #e9e9eb;--color-on: #34c759;width:var(--button-width);height:var(--button-height);position:relative;padding:0;margin:0;flex:none}#browser_extension_settings input[type=checkbox]{opacity:0;width:0;height:0;position:absolute}#browser_extension_settings .switch{width:100%;height:100%;display:block;background-color:var(--color-off);border-radius:calc(var(--button-height)/2);cursor:pointer;transition:all .2s ease-out}#browser_extension_settings .slider{width:var(--toggle-diameter);height:var(--toggle-diameter);position:absolute;left:2px;top:calc(50% - var(--toggle-diameter)/2);border-radius:50%;background:#fff;box-shadow:0px 3px 8px rgba(0,0,0,.15),0px 3px 1px rgba(0,0,0,.06);transition:all .2s ease-out;cursor:pointer}#browser_extension_settings input[type=checkbox]:checked+.switch{background-color:var(--color-on)}#browser_extension_settings input[type=checkbox]:checked+.switch .slider{left:calc(var(--button-width) - var(--toggle-diameter) - 2px)}"
+    "#browser_extension_settings{--browser-extension-settings-background-color: #f3f3f3;--browser-extension-settings-text-color: #444444;position:fixed;top:10px;right:30px;min-width:250px;max-height:90%;overflow-y:auto;overflow-x:hidden;display:none;box-sizing:border-box;padding:10px 15px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);z-index:100000;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}#browser_extension_settings h2{text-align:center;margin:5px 0 0;font-size:18px;font-weight:600;border:none}#browser_extension_settings footer{display:flex;justify-content:center;flex-direction:column;font-size:11px;margin:10px auto 0px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color)}#browser_extension_settings footer a{color:#217dfc;text-decoration:none;padding:0}#browser_extension_settings footer p{text-align:center;padding:0;margin:2px;line-height:13px}#browser_extension_settings .option_groups{background-color:#fff;padding:6px 15px 6px 15px;border-radius:10px;display:flex;flex-direction:column;margin:10px 0 0}#browser_extension_settings .option_groups .action{font-size:14px;border-top:1px solid #ccc;padding:6px 0 6px 0;color:#217dfc;cursor:pointer}#browser_extension_settings .option_groups textarea{margin:10px 0 10px 0;height:100px;width:100%;border:1px solid #a9a9a9;border-radius:4px;box-sizing:border-box}#browser_extension_settings .switch_option{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #ccc;padding:6px 0 6px 0;font-size:14px}#browser_extension_settings .switch_option:first-of-type,#browser_extension_settings .option_groups .action:first-of-type{border-top:none}#browser_extension_settings .switch_option>span{margin-right:10px}#browser_extension_settings .option_groups .tip{position:relative;margin:0;padding:0 15px 0 0;border:none;max-width:none;font-size:14px}#browser_extension_settings .option_groups .tip .tip_anchor{cursor:help;text-decoration:underline}#browser_extension_settings .option_groups .tip .tip_content{position:absolute;bottom:15px;left:0;background-color:#fff;color:var(--browser-extension-settings-text-color);text-align:left;padding:10px;display:none;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}#browser_extension_settings .option_groups .tip .tip_anchor:hover+.tip_content,#browser_extension_settings .option_groups .tip .tip_content:hover{display:block}#browser_extension_settings .option_groups .tip p,#browser_extension_settings .option_groups .tip pre{margin:revert;padding:revert}#browser_extension_settings .option_groups .tip pre{font-family:Consolas,panic sans,bitstream vera sans mono,Menlo,microsoft yahei,monospace;font-size:13px;letter-spacing:.015em;line-height:120%;white-space:pre;overflow:auto;background-color:#f5f5f5;word-break:normal;overflow-wrap:normal;padding:.5em;border:none}#browser_extension_settings .container{--button-width: 51px;--button-height: 24px;--toggle-diameter: 20px;--color-off: #e9e9eb;--color-on: #34c759;width:var(--button-width);height:var(--button-height);position:relative;padding:0;margin:0;flex:none}#browser_extension_settings input[type=checkbox]{opacity:0;width:0;height:0;position:absolute}#browser_extension_settings .switch{width:100%;height:100%;display:block;background-color:var(--color-off);border-radius:calc(var(--button-height)/2);border:none;cursor:pointer;transition:all .2s ease-out}#browser_extension_settings .switch::before{display:none}#browser_extension_settings .slider{width:var(--toggle-diameter);height:var(--toggle-diameter);position:absolute;left:2px;top:calc(50% - var(--toggle-diameter)/2);border-radius:50%;background:#fff;box-shadow:0px 3px 8px rgba(0,0,0,.15),0px 3px 1px rgba(0,0,0,.06);transition:all .2s ease-out;cursor:pointer}#browser_extension_settings input[type=checkbox]:checked+.switch{background-color:var(--color-on)}#browser_extension_settings input[type=checkbox]:checked+.switch .slider{left:calc(var(--button-width) - var(--toggle-diameter) - 2px)}"
   function createSwitch(options = {}) {
     const container = createElement("label", { class: "container" })
     const checkbox = createElement(
@@ -518,7 +520,6 @@
   }
   var ignoredTags = /* @__PURE__ */ new Set([
     "A",
-    "BR",
     "BUTTON",
     "SVG",
     "PATH",
@@ -566,7 +567,7 @@
   var replaceMarkdownLinks = (text) => {
     if (text.search(linkPattern2) >= 0) {
       text = text.replace(linkPattern2, (m, p1, p2) => {
-        return `<a href="${p2}">${p1}</a>`
+        return `<a href="${p2}">${p1.replace(/<br>$/gi, "")}</a>`
       })
     }
     return text
@@ -600,22 +601,23 @@
     }
     return text
   }
-  var textToLink = (textNode) => {
-    var _a
-    const textContent = textNode.textContent
+  var textToLink = (textNode, previousText) => {
+    var _a, _b
+    const textContent = (_a = textNode.textContent) != null ? _a : ""
     const parentNode = textNode.parentNode
+    const mergedText = previousText + textContent
     if (
       !parentNode ||
       textNode.nodeName !== "#text" ||
-      !textContent ||
-      textContent.trim().length < 3
+      textContent.trim().length === 0 ||
+      mergedText.trim().length < 3
     ) {
       return
     }
     if (textContent.includes("://")) {
       const original = textContent
       let newContent = original
-      if (/\[.*]\(/.test(original)) {
+      if (new RegExp("\\[.*]\\(", "ms").test(original)) {
         newContent = replaceMarkdownImgLinks(newContent)
         newContent = replaceMarkdownLinks(newContent)
       }
@@ -642,15 +644,15 @@
         return true
       }
     }
-    const parentTextContent = (_a = parentNode.textContent) != null ? _a : ""
+    const parentTextContent = (_b = parentNode.textContent) != null ? _b : ""
     if (
-      /\[.*]\(/.test(textContent) &&
+      new RegExp("\\[.*]\\(", "ms").test(mergedText) &&
       (parentTextContent.search(linkPattern2) >= 0 ||
         $$("img", parentNode).length > 0)
     ) {
       const original = parentNode.innerHTML
       const newContent = original
-        .replace(/\[.*]\([^[\]()]+?\)/gim, (m) =>
+        .replace(new RegExp("\\[.*]\\([^[\\]()]+?\\)", "gims"), (m) =>
           m
             .replace(
               /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
@@ -661,16 +663,18 @@
               "($1)"
             )
         )
-        .replace(/\[!\[.*]\([^()]+\)]\([^[\]()]+?\)/gim, (m) =>
-          m
-            .replace(
-              /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
-              "$1"
-            )
-            .replace(
-              /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
-              "($1)"
-            )
+        .replace(
+          new RegExp("\\[!\\[.*]\\([^()]+\\)]\\([^[\\]()]+?\\)", "gims"),
+          (m) =>
+            m
+              .replace(
+                /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
+                "$1"
+              )
+              .replace(
+                /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
+                "($1)"
+              )
         )
       if (newContent !== original) {
         let newContent2 = replaceMarkdownImgLinks(newContent)
@@ -732,15 +736,14 @@
     }
   }
   var fixAnchorTag = (anchorElement) => {
+    var _a
     const href = anchorElement.href
-    const textContent = anchorElement.textContent
+    const textContent = (_a = anchorElement.textContent) != null ? _a : ""
     const nextSibling = anchorElement.nextSibling
     if (
       anchorElement.childElementCount === 0 &&
-      nextSibling &&
-      nextSibling.nodeType === 3 &&
       href.includes(")") &&
-      (textContent == null ? void 0 : textContent.includes(")"))
+      textContent.includes(")")
     ) {
       const index = textContent.indexOf(")")
       const removed = textContent.slice(Math.max(0, index))
@@ -749,7 +752,11 @@
         0,
         Math.max(0, href.indexOf(")"))
       )
-      nextSibling.textContent = removed + nextSibling.textContent
+      if (nextSibling && nextSibling.nodeType === 3) {
+        nextSibling.textContent = removed + nextSibling.textContent
+      } else {
+        anchorElement.after(doc.createTextNode(removed))
+      }
     }
   }
   var scanAndConvertChildNodes = (parentNode) => {
@@ -764,14 +771,19 @@
       }
       return
     }
+    let previousText = ""
     for (const child of parentNode.childNodes) {
       try {
         if (child.nodeName === "#text") {
-          if (textToLink(child)) {
+          if (textToLink(child, previousText)) {
             scanAndConvertChildNodes(parentNode)
             break
           }
+          previousText += child.textContent
+        } else if (child.nodeName === "BR") {
+          previousText += "\n"
         } else {
+          previousText = ""
           scanAndConvertChildNodes(child)
         }
       } catch (error) {
