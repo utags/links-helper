@@ -1,4 +1,9 @@
 import {
+  getSettingsValue,
+  initSettings,
+  showSettings,
+} from "browser-extension-settings"
+import {
   $$,
   addAttribute,
   addEventListener,
@@ -10,11 +15,6 @@ import {
 } from "browser-extension-utils"
 import type { PlasmoCSConfig } from "plasmo"
 
-import {
-  getSettingsValue,
-  initSettings,
-  showSettings,
-} from "./components/settings"
 import { bindOnError, linkToImg } from "./modules/link-to-img"
 import { scanAndConvertChildNodes } from "./modules/text-to-links"
 
@@ -108,6 +108,7 @@ const setAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
 
 async function main() {
   await initSettings({
+    id: "links-helper",
     title: "🔗 Links Helper",
     footer: `
     <p>After change settings, reload the page to take effect</p>
