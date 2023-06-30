@@ -75,6 +75,8 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.4.0 2023.06.30
+  - Update settings module
 - 0.3.5 2023.05.17
   - Fix some edge cases
 - 0.3.4 2023.05.16
