@@ -71,7 +71,7 @@ export const createImgTagString = (src: string, text: string | undefined) =>
 
 export const bindOnError = () => {
   for (const element of $$('img[data-lh-status="1"]')) {
-    setAttribute(element as HTMLElement, "data-lh-status", "2")
+    setAttribute(element, "data-lh-status", "2")
     addEventListener(element, "error", (event) => {
       const img = event.target as HTMLElement
       const anchor = img.parentElement
