@@ -10,6 +10,7 @@ import {
   doc,
   getAttribute,
   registerMenuCommand,
+  runWhenBodyExists,
   setAttribute,
   throttle,
 } from "browser-extension-utils"
@@ -175,14 +176,17 @@ async function main() {
   }
 
   const scanNodes = throttle(() => {
-    // console.error("mutation - scanAndConvertChildNodes, scanAnchors", Date.now())
+    // console.error(
+    //   "mutation - scanAndConvertChildNodes, scanAnchors",
+    //   Date.now()
+    // )
     scanAndConvertChildNodes(doc.body)
     scanAnchors()
     bindOnError()
   }, 500)
 
-  const observer = new MutationObserver(() => {
-    // console.error("mutation", Date.now())
+  const observer = new MutationObserver((mutationsList) => {
+    // console.error("mutation", Date.now(), mutationsList)
     scanNodes()
   })
 
@@ -195,18 +199,10 @@ async function main() {
     })
   }
 
-  if (doc.body) {
+  runWhenBodyExists(() => {
     startObserver()
     scanAndConvertChildNodes(doc.body)
-  } else {
-    const intervalId = setInterval(() => {
-      if (doc.body) {
-        clearInterval(intervalId)
-        startObserver()
-        scanAndConvertChildNodes(doc.body)
-      }
-    }, 100)
-  }
+  })
 
   scanAnchors()
 }
