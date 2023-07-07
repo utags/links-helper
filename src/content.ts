@@ -37,13 +37,21 @@ const settingsTable = {
     defaultValue: true,
   },
   [`enableCustomRulesForCurrentSite_${host}`]: {
-    title: "Enable custom rules for current site",
+    title: "Enable custom rules for the current site",
     defaultValue: false,
   },
   [`customRulesForCurrentSite_${host}`]: {
-    title: "Enable custom rules for current site",
+    title: "Enable custom rules for the current site",
     defaultValue: "",
+    placeholder:
+      "/* Custom rules for internal URLs, matching URLs will be opened in new tabs */",
     type: "textarea",
+    group: 2,
+  },
+  [`enableLinkToImgForCurrentSite_${host}`]: {
+    title: "Enable converting image links to image tags for the current site",
+    defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
+    group: 3,
   },
 }
 
@@ -133,7 +141,7 @@ async function main() {
   }
 
   addEventListener(
-    document,
+    doc,
     "click",
     (event) => {
       let anchorElement = event.target as HTMLElement | undefined
@@ -167,10 +175,12 @@ async function main() {
         console.error(error)
       }
 
-      try {
-        linkToImg(element as HTMLAnchorElement)
-      } catch (error) {
-        console.error(error)
+      if (getSettingsValue(`enableLinkToImgForCurrentSite_${host}`)) {
+        try {
+          linkToImg(element as HTMLAnchorElement)
+        } catch (error) {
+          console.error(error)
+        }
       }
     }
   }
