@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.4.1
+// @version              0.4.2
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
@@ -240,6 +240,28 @@
     Object.hasOwn = (instance, prop) =>
       Object.prototype.hasOwnProperty.call(instance, prop)
   }
+  var parseInt10 = (number, defaultValue) => {
+    if (typeof number === "number" && !Number.isNaN(number)) {
+      return number
+    }
+    if (typeof defaultValue !== "number") {
+      defaultValue = Number.NaN
+    }
+    if (!number) {
+      return defaultValue
+    }
+    const result = Number.parseInt(number, 10)
+    return Number.isNaN(result) ? defaultValue : result
+  }
+  var runWhenBodyExists = (func) => {
+    if (!doc.body) {
+      setTimeout(() => {
+        runWhenBodyExists(func)
+      }, 10)
+      return
+    }
+    func()
+  }
   var addElement2 =
     typeof GM_addElement === "function"
       ? (parentNode, tagName, attributes) => {
@@ -298,7 +320,7 @@
     div.append(createSwitch(options))
     return div
   }
-  var besVersion = 12
+  var besVersion = 14
   var openButton = `<svg viewBox="0 0 60.2601318359375 84.8134765625" version="1.1" xmlns="http://www.w3.org/2000/svg" class=" glyph-box" style="height: 9.62969px; width: 6.84191px;"><g transform="matrix(1 0 0 1 -6.194965820312518 77.63671875)"><path d="M66.4551-35.2539C66.4551-36.4746 65.9668-37.5977 65.0391-38.4766L26.3672-76.3672C25.4883-77.1973 24.4141-77.6367 23.1445-77.6367C20.6543-77.6367 18.7012-75.7324 18.7012-73.1934C18.7012-71.9727 19.1895-70.8496 19.9707-70.0195L55.5176-35.2539L19.9707-0.488281C19.1895 0.341797 18.7012 1.41602 18.7012 2.68555C18.7012 5.22461 20.6543 7.12891 23.1445 7.12891C24.4141 7.12891 25.4883 6.68945 26.3672 5.81055L65.0391-32.0312C65.9668-32.959 66.4551-34.0332 66.4551-35.2539Z"></path></g></svg>`
   var openInNewTabButton = `<svg viewBox="0 0 72.127685546875 72.2177734375" version="1.1" xmlns="http://www.w3.org/2000/svg" class=" glyph-box" style="height: 8.19958px; width: 8.18935px;"><g transform="matrix(1 0 0 1 -12.451127929687573 71.3388671875)"><path d="M84.5703-17.334L84.5215-66.4551C84.5215-69.2383 82.7148-71.1914 79.7852-71.1914L30.6641-71.1914C27.9297-71.1914 26.0742-69.0918 26.0742-66.748C26.0742-64.4043 28.1738-62.4023 30.4688-62.4023L47.4609-62.4023L71.2891-63.1836L62.207-55.2246L13.8184-6.73828C12.9395-5.85938 12.4512-4.73633 12.4512-3.66211C12.4512-1.31836 14.5508 0.878906 16.9922 0.878906C18.1152 0.878906 19.1895 0.488281 20.0684-0.439453L68.5547-48.877L76.6113-58.0078L75.7324-35.2051L75.7324-17.1387C75.7324-14.8438 77.7344-12.6953 80.127-12.6953C82.4707-12.6953 84.5703-14.6973 84.5703-17.334Z"></path></g></svg>`
   var relatedExtensions = [
@@ -475,19 +497,13 @@
     if (settingsContainer) {
       settingsContainer.style.display = "none"
     }
-    removeEventListener(document, "click", onDocumentClick)
-    removeEventListener(document, "keydown", onDocumentKeyDown)
+    removeEventListener(document, "click", onDocumentClick, true)
+    removeEventListener(document, "keydown", onDocumentKeyDown, true)
   }
   var onDocumentClick = (event) => {
-    let target = event.target
-    const settingsContainer = getSettingsContainer()
-    if (settingsContainer) {
-      while (target !== settingsContainer && target) {
-        target = target.parentNode
-      }
-      if (target === settingsContainer) {
-        return
-      }
+    const target = event.target
+    if (target == null ? void 0 : target.closest(`.${prefix}container`)) {
+      return
     }
     closeModal()
   }
@@ -495,16 +511,10 @@
     if (event.defaultPrevented) {
       return
     }
-    switch (event.key) {
-      case "Escape": {
-        closeModal()
-        break
-      }
-      default: {
-        return
-      }
+    if (event.key === "Escape") {
+      closeModal()
+      event.preventDefault()
     }
-    event.preventDefault()
   }
   async function updateOptions() {
     if (!getSettingsElement()) {
@@ -512,11 +522,28 @@
     }
     for (const key in settingsTable) {
       if (Object.hasOwn(settingsTable, key)) {
-        const checkbox = $(
-          `#${settingsElementId} .option_groups .switch_option[data-key="${key}"] input`
-        )
-        if (checkbox) {
-          checkbox.checked = getSettingsValue(key)
+        const item = settingsTable[key]
+        const type = item.type || "switch"
+        switch (type) {
+          case "switch": {
+            const checkbox = $(
+              `#${settingsElementId} .option_groups .switch_option[data-key="${key}"] input`
+            )
+            if (checkbox) {
+              checkbox.checked = getSettingsValue(key)
+            }
+            break
+          }
+          case "textarea": {
+            const textArea = $(
+              `#${settingsElementId} .option_groups textarea[data-key="${key}"]`
+            )
+            textArea.value = getSettingsValue(key)
+            break
+          }
+          default: {
+            break
+          }
         }
       }
     }
@@ -529,19 +556,11 @@
         ? "block"
         : "none"
     }
-    const customStyleValue = $(`#${settingsElementId} .option_groups textarea`)
-    if (customStyleValue) {
-      customStyleValue.value =
-        settings[`customRulesForCurrentSite_${host2}`] || ""
-    }
   }
   function getSettingsContainer() {
     const container = $(`.${prefix}container`)
     if (container) {
-      const theVersion = Number.parseInt(
-        container.dataset.besVersion || "0",
-        10
-      )
+      const theVersion = parseInt10(container.dataset.besVersion, 0)
       if (theVersion < besVersion) {
         container.id = settingsContainerId
         container.dataset.besVersion = String(besVersion)
@@ -552,21 +571,19 @@
       id: settingsContainerId,
       class: `${prefix}container`,
       "data-bes-version": besVersion,
+      style: "display: none;",
     })
   }
   function getSettingsWrapper() {
+    const container = getSettingsContainer()
     return (
-      $(`.${prefix}container .${prefix}wrapper`) ||
-      addElement2(getSettingsContainer(), "div", {
+      $(`.${prefix}wrapper`, container) ||
+      addElement2(container, "div", {
         class: `${prefix}wrapper`,
       })
     )
   }
   function initExtensionList() {
-    if (!doc.body) {
-      setTimeout(initExtensionList, 100)
-      return
-    }
     const wrapper = getSettingsWrapper()
     if (!$(".extension_list_container", wrapper)) {
       const list = createExtensionList([])
@@ -599,43 +616,57 @@
       if (settingsOptions.title) {
         addElement2(settingsMain, "h2", { textContent: settingsOptions.title })
       }
-      const options = addElement2(settingsMain, "div", {
-        class: "option_groups",
-      })
+      const optionGroups = []
+      const getOptionGroup = (index) => {
+        if (index > optionGroups.length) {
+          for (let i = optionGroups.length; i < index; i++) {
+            optionGroups.push(
+              addElement2(settingsMain, "div", {
+                class: "option_groups",
+              })
+            )
+          }
+        }
+        return optionGroups[index - 1]
+      }
       for (const key in settingsTable) {
         if (Object.hasOwn(settingsTable, key)) {
           const item = settingsTable[key]
-          if (!item.type || item.type === "switch") {
+          const type = item.type || "switch"
+          const group = item.group || 1
+          const optionGroup = getOptionGroup(group)
+          if (type === "switch") {
             const switchOption = createSwitchOption(item.title, {
               async onchange(event) {
-                await saveSattingsValue(key, event.target.checked)
+                if (event.target) {
+                  await saveSattingsValue(key, event.target.checked)
+                }
               },
             })
             switchOption.dataset.key = key
-            addElement2(options, switchOption)
+            addElement2(optionGroup, switchOption)
+          } else if (type === "textarea") {
+            let timeoutId
+            addElement2(optionGroup, "textarea", {
+              "data-key": key,
+              placeholder: item.placeholder || "",
+              onkeyup(event) {
+                const textArea = event.target
+                if (timeoutId) {
+                  clearTimeout(timeoutId)
+                  timeoutId = void 0
+                }
+                timeoutId = setTimeout(async () => {
+                  if (textArea) {
+                    await saveSattingsValue(key, textArea.value.trim())
+                  }
+                }, 100)
+              },
+            })
           }
         }
       }
-      const options2 = addElement2(settingsMain, "div", {
-        class: "option_groups",
-      })
-      let timeoutId
-      addElement2(options2, "textarea", {
-        placeholder: `/* Custom rules for internal URLs, matching URLs will be opened in new tabs */`,
-        onkeyup(event) {
-          if (timeoutId) {
-            clearTimeout(timeoutId)
-            timeoutId = null
-          }
-          timeoutId = setTimeout(async () => {
-            const host2 = location.host
-            await saveSattingsValue(
-              `customRulesForCurrentSite_${host2}`,
-              event.target.value.trim()
-            )
-          }, 100)
-        },
-      })
+      const options2 = getOptionGroup(2)
       const tip = addElement2(options2, "div", {
         class: "tip",
       })
@@ -670,10 +701,6 @@
     return settingsMain
   }
   function addSideMenu() {
-    if (!doc.body) {
-      setTimeout(addSideMenu, 100)
-      return
-    }
     const menu =
       $("#browser_extension_side_menu") ||
       addElement2(doc.body, "div", {
@@ -682,7 +709,7 @@
       })
     const button = $("button[data-bes-version]", menu)
     if (button) {
-      const theVersion = Number.parseInt(button.dataset.besVersion || "0", 10)
+      const theVersion = parseInt10(button.dataset.besVersion, 0)
       if (theVersion >= besVersion) {
         return
       }
@@ -702,8 +729,8 @@
     const settingsMain = createSettingsElement()
     await updateOptions()
     settingsContainer.style.display = "block"
-    addEventListener(document, "click", onDocumentClick)
-    addEventListener(document, "keydown", onDocumentKeyDown)
+    addEventListener(document, "click", onDocumentClick, true)
+    addEventListener(document, "keydown", onDocumentKeyDown, true)
     activeExtension(settingsOptions.id)
     deactiveExtensionList()
   }
@@ -719,8 +746,10 @@
     })
     settings = await getSettings()
     addStyle2(getSettingsStyle())
-    initExtensionList()
-    addSideMenu()
+    runWhenBodyExists(() => {
+      initExtensionList()
+      addSideMenu()
+    })
   }
   var image_url_default =
     '{\n  "imgur.com": [\n    "https?://imgur.com/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.com/gi2b1rj",\n    "https?://imgur.com/(\\\\w+)\\\\.(\\\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.com/gi2b1rj.png"\n  ],\n  "imgur.io": [\n    "https?://imgur.io/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.io/gi2b1rj",\n    "https?://imgur.io/(\\\\w+)\\\\.(\\\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.io/gi2b1rj.png"\n  ],\n  "i.imgur.com": [\n    "https?://i.imgur.com/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png"\n  ],\n  "camo.githubusercontent.com": [\n    "https://camo.githubusercontent.com/.* # This is a img url, no need to replace value"\n  ]\n}\n'
@@ -1101,13 +1130,21 @@
       defaultValue: true,
     },
     [`enableCustomRulesForCurrentSite_${host}`]: {
-      title: "Enable custom rules for current site",
+      title: "Enable custom rules for the current site",
       defaultValue: false,
     },
     [`customRulesForCurrentSite_${host}`]: {
-      title: "Enable custom rules for current site",
+      title: "Enable custom rules for the current site",
       defaultValue: "",
+      placeholder:
+        "/* Custom rules for internal URLs, matching URLs will be opened in new tabs */",
       type: "textarea",
+      group: 2,
+    },
+    [`enableLinkToImgForCurrentSite_${host}`]: {
+      title: "Enable converting image links to image tags for the current site",
+      defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
+      group: 3,
     },
   }
   function registerMenuCommands() {
@@ -1186,7 +1223,7 @@
       return
     }
     addEventListener(
-      document,
+      doc,
       "click",
       (event) => {
         let anchorElement = event.target
@@ -1214,10 +1251,12 @@
         } catch (error) {
           console.error(error)
         }
-        try {
-          linkToImg(element)
-        } catch (error) {
-          console.error(error)
+        if (getSettingsValue(`enableLinkToImgForCurrentSite_${host}`)) {
+          try {
+            linkToImg(element)
+          } catch (error) {
+            console.error(error)
+          }
         }
       }
     }
@@ -1226,7 +1265,7 @@
       scanAnchors()
       bindOnError()
     }, 500)
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver((mutationsList) => {
       scanNodes()
     })
     const startObserver = () => {
@@ -1236,18 +1275,10 @@
         characterData: true,
       })
     }
-    if (doc.body) {
+    runWhenBodyExists(() => {
       startObserver()
       scanAndConvertChildNodes(doc.body)
-    } else {
-      const intervalId = setInterval(() => {
-        if (doc.body) {
-          clearInterval(intervalId)
-          startObserver()
-          scanAndConvertChildNodes(doc.body)
-        }
-      }, 100)
-    }
+    })
     scanAnchors()
   }
   main()

@@ -76,6 +76,8 @@
 
 ## Release Notes
 
+- 0.4.2 2023.07.07
+  - 添加单独开关设置是否把图片链接转为图片标签，V2EX 默认开，其他网站默认关
 - 0.4.1 2023.07.04
   - Fix settings style on mobile devices
 - 0.4.0 2023.06.30
