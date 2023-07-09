@@ -4,6 +4,7 @@ import {
   showSettings,
 } from "browser-extension-settings"
 import {
+  $,
   $$,
   addAttribute,
   addEventListener,
@@ -46,6 +47,23 @@ const settingsTable = {
     placeholder:
       "/* Custom rules for internal URLs, matching URLs will be opened in new tabs */",
     type: "textarea",
+    group: 2,
+  },
+  customRulesTip: {
+    title: "Examples",
+    type: "tip",
+    tipContent: `<p>Custom rules for internal URLs, matching URLs will be opened in new tabs</p>
+    <p>
+    - One line per url pattern<br>
+    - All URLs contains '/posts' or '/users/'<br>
+    <pre>/posts/
+/users/</pre>
+
+    - Regex is supported<br>
+    <pre>^/(posts|members)/d+</pre>
+
+    - '*' for all URLs
+    </p>`,
     group: 2,
   },
   [`enableLinkToImgForCurrentSite_${host}`]: {
@@ -130,6 +148,16 @@ async function main() {
       Pipecraft
     </a></p>`,
     settingsTable,
+    onViewUpdate(settingsMainView) {
+      const group2 = $(`.option_groups:nth-of-type(2)`, settingsMainView)
+      if (group2) {
+        group2.style.display = getSettingsValue(
+          `enableCustomRulesForCurrentSite_${host}`
+        )
+          ? "block"
+          : "none"
+      }
+    },
   })
   registerMenuCommands()
 
