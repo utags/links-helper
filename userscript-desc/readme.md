@@ -75,6 +75,9 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.4.3 2023.07.10
+  - Hide settings button in side menu by default
+  - Update settings module
 - 0.4.2 2023.07.07
   - Add setting option for converting image links to image tags
 - 0.4.1 2023.07.04
