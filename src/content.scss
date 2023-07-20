@@ -1,0 +1,11 @@
+.lh_selected_element {
+  border: solid 1px red;
+  cursor: not-allowed;
+}
+
+a[data-lh-erased-href],
+a[data-lh-erased-href]:hover {
+  cursor: default;
+  pointer-events: none;
+  text-decoration: none;
+}

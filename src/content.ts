@@ -1,5 +1,6 @@
 import {
   getSettingsValue,
+  hideSettings,
   initSettings,
   showSettings,
 } from "browser-extension-settings"
@@ -8,6 +9,7 @@ import {
   $$,
   addAttribute,
   addEventListener,
+  addStyle,
   doc,
   getAttribute,
   registerMenuCommand,
@@ -15,8 +17,10 @@ import {
   setAttribute,
   throttle,
 } from "browser-extension-utils"
+import styleText from "data-text:./content.scss"
 import type { PlasmoCSConfig } from "plasmo"
 
+import { eraseLinks, restoreLinks } from "./modules/erase-links"
 import { bindOnError, linkToImg } from "./modules/link-to-img"
 import { scanAndConvertChildNodes } from "./modules/text-to-links"
 
@@ -70,6 +74,24 @@ const settingsTable = {
     title: "Enable converting image links to image tags for the current site",
     defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
     group: 3,
+  },
+  eraseLinks: {
+    title: "Erase Links",
+    type: "action",
+    async onclick() {
+      hideSettings()
+      eraseLinks()
+    },
+    group: 4,
+  },
+  restoreLinks: {
+    title: "Restore Links",
+    type: "action",
+    async onclick() {
+      hideSettings()
+      restoreLinks()
+    },
+    group: 4,
   },
 }
 
@@ -167,6 +189,8 @@ async function main() {
   ) {
     return
   }
+
+  addStyle(styleText)
 
   addEventListener(
     doc,
