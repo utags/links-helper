@@ -11,6 +11,7 @@ Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 - Convert image links to image tags ✅
 - Parse Markdown style links and image tags ✅
 - Parse BBCode style links and image tags ✅
+- Erase links from the page ✅
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/zbbbksxhu0ntfxbryzp84s3dz88b)
 

@@ -11,6 +11,7 @@ Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 - Convert image links to image tags ✅
 - Parse Markdown style links and image tags ✅
 - Parse BBCode style links and image tags ✅
+- Erase links from the page ✅
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/zbbbksxhu0ntfxbryzp84s3dz88b)
 
@@ -75,6 +76,8 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.5.0 2023.07.21
+  - Erase links from the page
 - 0.4.3 2023.07.10
   - Hide settings button in side menu by default
   - Update settings module

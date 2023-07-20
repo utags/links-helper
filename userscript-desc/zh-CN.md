@@ -11,6 +11,7 @@
 - 自动识别图片链接，转成图片标签 ✅
 - 解析 Markdown 格式链接与图片标签 ✅
 - 解析 BBCode 格式链接与图片标签 ✅
+- 去掉页面中指定区域的超链接 ✅
 
 ![screenshots](https://greasyfork.s3.us-east-2.amazonaws.com/zbbbksxhu0ntfxbryzp84s3dz88b)
 
@@ -76,6 +77,8 @@
 
 ## Release Notes
 
+- 0.5.0 2023.07.21
+  - 去掉页面中指定区域的超链接
 - 0.4.3 2023.07.10
   - 默认隐藏侧边栏里的设置按钮
   - Update settings module
