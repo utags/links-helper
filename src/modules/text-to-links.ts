@@ -54,7 +54,7 @@ const linkPattern6 = new RegExp(
 
 const replaceMarkdownImgLinks = (text: string) => {
   if (text.search(linkPattern1) >= 0) {
-    text = text.replace(linkPattern1, (m, p1: string, p2: string) => {
+    text = text.replaceAll(linkPattern1, (m, p1: string, p2: string) => {
       // console.log(m, p1, p2)
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       return createImgTagString(convertImgUrl(p2) || p2, p1)
@@ -66,8 +66,8 @@ const replaceMarkdownImgLinks = (text: string) => {
 
 const replaceMarkdownLinks = (text: string) => {
   if (text.search(linkPattern2) >= 0) {
-    text = text.replace(linkPattern2, (m, p1: string, p2: string) => {
-      return `<a href="${p2}">${p1.replace(/<br>$/gi, "")}</a>`
+    text = text.replaceAll(linkPattern2, (m, p1: string, p2: string) => {
+      return `<a href="${p2}">${p1.replaceAll(/<br>$/gi, "")}</a>`
     })
   }
 
@@ -76,7 +76,7 @@ const replaceMarkdownLinks = (text: string) => {
 
 const replaceTextLinks = (text: string) => {
   if (text.search(linkPattern3) >= 0) {
-    text = text.replace(linkPattern3, (m, p1: string) => {
+    text = text.replaceAll(linkPattern3, (m, p1: string) => {
       // console.log(m, p1)
       return `<a href="${p1}">${p1}</a>`
     })
@@ -88,7 +88,7 @@ const replaceTextLinks = (text: string) => {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const replaceBBCodeImgLinks = (text: string) => {
   if (text.search(linkPattern4) >= 0) {
-    text = text.replace(linkPattern4, (m, p1: string) => {
+    text = text.replaceAll(linkPattern4, (m, p1: string) => {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       return createImgTagString(convertImgUrl(p1) || p1, p1)
     })
@@ -100,13 +100,13 @@ const replaceBBCodeImgLinks = (text: string) => {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const replaceBBCodeLinks = (text: string) => {
   if (text.search(linkPattern5) >= 0) {
-    text = text.replace(linkPattern5, (m, p1: string) => {
+    text = text.replaceAll(linkPattern5, (m, p1: string) => {
       return `<a href="${p1}">${p1}</a>`
     })
   }
 
   if (text.search(linkPattern6) >= 0) {
-    text = text.replace(linkPattern6, (m, p1: string, p2: string) => {
+    text = text.replaceAll(linkPattern6, (m, p1: string, p2: string) => {
       return `<a href="${p1}">${p2}</a>`
     })
   }
@@ -144,7 +144,7 @@ const textToLink = (textNode: HTMLElement, previousText: string) => {
       newContent = replaceTextLinks(original)
     } else {
       // Don't replace <a ...>...</a> or <img .../>
-      newContent = newContent.replace(
+      newContent = newContent.replaceAll(
         /(<a(?:\s[^<>]*)?>.*?<\/a>)|(<img(?:\s[^<>]*)?\/?>)|(.+?(?=(?:<a|<img))|.+$)/gims,
         (m, p1, p2) => (p1 || p2 ? m : replaceTextLinks(m))
       )
@@ -172,24 +172,24 @@ const textToLink = (textNode: HTMLElement, previousText: string) => {
     const original = parentNode.innerHTML
     // console.log("Markdown", textContent, "=========", original)
     const newContent = original
-      .replace(/\[.*]\([^[\]()]+?\)/gims, (m) =>
+      .replaceAll(/\[.*]\([^[\]()]+?\)/gims, (m) =>
         m
-          .replace(
+          .replaceAll(
             /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
             "$1"
           )
-          .replace(
+          .replaceAll(
             /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
             "($1)"
           )
       )
-      .replace(/\[!\[.*]\([^()]+\)]\([^[\]()]+?\)/gims, (m) =>
+      .replaceAll(/\[!\[.*]\([^()]+\)]\([^[\]()]+?\)/gims, (m) =>
         m
-          .replace(
+          .replaceAll(
             /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
             "$1"
           )
-          .replace(
+          .replaceAll(
             /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
             "($1)"
           )
@@ -220,7 +220,7 @@ const textToLink = (textNode: HTMLElement, previousText: string) => {
     while (before !== after && count < 5) {
       count++
       before = after
-      after = before.replace(
+      after = before.replaceAll(
         // [img]{url}[/img], [url]{url}[/url] or [url={url}]{text}[/url]
         /\[(img|url)[^\]]*]([^[\]]+?)\[\/\1]/gim,
         (m: string, p1: string) => {
@@ -229,22 +229,22 @@ const textToLink = (textNode: HTMLElement, previousText: string) => {
           let converted
           if (p1 === "img") {
             tagsRemoved = m
-              .replace(
+              .replaceAll(
                 /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
                 "$1"
               )
-              .replace(
+              .replaceAll(
                 /\[img](?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\[\/img]/gim,
                 "[img]$1[/img]"
               )
             converted = replaceBBCodeImgLinks(tagsRemoved)
           } else {
             tagsRemoved = m
-              .replace(
+              .replaceAll(
                 /\[url](?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\[\/url]/gim,
                 "[url]$1[/url]"
               )
-              .replace(
+              .replaceAll(
                 /\[url=<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>]/gim,
                 "[url=$1]"
               )
