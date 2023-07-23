@@ -37,7 +37,7 @@
     let index = 0
     let failed = false
     for (const element of $$("li")) {
-      const content = element.innerHTML.replace(/\s+/gim, " ").trim()
+      const content = element.innerHTML.replaceAll(/\s+/gim, " ").trim()
       const expected = expectedList[index++]
       contents.push(content)
       if (expected !== content) {
