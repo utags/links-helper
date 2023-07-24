@@ -76,6 +76,8 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.5.1 2023.07.24
+  - Fix TrustedHTML issues
 - 0.5.0 2023.07.21
   - Erase links from the page
 - 0.4.3 2023.07.10

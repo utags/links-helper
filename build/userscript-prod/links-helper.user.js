@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.5.0
+// @version              0.5.1
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
@@ -138,8 +138,10 @@
           if (value === void 0) {
             continue
           }
-          if (/^(value|textContent|innerText|innerHTML)$/.test(name)) {
+          if (/^(value|textContent|innerText)$/.test(name)) {
             element[name] = value
+          } else if (/^(innerHTML)$/.test(name)) {
+            element[name] = createHTML(value)
           } else if (name === "style") {
             setStyle(element, value, true)
           } else if (/on\w+/.test(name)) {
@@ -264,6 +266,16 @@
     }
     func()
   }
+  var escapeHTMLPolicy =
+    typeof trustedTypes !== "undefined" &&
+    typeof trustedTypes.createPolicy === "function"
+      ? trustedTypes.createPolicy("beuEscapePolicy", {
+          createHTML: (string) => string,
+        })
+      : void 0
+  var createHTML = (html) => {
+    return escapeHTMLPolicy ? escapeHTMLPolicy.createHTML(html) : html
+  }
   var addElement2 =
     typeof GM_addElement === "function"
       ? (parentNode, tagName, attributes) => {
@@ -300,7 +312,8 @@
     }
     GM.registerMenuCommand(name, callback, accessKey)
   }
-  var style_default = `#browser_extension_settings_container{--browser-extension-settings-background-color: #f2f2f7;--browser-extension-settings-text-color: #444444;--browser-extension-settings-link-color: #217dfc;--sb-track-color: #00000000;--sb-thumb-color: #33334480;--sb-size: 2px;position:fixed;top:10px;right:30px;max-height:90%;height:600px;overflow:hidden;display:none;z-index:100000;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}#browser_extension_settings_container .browser_extension_settings_wrapper{display:flex;height:100%;overflow:hidden;background-color:var(--browser-extension-settings-background-color)}#browser_extension_settings_container .browser_extension_settings_wrapper h1{font-size:26px;font-weight:800;border:none}#browser_extension_settings_container .browser_extension_settings_wrapper h2{font-size:18px;font-weight:600;border:none}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container{overflow-x:auto;box-sizing:border-box;padding:10px 15px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color)}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div{background-color:#fff;font-size:14px;border-top:1px solid #ccc;padding:6px 15px 6px 15px}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a:visited,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a:visited{display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-decoration:none;color:var(--browser-extension-settings-text-color)}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a:hover,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a:visited:hover,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a:hover,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a:visited:hover{text-decoration:none;color:var(--browser-extension-settings-text-color)}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a span,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a:visited span,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a span,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a:visited span{margin-right:10px;line-height:24px}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div.active,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div:hover,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div.active,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div:hover{background-color:#e4e4e6}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div.active a,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div.active a{cursor:default}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div:first-of-type,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div:first-of-type{border-top:none;border-top-right-radius:10px;border-top-left-radius:10px}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div:last-of-type,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div:last-of-type{border-bottom-right-radius:10px;border-bottom-left-radius:10px}#browser_extension_settings_container .thin_scrollbar{scrollbar-color:var(--sb-thumb-color) var(--sb-track-color);scrollbar-width:thin}#browser_extension_settings_container .thin_scrollbar::-webkit-scrollbar{width:var(--sb-size)}#browser_extension_settings_container .thin_scrollbar::-webkit-scrollbar-track{background:var(--sb-track-color);border-radius:10px}#browser_extension_settings_container .thin_scrollbar::-webkit-scrollbar-thumb{background:var(--sb-thumb-color);border-radius:10px}#browser_extension_settings_main{min-width:250px;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:10px 15px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color)}#browser_extension_settings_main h2{text-align:center;margin:5px 0 0;font-size:18px;font-weight:600;border:none}#browser_extension_settings_main footer{display:flex;justify-content:center;flex-direction:column;font-size:11px;margin:10px auto 0px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color)}#browser_extension_settings_main footer a{color:var(--browser-extension-settings-link-color) !important;text-decoration:none;padding:0}#browser_extension_settings_main footer p{text-align:center;padding:0;margin:2px;line-height:13px}#browser_extension_settings_main a.navigation_go_previous{color:var(--browser-extension-settings-link-color);cursor:pointer;display:none}#browser_extension_settings_main a.navigation_go_previous::before{content:"< "}#browser_extension_settings_main .option_groups{background-color:#fff;padding:6px 15px 6px 15px;border-radius:10px;display:flex;flex-direction:column;margin:10px 0 0}#browser_extension_settings_main .option_groups .action{font-size:14px;padding:6px 0 6px 0;color:var(--browser-extension-settings-link-color);cursor:pointer}#browser_extension_settings_main .bes_external_link{font-size:14px;padding:6px 0 6px 0}#browser_extension_settings_main .bes_external_link a,#browser_extension_settings_main .bes_external_link a:visited,#browser_extension_settings_main .bes_external_link a:hover{color:var(--browser-extension-settings-link-color);text-decoration:none;cursor:pointer}#browser_extension_settings_main .option_groups textarea{font-size:12px;margin:10px 0 10px 0;height:100px;width:100%;border:1px solid #a9a9a9;border-radius:4px;box-sizing:border-box}#browser_extension_settings_main .switch_option{display:flex;justify-content:space-between;align-items:center;padding:6px 0 6px 0;font-size:14px}#browser_extension_settings_main .option_groups>*{border-top:1px solid #ccc}#browser_extension_settings_main .option_groups>*:first-child{border-top:none}#browser_extension_settings_main .switch_option>span{margin-right:10px}#browser_extension_settings_main .option_groups .bes_tip{position:relative;margin:0;padding:0 15px 0 0;border:none;max-width:none;font-size:14px}#browser_extension_settings_main .option_groups .bes_tip .bes_tip_anchor{cursor:help;text-decoration:underline}#browser_extension_settings_main .option_groups .bes_tip .bes_tip_content{position:absolute;bottom:15px;left:0;background-color:#fff;color:var(--browser-extension-settings-text-color);text-align:left;padding:10px;display:none;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}#browser_extension_settings_main .option_groups .bes_tip .bes_tip_anchor:hover+.bes_tip_content,#browser_extension_settings_main .option_groups .bes_tip .bes_tip_content:hover{display:block}#browser_extension_settings_main .option_groups .bes_tip p,#browser_extension_settings_main .option_groups .bes_tip pre{margin:revert;padding:revert}#browser_extension_settings_main .option_groups .bes_tip pre{font-family:Consolas,panic sans,bitstream vera sans mono,Menlo,microsoft yahei,monospace;font-size:13px;letter-spacing:.015em;line-height:120%;white-space:pre;overflow:auto;background-color:#f5f5f5;word-break:normal;overflow-wrap:normal;padding:.5em;border:none}#browser_extension_settings_main .container{--button-width: 51px;--button-height: 24px;--toggle-diameter: 20px;--color-off: #e9e9eb;--color-on: #34c759;width:var(--button-width);height:var(--button-height);position:relative;padding:0;margin:0;flex:none;user-select:none}#browser_extension_settings_main input[type=checkbox]{opacity:0;width:0;height:0;position:absolute}#browser_extension_settings_main .switch{width:100%;height:100%;display:block;background-color:var(--color-off);border-radius:calc(var(--button-height)/2);border:none;cursor:pointer;transition:all .2s ease-out}#browser_extension_settings_main .switch::before{display:none}#browser_extension_settings_main .slider{width:var(--toggle-diameter);height:var(--toggle-diameter);position:absolute;left:2px;top:calc(50% - var(--toggle-diameter)/2);border-radius:50%;background:#fff;box-shadow:0px 3px 8px rgba(0,0,0,.15),0px 3px 1px rgba(0,0,0,.06);transition:all .2s ease-out;cursor:pointer}#browser_extension_settings_main input[type=checkbox]:checked+.switch{background-color:var(--color-on)}#browser_extension_settings_main input[type=checkbox]:checked+.switch .slider{left:calc(var(--button-width) - var(--toggle-diameter) - 2px)}#browser_extension_side_menu{min-height:100px;width:40px;opacity:0;position:fixed;top:80px;right:0;padding-top:20px;z-index:10000}#browser_extension_side_menu:hover{opacity:1}#browser_extension_side_menu button{cursor:pointer;width:24px;height:24px;border:none;background-color:rgba(0,0,0,0);background-image:url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M12.0002 16C14.2094 16 16.0002 14.2091 16.0002 12C16.0002 9.79086 14.2094 8 12.0002 8C9.79109 8 8.00023 9.79086 8.00023 12C8.00023 14.2091 9.79109 16 12.0002 16ZM12.0002 14C13.1048 14 14.0002 13.1046 14.0002 12C14.0002 10.8954 13.1048 10 12.0002 10C10.8957 10 10.0002 10.8954 10.0002 12C10.0002 13.1046 10.8957 14 12.0002 14Z' fill='black'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M15.1182 1.86489L15.5203 4.81406C15.8475 4.97464 16.1621 5.1569 16.4623 5.35898L19.2185 4.23223C19.6814 4.043 20.2129 4.2248 20.463 4.65787L22.5901 8.34213C22.8401 8.77521 22.7318 9.3264 22.3365 9.63266L19.9821 11.4566C19.9941 11.6362 20.0002 11.8174 20.0002 12C20.0002 12.1826 19.9941 12.3638 19.9821 12.5434L22.3365 14.3673C22.7318 14.6736 22.8401 15.2248 22.5901 15.6579L20.463 19.3421C20.2129 19.7752 19.6814 19.957 19.2185 19.7678L16.4623 18.641C16.1621 18.8431 15.8475 19.0254 15.5203 19.1859L15.1182 22.1351C15.0506 22.6306 14.6274 23 14.1273 23H9.87313C9.37306 23 8.94987 22.6306 8.8823 22.1351L8.48014 19.1859C8.15296 19.0254 7.83835 18.8431 7.53818 18.641L4.78195 19.7678C4.31907 19.957 3.78756 19.7752 3.53752 19.3421L1.41042 15.6579C1.16038 15.2248 1.26869 14.6736 1.66401 14.3673L4.01841 12.5434C4.00636 12.3638 4.00025 12.1826 4.00025 12C4.00025 11.8174 4.00636 11.6362 4.01841 11.4566L1.66401 9.63266C1.26869 9.3264 1.16038 8.77521 1.41041 8.34213L3.53752 4.65787C3.78755 4.2248 4.31906 4.043 4.78195 4.23223L7.53818 5.35898C7.83835 5.1569 8.15296 4.97464 8.48014 4.81406L8.8823 1.86489C8.94987 1.3694 9.37306 1 9.87313 1H14.1273C14.6274 1 15.0506 1.3694 15.1182 1.86489ZM13.6826 6.14004L14.6392 6.60948C14.8842 6.72975 15.1201 6.86639 15.3454 7.01805L16.231 7.61423L19.1674 6.41382L20.4216 8.58619L17.9153 10.5278L17.9866 11.5905C17.9956 11.7255 18.0002 11.8621 18.0002 12C18.0002 12.1379 17.9956 12.2745 17.9866 12.4095L17.9153 13.4722L20.4216 15.4138L19.1674 17.5862L16.231 16.3858L15.3454 16.982C15.1201 17.1336 14.8842 17.2702 14.6392 17.3905L13.6826 17.86L13.2545 21H10.746L10.3178 17.86L9.36131 17.3905C9.11626 17.2702 8.88037 17.1336 8.6551 16.982L7.76954 16.3858L4.83313 17.5862L3.57891 15.4138L6.0852 13.4722L6.01392 12.4095C6.00487 12.2745 6.00024 12.1379 6.00024 12C6.00024 11.8621 6.00487 11.7255 6.01392 11.5905L6.0852 10.5278L3.57891 8.58619L4.83312 6.41382L7.76953 7.61423L8.6551 7.01805C8.88037 6.86639 9.11625 6.72976 9.36131 6.60949L10.3178 6.14004L10.746 3H13.2545L13.6826 6.14004Z' fill='black'/%3E%3C/svg%3E")}#browser_extension_side_menu button:hover{opacity:70%}#browser_extension_side_menu button:active{opacity:100%}@media(max-width: 500px){#browser_extension_settings_container{right:10px}#browser_extension_settings_container .extension_list_container{display:none}#browser_extension_settings_container .extension_list_container.bes_active{display:block}#browser_extension_settings_container .extension_list_container.bes_active+div{display:none}#browser_extension_settings_main a.navigation_go_previous{display:block}}`
+  var style_default =
+    "#browser_extension_settings_container{--browser-extension-settings-background-color: #f2f2f7;--browser-extension-settings-text-color: #444444;--browser-extension-settings-link-color: #217dfc;--sb-track-color: #00000000;--sb-thumb-color: #33334480;--sb-size: 2px;position:fixed;top:10px;right:30px;max-height:90%;height:600px;overflow:hidden;display:none;z-index:100000;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}#browser_extension_settings_container .browser_extension_settings_wrapper{display:flex;height:100%;overflow:hidden;background-color:var(--browser-extension-settings-background-color)}#browser_extension_settings_container .browser_extension_settings_wrapper h1{font-size:26px;font-weight:800;border:none}#browser_extension_settings_container .browser_extension_settings_wrapper h2{font-size:18px;font-weight:600;border:none}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container{overflow-x:auto;box-sizing:border-box;padding:10px 15px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color)}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div{background-color:#fff;font-size:14px;border-top:1px solid #ccc;padding:6px 15px 6px 15px}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a:visited,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a:visited{display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-decoration:none;color:var(--browser-extension-settings-text-color)}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a:hover,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a:visited:hover,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a:hover,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a:visited:hover{text-decoration:none;color:var(--browser-extension-settings-text-color)}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a span,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div a:visited span,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a span,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div a:visited span{margin-right:10px;line-height:24px}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div.active,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div:hover,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div.active,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div:hover{background-color:#e4e4e6}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div.active a,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div.active a{cursor:default}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div:first-of-type,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div:first-of-type{border-top:none;border-top-right-radius:10px;border-top-left-radius:10px}#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .installed_extension_list div:last-of-type,#browser_extension_settings_container .browser_extension_settings_wrapper .extension_list_container .related_extension_list div:last-of-type{border-bottom-right-radius:10px;border-bottom-left-radius:10px}#browser_extension_settings_container .thin_scrollbar{scrollbar-color:var(--sb-thumb-color) var(--sb-track-color);scrollbar-width:thin}#browser_extension_settings_container .thin_scrollbar::-webkit-scrollbar{width:var(--sb-size)}#browser_extension_settings_container .thin_scrollbar::-webkit-scrollbar-track{background:var(--sb-track-color);border-radius:10px}#browser_extension_settings_container .thin_scrollbar::-webkit-scrollbar-thumb{background:var(--sb-thumb-color);border-radius:10px}#browser_extension_settings_main{min-width:250px;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:10px 15px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color)}#browser_extension_settings_main h2{text-align:center;margin:5px 0 0;font-size:18px;font-weight:600;border:none}#browser_extension_settings_main footer{display:flex;justify-content:center;flex-direction:column;font-size:11px;margin:10px auto 0px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color)}#browser_extension_settings_main footer a{color:var(--browser-extension-settings-link-color) !important;text-decoration:none;padding:0}#browser_extension_settings_main footer p{text-align:center;padding:0;margin:2px;line-height:13px}#browser_extension_settings_main a.navigation_go_previous{color:var(--browser-extension-settings-link-color);cursor:pointer;display:none}#browser_extension_settings_main a.navigation_go_previous::before{content:\"< \"}#browser_extension_settings_main .option_groups{background-color:#fff;padding:6px 15px 6px 15px;border-radius:10px;display:flex;flex-direction:column;margin:10px 0 0}#browser_extension_settings_main .option_groups .action{font-size:14px;padding:6px 0 6px 0;color:var(--browser-extension-settings-link-color);cursor:pointer}#browser_extension_settings_main .bes_external_link{font-size:14px;padding:6px 0 6px 0}#browser_extension_settings_main .bes_external_link a,#browser_extension_settings_main .bes_external_link a:visited,#browser_extension_settings_main .bes_external_link a:hover{color:var(--browser-extension-settings-link-color);text-decoration:none;cursor:pointer}#browser_extension_settings_main .option_groups textarea{font-size:12px;margin:10px 0 10px 0;height:100px;width:100%;border:1px solid #a9a9a9;border-radius:4px;box-sizing:border-box}#browser_extension_settings_main .switch_option{display:flex;justify-content:space-between;align-items:center;padding:6px 0 6px 0;font-size:14px}#browser_extension_settings_main .option_groups>*{border-top:1px solid #ccc}#browser_extension_settings_main .option_groups>*:first-child{border-top:none}#browser_extension_settings_main .switch_option>span{margin-right:10px}#browser_extension_settings_main .option_groups .bes_tip{position:relative;margin:0;padding:0 15px 0 0;border:none;max-width:none;font-size:14px}#browser_extension_settings_main .option_groups .bes_tip .bes_tip_anchor{cursor:help;text-decoration:underline}#browser_extension_settings_main .option_groups .bes_tip .bes_tip_content{position:absolute;bottom:15px;left:0;background-color:#fff;color:var(--browser-extension-settings-text-color);text-align:left;padding:10px;display:none;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}#browser_extension_settings_main .option_groups .bes_tip .bes_tip_anchor:hover+.bes_tip_content,#browser_extension_settings_main .option_groups .bes_tip .bes_tip_content:hover{display:block}#browser_extension_settings_main .option_groups .bes_tip p,#browser_extension_settings_main .option_groups .bes_tip pre{margin:revert;padding:revert}#browser_extension_settings_main .option_groups .bes_tip pre{font-family:Consolas,panic sans,bitstream vera sans mono,Menlo,microsoft yahei,monospace;font-size:13px;letter-spacing:.015em;line-height:120%;white-space:pre;overflow:auto;background-color:#f5f5f5;word-break:normal;overflow-wrap:normal;padding:.5em;border:none}#browser_extension_settings_main .container{--button-width: 51px;--button-height: 24px;--toggle-diameter: 20px;--color-off: #e9e9eb;--color-on: #34c759;width:var(--button-width);height:var(--button-height);position:relative;padding:0;margin:0;flex:none;user-select:none}#browser_extension_settings_main input[type=checkbox]{opacity:0;width:0;height:0;position:absolute}#browser_extension_settings_main .switch{width:100%;height:100%;display:block;background-color:var(--color-off);border-radius:calc(var(--button-height)/2);border:none;cursor:pointer;transition:all .2s ease-out}#browser_extension_settings_main .switch::before{display:none}#browser_extension_settings_main .slider{width:var(--toggle-diameter);height:var(--toggle-diameter);position:absolute;left:2px;top:calc(50% - var(--toggle-diameter)/2);border-radius:50%;background:#fff;box-shadow:0px 3px 8px rgba(0,0,0,.15),0px 3px 1px rgba(0,0,0,.06);transition:all .2s ease-out;cursor:pointer}#browser_extension_settings_main input[type=checkbox]:checked+.switch{background-color:var(--color-on)}#browser_extension_settings_main input[type=checkbox]:checked+.switch .slider{left:calc(var(--button-width) - var(--toggle-diameter) - 2px)}#browser_extension_side_menu{min-height:100px;width:40px;opacity:0;position:fixed;top:80px;right:0;padding-top:20px;z-index:10000}#browser_extension_side_menu:hover{opacity:1}#browser_extension_side_menu button{cursor:pointer;width:24px;height:24px;border:none;background-color:rgba(0,0,0,0);background-image:url(\"data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M12.0002 16C14.2094 16 16.0002 14.2091 16.0002 12C16.0002 9.79086 14.2094 8 12.0002 8C9.79109 8 8.00023 9.79086 8.00023 12C8.00023 14.2091 9.79109 16 12.0002 16ZM12.0002 14C13.1048 14 14.0002 13.1046 14.0002 12C14.0002 10.8954 13.1048 10 12.0002 10C10.8957 10 10.0002 10.8954 10.0002 12C10.0002 13.1046 10.8957 14 12.0002 14Z' fill='black'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M15.1182 1.86489L15.5203 4.81406C15.8475 4.97464 16.1621 5.1569 16.4623 5.35898L19.2185 4.23223C19.6814 4.043 20.2129 4.2248 20.463 4.65787L22.5901 8.34213C22.8401 8.77521 22.7318 9.3264 22.3365 9.63266L19.9821 11.4566C19.9941 11.6362 20.0002 11.8174 20.0002 12C20.0002 12.1826 19.9941 12.3638 19.9821 12.5434L22.3365 14.3673C22.7318 14.6736 22.8401 15.2248 22.5901 15.6579L20.463 19.3421C20.2129 19.7752 19.6814 19.957 19.2185 19.7678L16.4623 18.641C16.1621 18.8431 15.8475 19.0254 15.5203 19.1859L15.1182 22.1351C15.0506 22.6306 14.6274 23 14.1273 23H9.87313C9.37306 23 8.94987 22.6306 8.8823 22.1351L8.48014 19.1859C8.15296 19.0254 7.83835 18.8431 7.53818 18.641L4.78195 19.7678C4.31907 19.957 3.78756 19.7752 3.53752 19.3421L1.41042 15.6579C1.16038 15.2248 1.26869 14.6736 1.66401 14.3673L4.01841 12.5434C4.00636 12.3638 4.00025 12.1826 4.00025 12C4.00025 11.8174 4.00636 11.6362 4.01841 11.4566L1.66401 9.63266C1.26869 9.3264 1.16038 8.77521 1.41041 8.34213L3.53752 4.65787C3.78755 4.2248 4.31906 4.043 4.78195 4.23223L7.53818 5.35898C7.83835 5.1569 8.15296 4.97464 8.48014 4.81406L8.8823 1.86489C8.94987 1.3694 9.37306 1 9.87313 1H14.1273C14.6274 1 15.0506 1.3694 15.1182 1.86489ZM13.6826 6.14004L14.6392 6.60948C14.8842 6.72975 15.1201 6.86639 15.3454 7.01805L16.231 7.61423L19.1674 6.41382L20.4216 8.58619L17.9153 10.5278L17.9866 11.5905C17.9956 11.7255 18.0002 11.8621 18.0002 12C18.0002 12.1379 17.9956 12.2745 17.9866 12.4095L17.9153 13.4722L20.4216 15.4138L19.1674 17.5862L16.231 16.3858L15.3454 16.982C15.1201 17.1336 14.8842 17.2702 14.6392 17.3905L13.6826 17.86L13.2545 21H10.746L10.3178 17.86L9.36131 17.3905C9.11626 17.2702 8.88037 17.1336 8.6551 16.982L7.76954 16.3858L4.83313 17.5862L3.57891 15.4138L6.0852 13.4722L6.01392 12.4095C6.00487 12.2745 6.00024 12.1379 6.00024 12C6.00024 11.8621 6.00487 11.7255 6.01392 11.5905L6.0852 10.5278L3.57891 8.58619L4.83312 6.41382L7.76953 7.61423L8.6551 7.01805C8.88037 6.86639 9.11625 6.72976 9.36131 6.60949L10.3178 6.14004L10.746 3H13.2545L13.6826 6.14004Z' fill='black'/%3E%3C/svg%3E\")}#browser_extension_side_menu button:hover{opacity:70%}#browser_extension_side_menu button:active{opacity:100%}@media(max-width: 500px){#browser_extension_settings_container{right:10px}#browser_extension_settings_container .extension_list_container{display:none}#browser_extension_settings_container .extension_list_container.bes_active{display:block}#browser_extension_settings_container .extension_list_container.bes_active+div{display:none}#browser_extension_settings_main a.navigation_go_previous{display:block}}"
   function createSwitch(options = {}) {
     const container = createElement("label", { class: "container" })
     const checkbox = createElement(
@@ -323,8 +336,10 @@
     return div
   }
   var besVersion = 17
-  var openButton = `<svg viewBox="0 0 60.2601318359375 84.8134765625" version="1.1" xmlns="http://www.w3.org/2000/svg" class=" glyph-box" style="height: 9.62969px; width: 6.84191px;"><g transform="matrix(1 0 0 1 -6.194965820312518 77.63671875)"><path d="M66.4551-35.2539C66.4551-36.4746 65.9668-37.5977 65.0391-38.4766L26.3672-76.3672C25.4883-77.1973 24.4141-77.6367 23.1445-77.6367C20.6543-77.6367 18.7012-75.7324 18.7012-73.1934C18.7012-71.9727 19.1895-70.8496 19.9707-70.0195L55.5176-35.2539L19.9707-0.488281C19.1895 0.341797 18.7012 1.41602 18.7012 2.68555C18.7012 5.22461 20.6543 7.12891 23.1445 7.12891C24.4141 7.12891 25.4883 6.68945 26.3672 5.81055L65.0391-32.0312C65.9668-32.959 66.4551-34.0332 66.4551-35.2539Z"></path></g></svg>`
-  var openInNewTabButton = `<svg viewBox="0 0 72.127685546875 72.2177734375" version="1.1" xmlns="http://www.w3.org/2000/svg" class=" glyph-box" style="height: 8.19958px; width: 8.18935px;"><g transform="matrix(1 0 0 1 -12.451127929687573 71.3388671875)"><path d="M84.5703-17.334L84.5215-66.4551C84.5215-69.2383 82.7148-71.1914 79.7852-71.1914L30.6641-71.1914C27.9297-71.1914 26.0742-69.0918 26.0742-66.748C26.0742-64.4043 28.1738-62.4023 30.4688-62.4023L47.4609-62.4023L71.2891-63.1836L62.207-55.2246L13.8184-6.73828C12.9395-5.85938 12.4512-4.73633 12.4512-3.66211C12.4512-1.31836 14.5508 0.878906 16.9922 0.878906C18.1152 0.878906 19.1895 0.488281 20.0684-0.439453L68.5547-48.877L76.6113-58.0078L75.7324-35.2051L75.7324-17.1387C75.7324-14.8438 77.7344-12.6953 80.127-12.6953C82.4707-12.6953 84.5703-14.6973 84.5703-17.334Z"></path></g></svg>`
+  var openButton =
+    '<svg viewBox="0 0 60.2601318359375 84.8134765625" version="1.1" xmlns="http://www.w3.org/2000/svg" class=" glyph-box" style="height: 9.62969px; width: 6.84191px;"><g transform="matrix(1 0 0 1 -6.194965820312518 77.63671875)"><path d="M66.4551-35.2539C66.4551-36.4746 65.9668-37.5977 65.0391-38.4766L26.3672-76.3672C25.4883-77.1973 24.4141-77.6367 23.1445-77.6367C20.6543-77.6367 18.7012-75.7324 18.7012-73.1934C18.7012-71.9727 19.1895-70.8496 19.9707-70.0195L55.5176-35.2539L19.9707-0.488281C19.1895 0.341797 18.7012 1.41602 18.7012 2.68555C18.7012 5.22461 20.6543 7.12891 23.1445 7.12891C24.4141 7.12891 25.4883 6.68945 26.3672 5.81055L65.0391-32.0312C65.9668-32.959 66.4551-34.0332 66.4551-35.2539Z"></path></g></svg>'
+  var openInNewTabButton =
+    '<svg viewBox="0 0 72.127685546875 72.2177734375" version="1.1" xmlns="http://www.w3.org/2000/svg" class=" glyph-box" style="height: 8.19958px; width: 8.18935px;"><g transform="matrix(1 0 0 1 -12.451127929687573 71.3388671875)"><path d="M84.5703-17.334L84.5215-66.4551C84.5215-69.2383 82.7148-71.1914 79.7852-71.1914L30.6641-71.1914C27.9297-71.1914 26.0742-69.0918 26.0742-66.748C26.0742-64.4043 28.1738-62.4023 30.4688-62.4023L47.4609-62.4023L71.2891-63.1836L62.207-55.2246L13.8184-6.73828C12.9395-5.85938 12.4512-4.73633 12.4512-3.66211C12.4512-1.31836 14.5508 0.878906 16.9922 0.878906C18.1152 0.878906 19.1895 0.488281 20.0684-0.439453L68.5547-48.877L76.6113-58.0078L75.7324-35.2051L75.7324-17.1387C75.7324-14.8438 77.7344-12.6953 80.127-12.6953C82.4707-12.6953 84.5703-14.6973 84.5703-17.334Z"></path></g></svg>'
   var relatedExtensions = [
     {
       id: "utags",
@@ -361,7 +376,7 @@
     if (!list) {
       return false
     }
-    const installed = $(`[data-extension-id="${id}"]`, list)
+    const installed = $('[data-extension-id="'.concat(id, '"]'), list)
     return Boolean(installed)
   }
   var addCurrentExtension = (extension) => {
@@ -387,7 +402,7 @@
     for (const element of $$(".active", list)) {
       removeClass(element, "active")
     }
-    const installed = $(`[data-extension-id="${id}"]`, list)
+    const installed = $('[data-extension-id="'.concat(id, '"]'), list)
     if (installed) {
       addClass(installed, "active")
     }
@@ -416,11 +431,11 @@
       textContent: installedExtension.title,
     })
     const svg = addElement2(a, "svg")
-    svg.outerHTML = openButton
+    svg.outerHTML = createHTML(openButton)
     return div
   }
   var updateRelatedExtensions = (container) => {
-    container.innerHTML = ""
+    container.innerHTML = createHTML("")
     for (const relatedExtension of relatedExtensions) {
       if (isInstalledExtension(relatedExtension.id)) {
         continue
@@ -436,7 +451,7 @@
         textContent: relatedExtension.title,
       })
       const svg = addElement2(a, "svg")
-      svg.outerHTML = openInNewTabButton
+      svg.outerHTML = createHTML(openInNewTabButton)
     }
   }
   function createExtensionList(installedExtensions) {
@@ -468,8 +483,8 @@
   var getSettingsElement = () => $("#" + settingsElementId)
   var getSettingsStyle = () =>
     style_default
-      .replace(/browser_extension_settings_container/gm, settingsContainerId)
-      .replace(/browser_extension_settings_main/gm, settingsElementId)
+      .replaceAll(/browser_extension_settings_container/gm, settingsContainerId)
+      .replaceAll(/browser_extension_settings_main/gm, settingsElementId)
   var storageKey = "settings"
   var settingsOptions
   var settingsTable = {}
@@ -507,7 +522,9 @@
   }
   var onDocumentClick = (event) => {
     const target = event.target
-    if (target == null ? void 0 : target.closest(`.${prefix}container`)) {
+    if (
+      target == null ? void 0 : target.closest(".".concat(prefix, "container"))
+    ) {
       return
     }
     closeModal()
@@ -532,7 +549,12 @@
         switch (type) {
           case "switch": {
             const checkbox = $(
-              `#${settingsElementId} .option_groups .switch_option[data-key="${key}"] input`
+              "#"
+                .concat(
+                  settingsElementId,
+                  ' .option_groups .switch_option[data-key="'
+                )
+                .concat(key, '"] input')
             )
             if (checkbox) {
               checkbox.checked = getSettingsValue(key)
@@ -541,7 +563,12 @@
           }
           case "textarea": {
             const textArea = $(
-              `#${settingsElementId} .option_groups textarea[data-key="${key}"]`
+              "#"
+                .concat(
+                  settingsElementId,
+                  ' .option_groups textarea[data-key="'
+                )
+                .concat(key, '"]')
             )
             if (textArea) {
               textArea.value = getSettingsValue(key)
@@ -560,7 +587,7 @@
     }
   }
   function getSettingsContainer() {
-    const container = $(`.${prefix}container`)
+    const container = $(".".concat(prefix, "container"))
     if (container) {
       const theVersion = parseInt10(container.dataset.besVersion, 0)
       if (theVersion < besVersion) {
@@ -571,7 +598,7 @@
     }
     return addElement2(doc.body, "div", {
       id: settingsContainerId,
-      class: `${prefix}container`,
+      class: "".concat(prefix, "container"),
       "data-bes-version": besVersion,
       style: "display: none;",
     })
@@ -579,9 +606,9 @@
   function getSettingsWrapper() {
     const container = getSettingsContainer()
     return (
-      $(`.${prefix}wrapper`, container) ||
+      $(".".concat(prefix, "wrapper"), container) ||
       addElement2(container, "div", {
-        class: `${prefix}wrapper`,
+        class: "".concat(prefix, "wrapper"),
       })
     )
   }
@@ -601,12 +628,12 @@
     let settingsMain = getSettingsElement()
     if (!settingsMain) {
       const wrapper = getSettingsWrapper()
-      for (const element of $$(`.${prefix}main`)) {
+      for (const element of $$(".".concat(prefix, "main"))) {
         element.remove()
       }
       settingsMain = addElement2(wrapper, "div", {
         id: settingsElementId,
-        class: `${prefix}main thin_scrollbar`,
+        class: "".concat(prefix, "main thin_scrollbar"),
       })
       addElement2(settingsMain, "a", {
         textContent: "Settings",
@@ -703,7 +730,7 @@
               })
               const tipContent = addElement2(tip, "div", {
                 class: "bes_tip_content",
-                innerHTML: item.tipContent,
+                innerHTML: createHTML(item.tipContent),
               })
               break
             }
@@ -712,13 +739,11 @@
       }
       if (settingsOptions.footer) {
         const footer = addElement2(settingsMain, "footer")
-        footer.innerHTML =
+        footer.innerHTML = createHTML(
           typeof settingsOptions.footer === "string"
             ? settingsOptions.footer
-            : `<p>Made with \u2764\uFE0F by
-      <a href="https://www.pipecraft.net/" target="_blank">
-        Pipecraft
-      </a></p>`
+            : '<p>Made with \u2764\uFE0F by\n      <a href="https://www.pipecraft.net/" target="_blank">\n        Pipecraft\n      </a></p>'
+        )
       }
     }
     return settingsMain
@@ -900,17 +925,20 @@
     }
   }
   var createImgTagString = (src, text) =>
-    `<img src="${src}" title="${text || "image"}" alt="${
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      text || "image"
-    }" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer" rel="noreferrer" data-lh-status="1"/>`
+    '<img src="'
+      .concat(src, '" title="')
+      .concat(text || "image", '" alt="')
+      .concat(
+        text || "image",
+        '" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer" rel="noreferrer" data-lh-status="1"/>'
+      )
   var bindOnError = () => {
     for (const element of $$('img[data-lh-status="1"]')) {
       setAttribute(element, "data-lh-status", "2")
       addEventListener(element, "error", (event) => {
         const img = event.target
         const anchor = img.parentElement
-        img.outerHTML = getAttribute(img, "src")
+        img.outerHTML = createHTML(getAttribute(img, "src"))
         if ((anchor == null ? void 0 : anchor.tagName) === "A") {
           setStyle(anchor, "opacity: 50%;")
           setAttribute(anchor, "data-message", "failed to load image")
@@ -919,7 +947,7 @@
     }
   }
   var anchorElementToImgElement = (anchor, href, text) => {
-    anchor.innerHTML = createImgTagString(href, text)
+    anchor.innerHTML = createHTML(createImgTagString(href, text))
     setAttribute(anchor, "target", "_blank")
     addAttribute(anchor, "rel", "noopener")
     addAttribute(anchor, "rel", "noreferrer")
@@ -961,29 +989,35 @@
   var urlPattern =
     "\\b((?:https?:\\/\\/(?:[\\w-.]+\\.[a-z]{2,15}|localhost|(?:\\d{1,3}\\.){3}\\d{1,3}))(?::\\d+)?(?:\\/[\\w-/%.~+:;!@=&?#]*)?)"
   var linkPattern1 = new RegExp(
-    `!\\[([^\\[\\]]*)\\]\\((?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\)`,
+    "!\\[([^\\[\\]]*)\\]\\((?:\\s|<br/?>)*".concat(
+      urlPattern,
+      "(?:\\s|<br/?>)*\\)"
+    ),
     "gim"
   )
   var linkPattern2 = new RegExp(
-    `\\[([^\\[\\]]*)\\]\\((?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\)`,
+    "\\[([^\\[\\]]*)\\]\\((?:\\s|<br/?>)*".concat(
+      urlPattern,
+      "(?:\\s|<br/?>)*\\)"
+    ),
     "gim"
   )
   var linkPattern3 = new RegExp(urlPattern, "gim")
   var linkPattern4 = new RegExp(
-    `\\[img\\](?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\[/img\\]`,
+    "\\[img\\](?:\\s|<br/?>)*".concat(urlPattern, "(?:\\s|<br/?>)*\\[/img\\]"),
     "gim"
   )
   var linkPattern5 = new RegExp(
-    `\\[url\\](?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\[/url\\]`,
+    "\\[url\\](?:\\s|<br/?>)*".concat(urlPattern, "(?:\\s|<br/?>)*\\[/url\\]"),
     "gim"
   )
   var linkPattern6 = new RegExp(
-    `\\[url=${urlPattern}\\]([^\\[\\]]+)\\[/url\\]`,
+    "\\[url=".concat(urlPattern, "\\]([^\\[\\]]+)\\[/url\\]"),
     "gim"
   )
   var replaceMarkdownImgLinks = (text) => {
     if (text.search(linkPattern1) >= 0) {
-      text = text.replace(linkPattern1, (m, p1, p2) => {
+      text = text.replaceAll(linkPattern1, (m, p1, p2) => {
         return createImgTagString(convertImgUrl(p2) || p2, p1)
       })
     }
@@ -991,23 +1025,25 @@
   }
   var replaceMarkdownLinks = (text) => {
     if (text.search(linkPattern2) >= 0) {
-      text = text.replace(linkPattern2, (m, p1, p2) => {
-        return `<a href="${p2}">${p1.replace(/<br>$/gi, "")}</a>`
+      text = text.replaceAll(linkPattern2, (m, p1, p2) => {
+        return '<a href="'
+          .concat(p2, '">')
+          .concat(p1.replaceAll(/<br>$/gi, ""), "</a>")
       })
     }
     return text
   }
   var replaceTextLinks = (text) => {
     if (text.search(linkPattern3) >= 0) {
-      text = text.replace(linkPattern3, (m, p1) => {
-        return `<a href="${p1}">${p1}</a>`
+      text = text.replaceAll(linkPattern3, (m, p1) => {
+        return '<a href="'.concat(p1, '">').concat(p1, "</a>")
       })
     }
     return text
   }
   var replaceBBCodeImgLinks = (text) => {
     if (text.search(linkPattern4) >= 0) {
-      text = text.replace(linkPattern4, (m, p1) => {
+      text = text.replaceAll(linkPattern4, (m, p1) => {
         return createImgTagString(convertImgUrl(p1) || p1, p1)
       })
     }
@@ -1015,13 +1051,13 @@
   }
   var replaceBBCodeLinks = (text) => {
     if (text.search(linkPattern5) >= 0) {
-      text = text.replace(linkPattern5, (m, p1) => {
-        return `<a href="${p1}">${p1}</a>`
+      text = text.replaceAll(linkPattern5, (m, p1) => {
+        return '<a href="'.concat(p1, '">').concat(p1, "</a>")
       })
     }
     if (text.search(linkPattern6) >= 0) {
-      text = text.replace(linkPattern6, (m, p1, p2) => {
-        return `<a href="${p1}">${p2}</a>`
+      text = text.replaceAll(linkPattern6, (m, p1, p2) => {
+        return '<a href="'.concat(p1, '">').concat(p2, "</a>")
       })
     }
     return text
@@ -1053,7 +1089,7 @@
       if (newContent === original) {
         newContent = replaceTextLinks(original)
       } else {
-        newContent = newContent.replace(
+        newContent = newContent.replaceAll(
           new RegExp(
             "(<a(?:\\s[^<>]*)?>.*?<\\/a>)|(<img(?:\\s[^<>]*)?\\/?>)|(.+?(?=(?:<a|<img))|.+$)",
             "gims"
@@ -1063,7 +1099,7 @@
       }
       if (newContent !== original) {
         const span = createElement("span")
-        span.innerHTML = newContent
+        span.innerHTML = createHTML(newContent)
         textNode.after(span)
         textNode.remove()
         return true
@@ -1077,26 +1113,26 @@
     ) {
       const original = parentNode.innerHTML
       const newContent = original
-        .replace(new RegExp("\\[.*]\\([^[\\]()]+?\\)", "gims"), (m) =>
+        .replaceAll(new RegExp("\\[.*]\\([^[\\]()]+?\\)", "gims"), (m) =>
           m
-            .replace(
+            .replaceAll(
               /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
               "$1"
             )
-            .replace(
+            .replaceAll(
               /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
               "($1)"
             )
         )
-        .replace(
+        .replaceAll(
           new RegExp("\\[!\\[.*]\\([^()]+\\)]\\([^[\\]()]+?\\)", "gims"),
           (m) =>
             m
-              .replace(
+              .replaceAll(
                 /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
                 "$1"
               )
-              .replace(
+              .replaceAll(
                 /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
                 "($1)"
               )
@@ -1105,7 +1141,7 @@
         let newContent2 = replaceMarkdownImgLinks(newContent)
         newContent2 = replaceMarkdownLinks(newContent2)
         if (newContent2 !== newContent) {
-          parentNode.innerHTML = newContent2
+          parentNode.innerHTML = createHTML(newContent2)
           return true
         }
       }
@@ -1121,29 +1157,29 @@
       while (before !== after && count < 5) {
         count++
         before = after
-        after = before.replace(
+        after = before.replaceAll(
           /\[(img|url)[^\]]*]([^[\]]+?)\[\/\1]/gim,
           (m, p1) => {
             let tagsRemoved
             let converted
             if (p1 === "img") {
               tagsRemoved = m
-                .replace(
+                .replaceAll(
                   /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
                   "$1"
                 )
-                .replace(
+                .replaceAll(
                   /\[img](?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\[\/img]/gim,
                   "[img]$1[/img]"
                 )
               converted = replaceBBCodeImgLinks(tagsRemoved)
             } else {
               tagsRemoved = m
-                .replace(
+                .replaceAll(
                   /\[url](?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\[\/url]/gim,
                   "[url]$1[/url]"
                 )
-                .replace(
+                .replaceAll(
                   /\[url=<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>]/gim,
                   "[url=$1]"
                 )
@@ -1155,7 +1191,7 @@
       }
       const newContent = after
       if (newContent !== original) {
-        parentNode.innerHTML = newContent
+        parentNode.innerHTML = createHTML(newContent)
         return true
       }
     }
@@ -1226,15 +1262,15 @@
       title: "Enable",
       defaultValue: true,
     },
-    [`enableCurrentSite_${host}`]: {
+    ["enableCurrentSite_".concat(host)]: {
       title: "Enable current site",
       defaultValue: true,
     },
-    [`enableCustomRulesForCurrentSite_${host}`]: {
+    ["enableCustomRulesForCurrentSite_".concat(host)]: {
       title: "Enable custom rules for the current site",
       defaultValue: false,
     },
-    [`customRulesForCurrentSite_${host}`]: {
+    ["customRulesForCurrentSite_".concat(host)]: {
       title: "Enable custom rules for the current site",
       defaultValue: "",
       placeholder:
@@ -1245,19 +1281,11 @@
     customRulesTip: {
       title: "Examples",
       type: "tip",
-      tipContent: `<p>Custom rules for internal URLs, matching URLs will be opened in new tabs</p>
-    <p>
-    - One line per url pattern<br>
-    - All URLs contains '/posts' or '/users/'<br>
-    <pre>/posts/
-/users/</pre>
-    - Regex is supported<br>
-    <pre>^/(posts|members)/d+</pre>
-    - '*' for all URLs
-    </p>`,
+      tipContent:
+        "<p>Custom rules for internal URLs, matching URLs will be opened in new tabs</p>\n    <p>\n    - One line per url pattern<br>\n    - All URLs contains '/posts' or '/users/'<br>\n    <pre>/posts/\n/users/</pre>\n\n    - Regex is supported<br>\n    <pre>^/(posts|members)/d+</pre>\n\n    - '*' for all URLs\n    </p>",
       group: 2,
     },
-    [`enableLinkToImgForCurrentSite_${host}`]: {
+    ["enableLinkToImgForCurrentSite_".concat(host)]: {
       title: "Enable converting image links to image tags for the current site",
       defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
       group: 3,
@@ -1300,9 +1328,9 @@
     if (element.origin !== origin) {
       return true
     }
-    if (getSettingsValue(`enableCustomRulesForCurrentSite_${host}`)) {
+    if (getSettingsValue("enableCustomRulesForCurrentSite_".concat(host))) {
       const rules2 = (
-        getSettingsValue(`customRulesForCurrentSite_${host}`) || ""
+        getSettingsValue("customRulesForCurrentSite_".concat(host)) || ""
       ).split("\n")
       if (rules2.includes("*")) {
         return true
@@ -1337,22 +1365,14 @@
     await initSettings({
       id: "links-helper",
       title: "\u{1F517} Links Helper",
-      footer: `
-    <p>After change settings, reload the page to take effect</p>
-    <p>
-    <a href="https://github.com/utags/links-helper/issues" target="_blank">
-    Report and Issue...
-    </a></p>
-    <p>Made with \u2764\uFE0F by
-    <a href="https://www.pipecraft.net/" target="_blank">
-      Pipecraft
-    </a></p>`,
+      footer:
+        '\n    <p>After change settings, reload the page to take effect</p>\n    <p>\n    <a href="https://github.com/utags/links-helper/issues" target="_blank">\n    Report and Issue...\n    </a></p>\n    <p>Made with \u2764\uFE0F by\n    <a href="https://www.pipecraft.net/" target="_blank">\n      Pipecraft\n    </a></p>',
       settingsTable: settingsTable2,
       onViewUpdate(settingsMainView) {
-        const group2 = $(`.option_groups:nth-of-type(2)`, settingsMainView)
+        const group2 = $(".option_groups:nth-of-type(2)", settingsMainView)
         if (group2) {
           group2.style.display = getSettingsValue(
-            `enableCustomRulesForCurrentSite_${host}`
+            "enableCustomRulesForCurrentSite_".concat(host)
           )
             ? "block"
             : "none"
@@ -1362,7 +1382,7 @@
     registerMenuCommands()
     if (
       !getSettingsValue("enable") ||
-      !getSettingsValue(`enableCurrentSite_${host}`)
+      !getSettingsValue("enableCurrentSite_".concat(host))
     ) {
       return
     }
@@ -1396,7 +1416,7 @@
         } catch (error) {
           console.error(error)
         }
-        if (getSettingsValue(`enableLinkToImgForCurrentSite_${host}`)) {
+        if (getSettingsValue("enableLinkToImgForCurrentSite_".concat(host))) {
           try {
             linkToImg(element)
           } catch (error) {
