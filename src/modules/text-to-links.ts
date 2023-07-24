@@ -1,4 +1,4 @@
-import { $$, createElement, doc } from "browser-extension-utils"
+import { $$, createElement, createHTML, doc } from "browser-extension-utils"
 
 import { convertImgUrl, createImgTagString } from "./link-to-img"
 
@@ -152,7 +152,7 @@ const textToLink = (textNode: HTMLElement, previousText: string) => {
 
     if (newContent !== original) {
       const span = createElement("span")
-      span.innerHTML = newContent
+      span.innerHTML = createHTML(newContent)
       textNode.after(span)
       textNode.remove()
       return true
@@ -201,7 +201,7 @@ const textToLink = (textNode: HTMLElement, previousText: string) => {
       newContent2 = replaceMarkdownLinks(newContent2)
 
       if (newContent2 !== newContent) {
-        parentNode.innerHTML = newContent2
+        parentNode.innerHTML = createHTML(newContent2)
         return true
       }
     }
@@ -260,7 +260,7 @@ const textToLink = (textNode: HTMLElement, previousText: string) => {
     const newContent = after
 
     if (newContent !== original) {
-      parentNode.innerHTML = newContent
+      parentNode.innerHTML = createHTML(newContent)
       return true
     }
   }
