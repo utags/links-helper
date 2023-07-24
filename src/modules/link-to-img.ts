@@ -2,6 +2,7 @@ import {
   $$,
   addAttribute,
   addEventListener,
+  createHTML,
   getAttribute,
   setAttribute,
   setAttributes,
@@ -75,7 +76,7 @@ export const bindOnError = () => {
     addEventListener(element, "error", (event) => {
       const img = event.target as HTMLElement
       const anchor = img.parentElement
-      img.outerHTML = getAttribute(img, "src")
+      img.outerHTML = createHTML(getAttribute(img, "src"))
       if (anchor?.tagName === "A") {
         setStyle(anchor, "opacity: 50%;")
         setAttribute(anchor, "data-message", "failed to load image")
@@ -89,7 +90,7 @@ const anchorElementToImgElement = (
   href: string,
   text: string | undefined
 ) => {
-  anchor.innerHTML = createImgTagString(href, text)
+  anchor.innerHTML = createHTML(createImgTagString(href, text))
   setAttribute(anchor, "target", "_blank")
   addAttribute(anchor, "rel", "noopener")
   addAttribute(anchor, "rel", "noreferrer")
