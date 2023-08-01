@@ -12,6 +12,7 @@ import {
   addStyle,
   doc,
   getAttribute,
+  hasClass,
   registerMenuCommand,
   runWhenBodyExists,
   setAttribute,
@@ -197,6 +198,21 @@ async function main() {
     "click",
     (event) => {
       let anchorElement = event.target as HTMLElement | undefined
+
+      if (!anchorElement) {
+        return
+      }
+
+      if (anchorElement.closest(".utags_ul")) {
+        if (
+          hasClass(anchorElement, "utags_captain_tag") ||
+          hasClass(anchorElement, "utags_captain_tag2")
+        ) {
+          event.preventDefault()
+        }
+
+        return
+      }
 
       while (anchorElement && anchorElement.tagName !== "A") {
         anchorElement = anchorElement.parentNode as HTMLElement | undefined
