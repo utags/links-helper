@@ -1,4 +1,10 @@
-import { $$, createElement, createHTML, doc } from "browser-extension-utils"
+import {
+  $$,
+  createElement,
+  createHTML,
+  doc,
+  hasClass,
+} from "browser-extension-utils"
 
 import { convertImgUrl, createImgTagString } from "./link-to-img"
 
@@ -14,6 +20,7 @@ const ignoredTags = new Set([
   "CODE",
   "PRE",
   "TEMPLATE",
+  "FILE-ATTACHMENT",
   "NOSCRIPT",
   "TITLE",
 ])
@@ -290,12 +297,17 @@ const fixAnchorTag = (anchorElement: HTMLAnchorElement) => {
   }
 }
 
+const isCodeViewer = (element: HTMLElement) => {
+  return hasClass(element, "diff-view") || hasClass(element, "diff")
+}
+
 export const scanAndConvertChildNodes = (parentNode: HTMLElement) => {
   if (
     !parentNode ||
     parentNode.nodeType === 8 /* COMMENT_NODE */ ||
     !parentNode.tagName ||
-    ignoredTags.has(parentNode.tagName.toUpperCase())
+    ignoredTags.has(parentNode.tagName.toUpperCase()) ||
+    isCodeViewer(parentNode)
   ) {
     if (parentNode.tagName === "A") {
       fixAnchorTag(parentNode as HTMLAnchorElement)
