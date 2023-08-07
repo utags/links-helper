@@ -15,6 +15,7 @@ import {
   hasClass,
   registerMenuCommand,
   runWhenBodyExists,
+  runWhenHeadExists,
   setAttribute,
   throttle,
 } from "browser-extension-utils"
@@ -191,7 +192,9 @@ async function main() {
     return
   }
 
-  addStyle(styleText)
+  runWhenHeadExists(() => {
+    addStyle(styleText)
+  })
 
   addEventListener(
     doc,
