@@ -63,6 +63,7 @@
 ## Other Userscripts
 
 - [🏷️ 小鱼标签 (UTags) - 为链接添加用户标签，支持 V2EX](https://greasyfork.org/scripts/460718-utags-add-usertags-to-links)
+- [赐你个头像吧](https://greasyfork.org/scripts/472616-replace-ugly-avatars) - 🔃 换掉别人的头像与昵称
 - [v2ex.min - V2EX 极简风格](https://greasyfork.org/scripts/463552-v2ex-min)
 - [Hacker News 网站切换器](https://greasyfork.org/scripts/462865-hacker-news-apps-switcher)
 
@@ -77,6 +78,8 @@
 
 ## Release Notes
 
+- 0.5.3
+  - 防止转化在代码查看器、代码编辑器和代码差异查看器中的链接
 - 0.5.2
   - Fix String.prototype.replaceAll issues
 - 0.5.1 2023.07.24

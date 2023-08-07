@@ -63,6 +63,7 @@ Compatible with the following userscript managers
 ## Other Userscripts
 
 - [🏷️ UTags - Add usertags to links](https://greasyfork.org/scripts/460718-utags-add-usertags-to-links)
+- [Replace Ugly Avatars](https://greasyfork.org/scripts/472616-replace-ugly-avatars) - 🔃 Replace specified user's avatar (profile photo) and username (nickname)
 - [Hacker News Apps Switcher](https://greasyfork.org/scripts/462865-hacker-news-apps-switcher)
 
 ## Related Userscripts
@@ -76,6 +77,8 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.5.3
+  - Prevent converting links in code viewers, code editors and code diff viewers
 - 0.5.2
   - Fix String.prototype.replaceAll issues
 - 0.5.1 2023.07.24
