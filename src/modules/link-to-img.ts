@@ -101,7 +101,10 @@ export const linkToImg = (anchor: HTMLAnchorElement) => {
     !anchor ||
     anchor.childElementCount !== 0 ||
     (anchor.childNodes[0] &&
-      anchor.childNodes[0].nodeType !== 3) /* TEXT_NODE */
+      anchor.childNodes[0].nodeType !== 3) /* TEXT_NODE */ ||
+    anchor.closest(
+      "td h1,td h2,td h3,td h4,td h5"
+    ) /* file directory like github */
   ) {
     return
   }
