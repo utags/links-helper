@@ -288,5 +288,8 @@ async function main() {
   scanAnchors()
 }
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises, unicorn/prefer-top-level-await
-main()
+if (!doc.lh) {
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises, unicorn/prefer-top-level-await
+  main()
+  doc.lh = true
+}
