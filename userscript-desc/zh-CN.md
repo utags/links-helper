@@ -78,6 +78,8 @@
 
 ## Release Notes
 
+- 0.5.4
+  - Prevent converting image links in file list view
 - 0.5.3
   - 防止转化在代码查看器、代码编辑器和代码差异查看器中的链接
 - 0.5.2

@@ -77,6 +77,8 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.5.4
+  - Prevent converting image links in file list view
 - 0.5.3
   - Prevent converting links in code viewers, code editors and code diff viewers
 - 0.5.2
