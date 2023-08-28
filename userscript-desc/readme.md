@@ -36,6 +36,26 @@ Video player page
 ^/shorts
 ```
 
+#### Twitter
+
+- User profiles
+
+```regex
+^/\w+$
+```
+
+- Tweets (should click the **dates** links)
+
+```regex
+/status/
+```
+
+- All links
+
+```regex
+*
+```
+
 #### V2EX
 
 Subject page, member page, settings page
@@ -43,7 +63,8 @@ Subject page, member page, settings page
 ```js
 ^/t/\d+(#.*)?$
 ^/member/[^?]*$
-^/settings/
+^/settings
+^/notifications
 ```
 
 ## Other

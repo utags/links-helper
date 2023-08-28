@@ -34,7 +34,8 @@
 ```js
 ^/t/\d+(#.*)?$
 ^/member/[^?]*$
-^/settings/
+^/settings
+^/notifications
 ```
 
 #### Youtube
@@ -44,6 +45,26 @@
 ```js
 ^/watch
 ^/shorts
+```
+
+#### Twitter
+
+- 用户主页
+
+```regex
+^/\w+$
+```
+
+- 推文 (点击**日期时间**时才会生效)
+
+```regex
+/status/
+```
+
+- 所有链接
+
+```regex
+*
 ```
 
 ## 其他
