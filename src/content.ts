@@ -2,7 +2,6 @@ import {
   getSettingsValue,
   hideSettings,
   initSettings,
-  showSettings,
 } from "browser-extension-settings"
 import {
   $,
@@ -13,7 +12,6 @@ import {
   doc,
   getAttribute,
   hasClass,
-  registerMenuCommand,
   runWhenBodyExists,
   runWhenHeadExists,
   setAttribute,
@@ -22,6 +20,7 @@ import {
 import styleText from "data-text:./content.scss"
 import type { PlasmoCSConfig } from "plasmo"
 
+import { i } from "./messages"
 import { eraseLinks, restoreLinks } from "./modules/erase-links"
 import { bindOnError, linkToImg } from "./modules/link-to-img"
 import { scanAndConvertChildNodes } from "./modules/text-to-links"
@@ -36,49 +35,37 @@ export const config: PlasmoCSConfig = {
 
 const settingsTable = {
   enable: {
-    title: "Enable",
+    title: i("settings.enable"),
     defaultValue: true,
   },
   [`enableCurrentSite_${host}`]: {
-    title: "Enable current site",
+    title: i("settings.enableCurrentSite"),
     defaultValue: true,
   },
   [`enableCustomRulesForCurrentSite_${host}`]: {
-    title: "Enable custom rules for the current site",
+    title: i("settings.enableCustomRulesForTheCurrentSite"),
     defaultValue: false,
   },
   [`customRulesForCurrentSite_${host}`]: {
-    title: "Enable custom rules for the current site",
+    title: i("settings.enableCustomRulesForTheCurrentSite"),
     defaultValue: "",
-    placeholder:
-      "/* Custom rules for internal URLs, matching URLs will be opened in new tabs */",
+    placeholder: i("settings.customRulesPlaceholder"),
     type: "textarea",
     group: 2,
   },
   customRulesTip: {
-    title: "Examples",
+    title: i("settings.customRulesTipTitle"),
     type: "tip",
-    tipContent: `<p>Custom rules for internal URLs, matching URLs will be opened in new tabs</p>
-    <p>
-    - One line per url pattern<br>
-    - All URLs contains '/posts' or '/users/'<br>
-    <pre>/posts/
-/users/</pre>
-
-    - Regex is supported<br>
-    <pre>^/(posts|members)/d+</pre>
-
-    - '*' for all URLs
-    </p>`,
+    tipContent: i("settings.customRulesTipContent"),
     group: 2,
   },
   [`enableLinkToImgForCurrentSite_${host}`]: {
-    title: "Enable converting image links to image tags for the current site",
+    title: i("settings.enableLinkToImgForCurrentSite"),
     defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
     group: 3,
   },
   eraseLinks: {
-    title: "Erase Links",
+    title: i("settings.eraseLinks"),
     type: "action",
     async onclick() {
       hideSettings()
@@ -87,7 +74,7 @@ const settingsTable = {
     group: 4,
   },
   restoreLinks: {
-    title: "Restore Links",
+    title: i("settings.restoreLinks"),
     type: "action",
     async onclick() {
       hideSettings()
@@ -95,10 +82,6 @@ const settingsTable = {
     },
     group: 4,
   },
-}
-
-function registerMenuCommands() {
-  registerMenuCommand("⚙️ 设置", showSettings, "o")
 }
 
 const getOrigin = (url: string) => /(^https?:\/\/[^/]+)/.exec(url)?.[1]
@@ -160,12 +143,12 @@ const setAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
 async function main() {
   await initSettings({
     id: "links-helper",
-    title: "🔗 Links Helper",
+    title: i("settings.title"),
     footer: `
-    <p>After change settings, reload the page to take effect</p>
+    <p>${i("settings.information")}</p>
     <p>
     <a href="https://github.com/utags/links-helper/issues" target="_blank">
-    Report and Issue...
+    ${i("settings.report")}
     </a></p>
     <p>Made with ❤️ by
     <a href="https://www.pipecraft.net/" target="_blank">
@@ -183,7 +166,6 @@ async function main() {
       }
     },
   })
-  registerMenuCommands()
 
   if (
     !getSettingsValue("enable") ||
@@ -288,8 +270,9 @@ async function main() {
   scanAnchors()
 }
 
-if (!doc.lh) {
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises, unicorn/prefer-top-level-await
-  main()
-  doc.lh = true
-}
+runWhenHeadExists(async () => {
+  if (doc.documentElement.dataset.linksHelper === undefined) {
+    doc.documentElement.dataset.linksHelper = ""
+    await main()
+  }
+})
