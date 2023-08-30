@@ -98,6 +98,8 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.6.0
+  - Support multi-languages
 - 0.5.4
   - Prevent converting image links in file list view
 - 0.5.3

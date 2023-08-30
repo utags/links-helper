@@ -99,6 +99,8 @@
 
 ## Release Notes
 
+- 0.6.0
+  - 支持多国语言
 - 0.5.4
   - Prevent converting image links in file list view
 - 0.5.3
