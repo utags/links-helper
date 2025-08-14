@@ -1,4 +1,5 @@
 import {
+  $,
   $$,
   createElement,
   createHTML,
@@ -298,7 +299,14 @@ const fixAnchorTag = (anchorElement: HTMLAnchorElement) => {
 }
 
 const isCodeViewer = (element: HTMLElement) => {
-  return hasClass(element, "diff-view") || hasClass(element, "diff")
+  // https://github.com/utags/links-helper/issues/10
+  return (
+    hasClass(element, "diff-view") ||
+    hasClass(element, "diff") ||
+    hasClass(element, "react-code-lines") ||
+    hasClass(element, "virtual-blame-wrapper") ||
+    $('[role="code"]', element)
+  )
 }
 
 export const scanAndConvertChildNodes = (parentNode: HTMLElement) => {
