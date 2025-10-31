@@ -12,6 +12,14 @@
 // @license              {license}
 // @match                https://*/*
 // @match                http://*/*
+// @exclude              *://github.dev/*
+// @exclude              *://challenges.cloudflare.com/*
+// @exclude              *://js.stripe.com/*
+// @exclude              *://m.stripe.network/*
+// @exclude              *://www.googletagmanager.com/*
+// @exclude              *://googleads.g.doubleclick.net/*
+// @exclude              *://ep2.adtrafficquality.google/*
+// @exclude              *://www.google.com/recaptcha/*
 // @run-at               document-start
 // ==/UserScript==
 //
