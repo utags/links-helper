@@ -14,7 +14,11 @@ const messages = {
   - Regex is supported<br>
   <pre>^/(posts|members)/d+</pre>
 
-  - '*' for all URLs
+  - '*' for all URLs<br>
+  - Exclusion rules: prefix '!' to exclude matching URLs<br>
+  <pre>!/posts/
+!^/users/\\d+
+!*</pre>
   </p>`,
   "settings.enableLinkToImgForCurrentSite": "Enable converting image links to image tags for the current site",
   "settings.enableTextToLinksForCurrentSite": "Enable converting text links to hyperlinks for the current site",

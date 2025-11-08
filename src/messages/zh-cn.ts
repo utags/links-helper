@@ -14,7 +14,11 @@ export const messages = {
   - 支持正则表达式<br>
   <pre>^/(posts|members)/d+</pre>
 
-  - '*' 代表匹配所有链接
+  - '*' 代表匹配所有链接<br>
+  - 排除规则：以 '!' 开头，匹配则排除（不在新窗口打开）<br>
+  <pre>!/posts/
+!^/users/\\d+
+!*</pre>
   </p>`,
   "settings.enableLinkToImgForCurrentSite": "在当前网站启用图片链接自动转换为图片标签",
   "settings.enableTextToLinksForCurrentSite": "在当前网站启用解析文本链接为超链接",

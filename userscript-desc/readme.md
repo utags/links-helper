@@ -125,6 +125,7 @@ Compatible with the following userscript managers
 - 0.7.x
   - Handle discourse, flarum, v2ex topic page same page links
   - Add separate switch setting for whether to parse text links to hyperlinks, V2EX default on, other sites default off
+  - Support exclusion rules for internal URL patterns (prefix '!' means exclude)
 - 0.6.0
   - Support multi-languages
 - 0.5.4

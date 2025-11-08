@@ -1095,7 +1095,7 @@
     handleShowSettingsUrl()
   }
   var content_default =
-    ".lh_selected_element{border:solid 1px red;cursor:not-allowed}a[data-lh-erased-href],a[data-lh-erased-href]:hover{cursor:default;pointer-events:none;text-decoration:none}"
+    ".lh_selected_element{border:solid 1px red;cursor:not-allowed}a[data-lh-erased-href],a[data-lh-erased-href]:hover{cursor:default;pointer-events:none;text-decoration:none}.bes_tip_content{overflow-y:auto;max-height:300px}"
   var messages3 = {
     "settings.enable": "Enable",
     "settings.enableCurrentSite": "Enable on current site",
@@ -1105,7 +1105,7 @@
       "/* Custom rules for internal URLs, matching URLs will be opened in new tabs */",
     "settings.customRulesTipTitle": "Examples",
     "settings.customRulesTipContent":
-      "<p>Custom rules for internal URLs, matching URLs will be opened in new tabs</p>\n  <p>\n  - One line per url pattern<br>\n  - All URLs contains '/posts' or '/users/'<br>\n  <pre>/posts/\n/users/</pre>\n\n  - Regex is supported<br>\n  <pre>^/(posts|members)/d+</pre>\n\n  - '*' for all URLs\n  </p>",
+      "<p>Custom rules for internal URLs, matching URLs will be opened in new tabs</p>\n  <p>\n  - One line per url pattern<br>\n  - All URLs contains '/posts' or '/users/'<br>\n  <pre>/posts/\n/users/</pre>\n\n  - Regex is supported<br>\n  <pre>^/(posts|members)/d+</pre>\n\n  - '*' for all URLs<br>\n  - Exclusion rules: prefix '!' to exclude matching URLs<br>\n  <pre>!/posts/\n!^/users/\\d+\n!*</pre>\n  </p>",
     "settings.enableLinkToImgForCurrentSite":
       "Enable converting image links to image tags for the current site",
     "settings.enableTextToLinksForCurrentSite":
@@ -1128,7 +1128,7 @@
       "/* \u5185\u90E8\u94FE\u63A5\u7684\u81EA\u5B9A\u4E49\u89C4\u5219\uFF0C\u5339\u914D\u7684\u94FE\u63A5\u4F1A\u5728\u65B0\u7A97\u53E3\u6253\u5F00 */",
     "settings.customRulesTipTitle": "\u793A\u4F8B",
     "settings.customRulesTipContent":
-      "<p>\u5185\u90E8\u94FE\u63A5\u7684\u81EA\u5B9A\u4E49\u89C4\u5219\uFF0C\u5339\u914D\u7684\u94FE\u63A5\u4F1A\u5728\u65B0\u7A97\u53E3\u6253\u5F00</p>\n  <p>\n  - \u6BCF\u884C\u4E00\u6761\u89C4\u5219<br>\n  - \u6240\u6709\u5305\u542B '/posts' \u6216 '/users/' \u7684\u94FE\u63A5<br>\n  <pre>/posts/\n/users/</pre>\n\n  - \u652F\u6301\u6B63\u5219\u8868\u8FBE\u5F0F<br>\n  <pre>^/(posts|members)/d+</pre>\n\n  - '*' \u4EE3\u8868\u5339\u914D\u6240\u6709\u94FE\u63A5\n  </p>",
+      "<p>\u5185\u90E8\u94FE\u63A5\u7684\u81EA\u5B9A\u4E49\u89C4\u5219\uFF0C\u5339\u914D\u7684\u94FE\u63A5\u4F1A\u5728\u65B0\u7A97\u53E3\u6253\u5F00</p>\n  <p>\n  - \u6BCF\u884C\u4E00\u6761\u89C4\u5219<br>\n  - \u6240\u6709\u5305\u542B '/posts' \u6216 '/users/' \u7684\u94FE\u63A5<br>\n  <pre>/posts/\n/users/</pre>\n\n  - \u652F\u6301\u6B63\u5219\u8868\u8FBE\u5F0F<br>\n  <pre>^/(posts|members)/d+</pre>\n\n  - '*' \u4EE3\u8868\u5339\u914D\u6240\u6709\u94FE\u63A5<br>\n  - \u6392\u9664\u89C4\u5219\uFF1A\u4EE5 '!' \u5F00\u5934\uFF0C\u5339\u914D\u5219\u6392\u9664\uFF08\u4E0D\u5728\u65B0\u7A97\u53E3\u6253\u5F00\uFF09<br>\n  <pre>!/posts/\n!^/users/\\d+\n!*</pre>\n  </p>",
     "settings.enableLinkToImgForCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u56FE\u7247\u94FE\u63A5\u81EA\u52A8\u8F6C\u6362\u4E3A\u56FE\u7247\u6807\u7B7E",
     "settings.enableTextToLinksForCurrentSite":
@@ -1672,35 +1672,40 @@
     if (element.origin !== origin) {
       return true
     }
-    if (currentCanonicalId) {
-      const canonicalId = extractCanonicalId(url)
-      if (canonicalId && canonicalId === currentCanonicalId) {
-        removeAttributeAsOpenInNewTab(element)
-        return false
-      }
-    }
     if (getSettingsValue("enableCustomRulesForCurrentSite_".concat(host))) {
+      if (currentCanonicalId) {
+        const canonicalId = extractCanonicalId(url)
+        if (canonicalId && canonicalId === currentCanonicalId) {
+          removeAttributeAsOpenInNewTab(element)
+          return false
+        }
+      }
       const rules2 = (
         getSettingsValue("customRulesForCurrentSite_".concat(host)) || ""
       ).split("\n")
-      if (rules2.includes("*")) {
-        return true
-      }
       const hrefWithoutOrigin = getWithoutOrigin(url)
       for (let rule of rules2) {
         rule = rule.trim()
         if (rule.length === 0) {
           continue
         }
+        const isExclude = rule.startsWith("!")
+        const pattern = isExclude ? rule.slice(1).trim() : rule
+        if (pattern.length === 0) {
+          continue
+        }
+        if (pattern === "*") {
+          return !isExclude
+        }
         try {
-          const regexp = new RegExp(rule)
+          const regexp = new RegExp(pattern)
           if (regexp.test(hrefWithoutOrigin)) {
-            return true
+            return !isExclude
           }
         } catch (error) {
           console.log(error.message)
-          if (hrefWithoutOrigin.includes(rule)) {
-            return true
+          if (hrefWithoutOrigin.includes(pattern)) {
+            return !isExclude
           }
         }
       }

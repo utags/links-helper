@@ -120,23 +120,20 @@ const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
     return true
   }
 
-  if (currentCanonicalId) {
-    const canonicalId = extractCanonicalId(url)
-
-    if (canonicalId && canonicalId === currentCanonicalId) {
-      removeAttributeAsOpenInNewTab(element)
-      return false
-    }
-  }
-
   // Open matched internal links in a new tab
   if (getSettingsValue(`enableCustomRulesForCurrentSite_${host}`)) {
+    if (currentCanonicalId) {
+      const canonicalId = extractCanonicalId(url)
+
+      if (canonicalId && canonicalId === currentCanonicalId) {
+        removeAttributeAsOpenInNewTab(element)
+        return false
+      }
+    }
+
     const rules = (
       (getSettingsValue(`customRulesForCurrentSite_${host}`) as string) || ""
     ).split("\n")
-    if (rules.includes("*")) {
-      return true
-    }
 
     const hrefWithoutOrigin = getWithoutOrigin(url)
     for (let rule of rules) {
@@ -145,15 +142,25 @@ const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
         continue
       }
 
+      const isExclude = rule.startsWith("!")
+      const pattern = isExclude ? rule.slice(1).trim() : rule
+      if (pattern.length === 0) {
+        continue
+      }
+
+      if (pattern === "*") {
+        return !isExclude
+      }
+
       try {
-        const regexp = new RegExp(rule)
+        const regexp = new RegExp(pattern)
         if (regexp.test(hrefWithoutOrigin)) {
-          return true
+          return !isExclude
         }
       } catch (error) {
         console.log(error.message)
-        if (hrefWithoutOrigin.includes(rule)) {
-          return true
+        if (hrefWithoutOrigin.includes(pattern)) {
+          return !isExclude
         }
       }
     }
