@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.7.0
+// @version              0.7.1
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
@@ -1108,6 +1108,8 @@
       "<p>Custom rules for internal URLs, matching URLs will be opened in new tabs</p>\n  <p>\n  - One line per url pattern<br>\n  - All URLs contains '/posts' or '/users/'<br>\n  <pre>/posts/\n/users/</pre>\n\n  - Regex is supported<br>\n  <pre>^/(posts|members)/d+</pre>\n\n  - '*' for all URLs\n  </p>",
     "settings.enableLinkToImgForCurrentSite":
       "Enable converting image links to image tags for the current site",
+    "settings.enableTextToLinksForCurrentSite":
+      "Enable converting text links to hyperlinks for the current site",
     "settings.eraseLinks": "Erase Links",
     "settings.restoreLinks": "Restore Links",
     "settings.title": "\u{1F517} Links Helper",
@@ -1129,6 +1131,8 @@
       "<p>\u5185\u90E8\u94FE\u63A5\u7684\u81EA\u5B9A\u4E49\u89C4\u5219\uFF0C\u5339\u914D\u7684\u94FE\u63A5\u4F1A\u5728\u65B0\u7A97\u53E3\u6253\u5F00</p>\n  <p>\n  - \u6BCF\u884C\u4E00\u6761\u89C4\u5219<br>\n  - \u6240\u6709\u5305\u542B '/posts' \u6216 '/users/' \u7684\u94FE\u63A5<br>\n  <pre>/posts/\n/users/</pre>\n\n  - \u652F\u6301\u6B63\u5219\u8868\u8FBE\u5F0F<br>\n  <pre>^/(posts|members)/d+</pre>\n\n  - '*' \u4EE3\u8868\u5339\u914D\u6240\u6709\u94FE\u63A5\n  </p>",
     "settings.enableLinkToImgForCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u56FE\u7247\u94FE\u63A5\u81EA\u52A8\u8F6C\u6362\u4E3A\u56FE\u7247\u6807\u7B7E",
+    "settings.enableTextToLinksForCurrentSite":
+      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u89E3\u6790\u6587\u672C\u94FE\u63A5\u4E3A\u8D85\u94FE\u63A5",
     "settings.eraseLinks":
       "\u53BB\u9664\u6307\u5B9A\u533A\u57DF\u7684\u94FE\u63A5",
     "settings.restoreLinks": "\u6062\u590D\u53BB\u9664\u7684\u94FE\u63A5",
@@ -1622,6 +1626,11 @@
       tipContent: i2("settings.customRulesTipContent"),
       group: 2,
     },
+    ["enableTextToLinksForCurrentSite_".concat(host)]: {
+      title: i2("settings.enableTextToLinksForCurrentSite"),
+      defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
+      group: 3,
+    },
     ["enableLinkToImgForCurrentSite_".concat(host)]: {
       title: i2("settings.enableLinkToImgForCurrentSite"),
       defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
@@ -1796,7 +1805,9 @@
       }
     }
     const scanNodes = throttle(() => {
-      scanAndConvertChildNodes(doc.body)
+      if (getSettingsValue("enableTextToLinksForCurrentSite_".concat(host))) {
+        scanAndConvertChildNodes(doc.body)
+      }
       scanAnchors()
       bindOnError()
     }, 500)
@@ -1812,7 +1823,9 @@
     }
     runWhenBodyExists(() => {
       startObserver()
-      scanAndConvertChildNodes(doc.body)
+      if (getSettingsValue("enableTextToLinksForCurrentSite_".concat(host))) {
+        scanAndConvertChildNodes(doc.body)
+      }
     })
     scanAnchors()
   }
