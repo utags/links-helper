@@ -69,8 +69,15 @@ const settingsTable = {
     tipContent: i("settings.customRulesTipContent"),
     group: 2,
   },
+  [`enableTextToLinksForCurrentSite_${host}`]: {
+    title: i("settings.enableTextToLinksForCurrentSite"),
+    // Default false; only v2ex.com and localhost support
+    defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
+    group: 3,
+  },
   [`enableLinkToImgForCurrentSite_${host}`]: {
     title: i("settings.enableLinkToImgForCurrentSite"),
+    // Default false; only v2ex.com and localhost support
     defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
     group: 3,
   },
@@ -274,7 +281,10 @@ async function main() {
     //   "mutation - scanAndConvertChildNodes, scanAnchors",
     //   Date.now()
     // )
-    scanAndConvertChildNodes(doc.body)
+    if (getSettingsValue(`enableTextToLinksForCurrentSite_${host}`)) {
+      scanAndConvertChildNodes(doc.body)
+    }
+
     scanAnchors()
     bindOnError()
   }, 500)
@@ -295,7 +305,9 @@ async function main() {
 
   runWhenBodyExists(() => {
     startObserver()
-    scanAndConvertChildNodes(doc.body)
+    if (getSettingsValue(`enableTextToLinksForCurrentSite_${host}`)) {
+      scanAndConvertChildNodes(doc.body)
+    }
   })
 
   scanAnchors()

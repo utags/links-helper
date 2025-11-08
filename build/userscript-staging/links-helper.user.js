@@ -1108,6 +1108,8 @@
       "<p>Custom rules for internal URLs, matching URLs will be opened in new tabs</p>\n  <p>\n  - One line per url pattern<br>\n  - All URLs contains '/posts' or '/users/'<br>\n  <pre>/posts/\n/users/</pre>\n\n  - Regex is supported<br>\n  <pre>^/(posts|members)/d+</pre>\n\n  - '*' for all URLs\n  </p>",
     "settings.enableLinkToImgForCurrentSite":
       "Enable converting image links to image tags for the current site",
+    "settings.enableTextToLinksForCurrentSite":
+      "Enable converting text links to hyperlinks for the current site",
     "settings.eraseLinks": "Erase Links",
     "settings.restoreLinks": "Restore Links",
     "settings.title": "\u{1F517} Links Helper",
@@ -1129,6 +1131,8 @@
       "<p>\u5185\u90E8\u94FE\u63A5\u7684\u81EA\u5B9A\u4E49\u89C4\u5219\uFF0C\u5339\u914D\u7684\u94FE\u63A5\u4F1A\u5728\u65B0\u7A97\u53E3\u6253\u5F00</p>\n  <p>\n  - \u6BCF\u884C\u4E00\u6761\u89C4\u5219<br>\n  - \u6240\u6709\u5305\u542B '/posts' \u6216 '/users/' \u7684\u94FE\u63A5<br>\n  <pre>/posts/\n/users/</pre>\n\n  - \u652F\u6301\u6B63\u5219\u8868\u8FBE\u5F0F<br>\n  <pre>^/(posts|members)/d+</pre>\n\n  - '*' \u4EE3\u8868\u5339\u914D\u6240\u6709\u94FE\u63A5\n  </p>",
     "settings.enableLinkToImgForCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u56FE\u7247\u94FE\u63A5\u81EA\u52A8\u8F6C\u6362\u4E3A\u56FE\u7247\u6807\u7B7E",
+    "settings.enableTextToLinksForCurrentSite":
+      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u89E3\u6790\u6587\u672C\u94FE\u63A5\u4E3A\u8D85\u94FE\u63A5",
     "settings.eraseLinks":
       "\u53BB\u9664\u6307\u5B9A\u533A\u57DF\u7684\u94FE\u63A5",
     "settings.restoreLinks": "\u6062\u590D\u53BB\u9664\u7684\u94FE\u63A5",
@@ -1622,6 +1626,11 @@
       tipContent: i2("settings.customRulesTipContent"),
       group: 2,
     },
+    ["enableTextToLinksForCurrentSite_".concat(host)]: {
+      title: i2("settings.enableTextToLinksForCurrentSite"),
+      defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
+      group: 3,
+    },
     ["enableLinkToImgForCurrentSite_".concat(host)]: {
       title: i2("settings.enableLinkToImgForCurrentSite"),
       defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
@@ -1796,7 +1805,9 @@
       }
     }
     const scanNodes = throttle(() => {
-      scanAndConvertChildNodes(doc.body)
+      if (getSettingsValue("enableTextToLinksForCurrentSite_".concat(host))) {
+        scanAndConvertChildNodes(doc.body)
+      }
       scanAnchors()
       bindOnError()
     }, 500)
@@ -1812,7 +1823,9 @@
     }
     runWhenBodyExists(() => {
       startObserver()
-      scanAndConvertChildNodes(doc.body)
+      if (getSettingsValue("enableTextToLinksForCurrentSite_".concat(host))) {
+        scanAndConvertChildNodes(doc.body)
+      }
     })
     scanAnchors()
   }

@@ -122,8 +122,9 @@
 
 ## Release Notes
 
-- 0.7.0
-  - 处理 Discourse, Flarum, V2EX 主题页相同页面链接
+- 0.7.x
+  - 处理 Discourse, Flarum, V2EX 主题页相同页面链接的问题
+  - 添加单独开关设置是否解析文本链接为超链接，V2EX 默认开，其他网站默认关
 - 0.6.0
   - 支持多国语言
 - 0.5.4

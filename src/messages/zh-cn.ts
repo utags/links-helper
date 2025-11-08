@@ -17,6 +17,7 @@ export const messages = {
   - '*' 代表匹配所有链接
   </p>`,
   "settings.enableLinkToImgForCurrentSite": "在当前网站启用图片链接自动转换为图片标签",
+  "settings.enableTextToLinksForCurrentSite": "在当前网站启用解析文本链接为超链接",
   "settings.eraseLinks": "去除指定区域的链接",
   "settings.restoreLinks": "恢复去除的链接",
 
