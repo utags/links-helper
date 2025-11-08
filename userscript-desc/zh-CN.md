@@ -47,7 +47,7 @@
 ^/shorts
 ```
 
-#### Twitter
+#### X (Twitter)
 
 - 用户主页
 
@@ -67,6 +67,18 @@
 *
 ```
 
+#### Discourse
+
+```js
+^/t/
+```
+
+#### Flarum
+
+```js
+^/d/
+```
+
 ## 其他
 
 兼容以下用户脚本管理器
@@ -81,12 +93,23 @@
 - Repository: [https://github.com/utags/links-helper](https://github.com/utags/links-helper)
 - Feedback: [https://github.com/utags/links-helper/issues](https://github.com/utags/links-helper/issues)
 
-## Other Userscripts
+## 更多实用脚本
 
-- [🏷️ 小鱼标签 (UTags) - 为链接添加用户标签，支持 V2EX](https://greasyfork.org/scripts/460718-utags-add-usertags-to-links)
-- [赐你个头像吧](https://greasyfork.org/scripts/472616-replace-ugly-avatars) - 🔃 换掉别人的头像与昵称
-- [v2ex.min - V2EX 极简风格](https://greasyfork.org/scripts/463552-v2ex-min)
-- [Hacker News 网站切换器](https://greasyfork.org/scripts/462865-hacker-news-apps-switcher)
+- 🏷️ UTags - 为链接添加用户标签
+  - [Greasy Fork](https://greasyfork.org/zh-CN/scripts/460718-utags-add-usertags-to-links)
+  - 为用户/帖子等添加标签与备注，支持过滤、导入导出、自动标记已读等
+
+- 🔄 Discourse 话题快捷切换器
+  - [Greasy Fork](https://greasyfork.org/zh-CN/scripts/550982-discourse-topic-quick-switcher)
+  - 在 Discourse 论坛中通过悬浮面板与快捷键快速导航话题
+
+- 🔍 查找适用于当前网站的脚本
+  - [Greasy Fork](https://greasyfork.org/zh-CN/scripts/550659-find-scripts-for-this-site)
+  - 一键在多个仓库中查找当前网站的相关脚本
+
+- 🔃 赐你个头像吧
+  - [Greasy Fork](https://greasyfork.org/zh-CN/scripts/472616-replace-ugly-avatars)
+  - 换掉别人的头像与昵称
 
 ## 其他类似脚本
 
@@ -99,6 +122,8 @@
 
 ## Release Notes
 
+- 0.7.0
+  - 处理 Discourse, Flarum, V2EX 主题页相同页面链接
 - 0.6.0
   - 支持多国语言
 - 0.5.4
@@ -152,6 +177,4 @@ Copyright (c) 2023 [Pipecraft](https://www.pipecraft.net). Licensed under the [M
 ## >\_
 
 [![Pipecraft](https://img.shields.io/badge/site-pipecraft-brightgreen)](https://www.pipecraft.net)
-[![UTags](https://img.shields.io/badge/site-UTags-brightgreen)](https://utags.pipecraft.net)
-[![DTO](https://img.shields.io/badge/site-DTO-brightgreen)](https://dto.pipecraft.net)
-[![BestXTools](https://img.shields.io/badge/site-bestxtools-brightgreen)](https://www.bestxtools.com)
+[![UTags](https://img.shields.io/badge/site-UTags-brightgreen)](https://utags.link)

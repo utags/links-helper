@@ -36,7 +36,7 @@ Video player page
 ^/shorts
 ```
 
-#### Twitter
+#### X (Twitter)
 
 - User profiles
 
@@ -54,6 +54,18 @@ Video player page
 
 ```regex
 *
+```
+
+#### Discourse
+
+```js
+^/t/
+```
+
+#### Flarum
+
+```js
+^/d/
 ```
 
 #### V2EX
@@ -81,11 +93,23 @@ Compatible with the following userscript managers
 - Repository: [https://github.com/utags/links-helper](https://github.com/utags/links-helper)
 - Feedback: [https://github.com/utags/links-helper/issues](https://github.com/utags/links-helper/issues)
 
-## Other Userscripts
+## More Useful Scripts
 
-- [🏷️ UTags - Add usertags to links](https://greasyfork.org/scripts/460718-utags-add-usertags-to-links)
-- [Replace Ugly Avatars](https://greasyfork.org/scripts/472616-replace-ugly-avatars) - 🔃 Replace specified user's avatar (profile photo) and username (nickname)
-- [Hacker News Apps Switcher](https://greasyfork.org/scripts/462865-hacker-news-apps-switcher)
+- 🏷️ UTags — Add User Tags to Links
+  - [Greasy Fork](https://greasyfork.org/scripts/460718-utags-add-usertags-to-links)
+  - Tag users or posts across popular sites; filter, export/import, auto-mark viewed posts
+
+- 🔄 Discourse Topic Quick Switcher
+  - [Greasy Fork](https://greasyfork.org/scripts/550982-discourse-topic-quick-switcher)
+  - Quickly navigate between topics with keyboard shortcuts and a floating panel
+
+- 🔍 Find Scripts For This Site
+  - [Greasy Fork](https://greasyfork.org/scripts/550659-find-scripts-for-this-site)
+  - One-click search for scripts relevant to the current website across multiple repositories
+
+- 🔃 Replace Ugly Avatars
+  - [Greasy Fork](https://greasyfork.org/scripts/472616-replace-ugly-avatars)
+  - Replace specified user's avatar (profile photo) and username (nickname)
 
 ## Related Userscripts
 
@@ -98,6 +122,8 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.7.0
+  - Handle discourse, flarum, v2ex topic page same page links
 - 0.6.0
   - Support multi-languages
 - 0.5.4
@@ -151,6 +177,4 @@ Copyright (c) 2023 [Pipecraft](https://www.pipecraft.net). Licensed under the [M
 ## >\_
 
 [![Pipecraft](https://img.shields.io/badge/site-pipecraft-brightgreen)](https://www.pipecraft.net)
-[![UTags](https://img.shields.io/badge/site-UTags-brightgreen)](https://utags.pipecraft.net)
-[![DTO](https://img.shields.io/badge/site-DTO-brightgreen)](https://dto.pipecraft.net)
-[![BestXTools](https://img.shields.io/badge/site-bestxtools-brightgreen)](https://www.bestxtools.com)
+[![UTags](https://img.shields.io/badge/site-UTags-brightgreen)](https://utags.link)
