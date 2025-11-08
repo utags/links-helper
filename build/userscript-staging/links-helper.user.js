@@ -145,6 +145,8 @@
     element && element.getAttribute ? element.getAttribute(name) : void 0
   var setAttribute = (element, name, value) =>
     element && element.setAttribute ? element.setAttribute(name, value) : void 0
+  var removeAttribute = (element, name) =>
+    element && element.removeAttribute ? element.removeAttribute(name) : void 0
   var setAttributes = (element, attributes) => {
     if (element && attributes) {
       for (const name in attributes) {
@@ -1573,8 +1575,24 @@
       }
     }
   }
+  var base = location.origin
+  var extractCanonicalId = (href) => {
+    try {
+      const u = new URL(href, base)
+      const p = u.pathname.toLowerCase()
+      let m = /^(\/t\/\d+)(?:\/|$)/.exec(p)
+      if (m) return m[1]
+      m = /^(\/t\/[^/]+\/\d+)(?:\/|$)/.exec(p)
+      if (m) return m[1]
+      m = /^(\/d\/\d+(?:-[^/]+)?)(?:\/|$)/.exec(p)
+      if (m) return m[1]
+    } catch (e) {}
+    return void 0
+  }
   var origin = location.origin
   var host = location.host
+  var currentUrl
+  var currentCanonicalId
   var config = {
     run_at: "document_start",
   }
@@ -1637,12 +1655,20 @@
       !/^https?:\/\//.test(url) ||
       ((_a = element.getAttribute("href")) == null
         ? void 0
-        : _a.startsWith("#"))
+        : _a.startsWith("#")) ||
+      url === currentUrl
     ) {
       return false
     }
     if (element.origin !== origin) {
       return true
+    }
+    if (currentCanonicalId) {
+      const canonicalId = extractCanonicalId(url)
+      if (canonicalId && canonicalId === currentCanonicalId) {
+        removeAttributeAsOpenInNewTab(element)
+        return false
+      }
     }
     if (getSettingsValue("enableCustomRulesForCurrentSite_".concat(host))) {
       const rules2 = (
@@ -1676,6 +1702,10 @@
       setAttribute(element, "target", "_blank")
       addAttribute(element, "rel", "noopener")
     }
+  }
+  var removeAttributeAsOpenInNewTab = (element) => {
+    removeAttribute(element, "target")
+    removeAttribute(element, "rel")
   }
   async function main() {
     await initSettings({
@@ -1742,6 +1772,10 @@
       true
     )
     const scanAnchors = () => {
+      if (currentUrl !== location.href) {
+        currentUrl = location.href
+        currentCanonicalId = extractCanonicalId(currentUrl)
+      }
       for (const element of $$("a")) {
         if (element.__links_helper_scaned) {
           continue

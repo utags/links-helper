@@ -12,6 +12,7 @@ import {
   doc,
   getAttribute,
   hasClass,
+  removeAttribute,
   runWhenBodyExists,
   runWhenHeadExists,
   setAttribute,
@@ -24,9 +25,18 @@ import { i } from "./messages"
 import { eraseLinks, restoreLinks } from "./modules/erase-links"
 import { bindOnError, linkToImg } from "./modules/link-to-img"
 import { scanAndConvertChildNodes } from "./modules/text-to-links"
+import { extractCanonicalId } from "./utils/index"
+
+declare global {
+  interface HTMLElement {
+    __links_helper_scaned?: number
+  }
+}
 
 const origin = location.origin
 const host = location.host
+let currentUrl: string | undefined
+let currentCanonicalId: string | undefined
 
 export const config: PlasmoCSConfig = {
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -92,7 +102,8 @@ const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
   if (
     !url ||
     !/^https?:\/\//.test(url) ||
-    element.getAttribute("href")?.startsWith("#")
+    element.getAttribute("href")?.startsWith("#") ||
+    url === currentUrl
   ) {
     return false
   }
@@ -100,6 +111,15 @@ const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
   // Open external links in a new tab
   if (element.origin !== origin) {
     return true
+  }
+
+  if (currentCanonicalId) {
+    const canonicalId = extractCanonicalId(url)
+
+    if (canonicalId && canonicalId === currentCanonicalId) {
+      removeAttributeAsOpenInNewTab(element)
+      return false
+    }
   }
 
   // Open matched internal links in a new tab
@@ -138,6 +158,11 @@ const setAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
     setAttribute(element, "target", "_blank")
     addAttribute(element, "rel", "noopener")
   }
+}
+
+const removeAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
+  removeAttribute(element, "target")
+  removeAttribute(element, "rel")
 }
 
 async function main() {
@@ -216,6 +241,12 @@ async function main() {
   )
 
   const scanAnchors = () => {
+    // Update url if it has changed
+    if (currentUrl !== location.href) {
+      currentUrl = location.href
+      currentCanonicalId = extractCanonicalId(currentUrl)
+    }
+
     for (const element of $$("a")) {
       if (element.__links_helper_scaned) {
         continue
