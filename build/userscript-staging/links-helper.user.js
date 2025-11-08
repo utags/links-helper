@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name                 🔗 Links Helper
-// @name:zh-CN           🔗 链接助手
+// @name                 🔗 Links Helper - staging
+// @name:zh-CN           🔗 链接助手 - staging
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues

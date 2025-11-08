@@ -14,7 +14,6 @@ const rules = JSON.parse(rulesText)
 
 const cachedRules = {}
 
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 const getHostname = (url: string) => (/https?:\/\/([^/]+)/.exec(url) || [])[1]
 
 const processRule = (rule: string, href: string) => {
@@ -64,9 +63,7 @@ export const convertImgUrl = (href: string | undefined) => {
 }
 
 export const createImgTagString = (src: string, text: string | undefined) =>
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   `<img src="${src}" title="${text || "image"}" alt="${
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     text || "image"
   }" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer" rel="noreferrer" data-lh-status="1"/>`
 
@@ -110,7 +107,7 @@ export const linkToImg = (anchor: HTMLAnchorElement) => {
   }
 
   const href = anchor.href
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
   const text = (anchor.textContent as string | undefined) || href
   const newHref = convertImgUrl(href)
   if (newHref) {

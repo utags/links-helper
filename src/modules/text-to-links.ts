@@ -64,7 +64,7 @@ const replaceMarkdownImgLinks = (text: string) => {
   if (text.search(linkPattern1) >= 0) {
     text = text.replaceAll(linkPattern1, (m, p1: string, p2: string) => {
       // console.log(m, p1, p2)
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
       return createImgTagString(convertImgUrl(p2) || p2, p1)
     })
   }
@@ -97,7 +97,6 @@ const replaceTextLinks = (text: string) => {
 const replaceBBCodeImgLinks = (text: string) => {
   if (text.search(linkPattern4) >= 0) {
     text = text.replaceAll(linkPattern4, (m, p1: string) => {
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       return createImgTagString(convertImgUrl(p1) || p1, p1)
     })
   }
