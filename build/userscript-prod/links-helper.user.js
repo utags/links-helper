@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.7.3
+// @version              0.8.0
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
@@ -1341,6 +1341,8 @@
       "Enable converting image links to image tags for the current site",
     "settings.enableTextToLinksForCurrentSite":
       "Enable converting text links to hyperlinks for the current site",
+    "settings.enableTreatSubdomainsAsSameSiteForCurrentSite":
+      "Treat subdomains as the same site for the current site",
     "settings.eraseLinks": "Erase Links",
     "settings.restoreLinks": "Restore Links",
     "settings.title": "\u{1F517} Links Helper",
@@ -1364,6 +1366,8 @@
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u56FE\u7247\u94FE\u63A5\u81EA\u52A8\u8F6C\u6362\u4E3A\u56FE\u7247\u6807\u7B7E",
     "settings.enableTextToLinksForCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u89E3\u6790\u6587\u672C\u94FE\u63A5\u4E3A\u8D85\u94FE\u63A5",
+    "settings.enableTreatSubdomainsAsSameSiteForCurrentSite":
+      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5C06\u4E8C\u7EA7\u57DF\u540D\u89C6\u4E3A\u540C\u4E00\u7F51\u7AD9",
     "settings.eraseLinks":
       "\u53BB\u9664\u6307\u5B9A\u533A\u57DF\u7684\u94FE\u63A5",
     "settings.restoreLinks": "\u6062\u590D\u53BB\u9664\u7684\u94FE\u63A5",
@@ -1479,9 +1483,9 @@
     if (!href) {
       return
     }
-    const hostname = getHostname(href)
-    if (Object.hasOwn(rules, hostname)) {
-      for (const rule of rules[hostname]) {
+    const hostname2 = getHostname(href)
+    if (Object.hasOwn(rules, hostname2)) {
+      for (const rule of rules[hostname2]) {
         const newHref = processRule(rule, href)
         if (newHref) {
           return newHref
@@ -1843,10 +1847,37 @@
     } catch (e) {}
     return void 0
   }
+  var getBaseDomain = (h) => {
+    const host2 = (h || "").toLowerCase().replace(/^www\./, "")
+    if (
+      /^\d+(?:\.\d+){3}$/.test(host2) ||
+      host2 === "localhost" ||
+      host2.includes(":")
+    ) {
+      return host2
+    }
+    const parts = host2.split(".").filter(Boolean)
+    if (parts.length <= 2) return host2
+    const secondLevelDomains = /* @__PURE__ */ new Set([
+      "co",
+      "com",
+      "org",
+      "net",
+      "edu",
+      "gov",
+      "mil",
+      "ac",
+    ])
+    const secondLast = parts.at(-2)
+    const baseSegments = secondLevelDomains.has(secondLast) ? 3 : 2
+    return parts.slice(-baseSegments).join(".")
+  }
   var origin = location.origin
   var host = location.host
+  var hostname = location.hostname
   var currentUrl
   var currentCanonicalId
+  var enableTreatSubdomainsSameSite = false
   var config = {
     run_at: "document_start",
   }
@@ -1877,6 +1908,11 @@
         type: "tip",
         tipContent: i2("settings.customRulesTipContent"),
         group: groupNumber,
+      },
+      ["enableTreatSubdomainsAsSameSiteForCurrentSite_".concat(host)]: {
+        title: i2("settings.enableTreatSubdomainsAsSameSiteForCurrentSite"),
+        defaultValue: false,
+        group: ++groupNumber,
       },
       ["enableTextToLinksForCurrentSite_".concat(host)]: {
         title: i2("settings.enableTextToLinksForCurrentSite"),
@@ -1909,6 +1945,9 @@
     }
   }
   var getWithoutOrigin = (url) => url.replace(/(^https?:\/\/[^/]+)/, "")
+  var currentBaseDomain = getBaseDomain(hostname)
+  var isSameBaseDomainWithCurrent = (a) =>
+    getBaseDomain(a) === currentBaseDomain
   var shouldOpenInNewTab = (element) => {
     var _a
     const url = element.href
@@ -1923,7 +1962,13 @@
       return false
     }
     if (element.origin !== origin) {
-      return true
+      if (
+        enableTreatSubdomainsSameSite &&
+        isSameBaseDomainWithCurrent(element.hostname)
+      ) {
+      } else {
+        return true
+      }
     }
     if (getSettingsValue("enableCustomRulesForCurrentSite_".concat(host))) {
       if (currentCanonicalId) {
@@ -1977,6 +2022,11 @@
   function onSettingsChange() {
     const locale2 = getSettingsValue("locale") || getPrefferedLocale()
     resetI18n2(locale2)
+    enableTreatSubdomainsSameSite = Boolean(
+      getSettingsValue(
+        "enableTreatSubdomainsAsSameSiteForCurrentSite_".concat(host)
+      )
+    )
   }
   async function main() {
     await initSettings(() => {
