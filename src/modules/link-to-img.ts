@@ -8,9 +8,8 @@ import {
   setAttributes,
   setStyle,
 } from "browser-extension-utils"
-import rulesText from "data-text:../rules/image-url.json"
 
-const rules = JSON.parse(rulesText)
+import rules from "../rules/image-url.json"
 
 const cachedRules = {}
 

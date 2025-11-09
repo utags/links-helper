@@ -1446,9 +1446,22 @@
       delete element.dataset.lhErasedHref
     }
   }
-  var image_url_default =
-    '{\n  "imgur.com": [\n    "https?://imgur.com/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.com/gi2b1rj",\n    "https?://imgur.com/(\\\\w+)\\\\.(\\\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.com/gi2b1rj.png"\n  ],\n  "imgur.io": [\n    "https?://imgur.io/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.io/gi2b1rj",\n    "https?://imgur.io/(\\\\w+)\\\\.(\\\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.io/gi2b1rj.png"\n  ],\n  "i.imgur.com": [\n    "https?://i.imgur.com/(\\\\w+)($|\\\\?) -> https://i.imgur.com/$1.png"\n  ],\n  "camo.githubusercontent.com": [\n    "https://camo.githubusercontent.com/.* # This is a img url, no need to replace value"\n  ]\n}\n'
-  var rules = JSON.parse(image_url_default)
+  var image_url_default = {
+    "imgur.com": [
+      "https?://imgur.com/(\\w+)($|\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.com/gi2b1rj",
+      "https?://imgur.com/(\\w+)\\.(\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.com/gi2b1rj.png",
+    ],
+    "imgur.io": [
+      "https?://imgur.io/(\\w+)($|\\?) -> https://i.imgur.com/$1.png # ex: https://imgur.io/gi2b1rj",
+      "https?://imgur.io/(\\w+)\\.(\\w+) -> https://i.imgur.com/$1.$2 # ex: https://imgur.io/gi2b1rj.png",
+    ],
+    "i.imgur.com": [
+      "https?://i.imgur.com/(\\w+)($|\\?) -> https://i.imgur.com/$1.png",
+    ],
+    "camo.githubusercontent.com": [
+      "https://camo.githubusercontent.com/.* # This is a img url, no need to replace value",
+    ],
+  }
   var cachedRules = {}
   var getHostname = (url) => (/https?:\/\/([^/]+)/.exec(url) || [])[1]
   var processRule = (rule, href) => {
@@ -1484,8 +1497,8 @@
       return
     }
     const hostname2 = getHostname(href)
-    if (Object.hasOwn(rules, hostname2)) {
-      for (const rule of rules[hostname2]) {
+    if (Object.hasOwn(image_url_default, hostname2)) {
+      for (const rule of image_url_default[hostname2]) {
         const newHref = processRule(rule, href)
         if (newHref) {
           return newHref
@@ -1978,11 +1991,11 @@
           return false
         }
       }
-      const rules2 = (
+      const rules = (
         getSettingsValue("customRulesForCurrentSite_".concat(host)) || ""
       ).split("\n")
       const hrefWithoutOrigin = getWithoutOrigin(url)
-      for (let rule of rules2) {
+      for (let rule of rules) {
         rule = rule.trim()
         if (rule.length === 0) {
           continue
