@@ -1341,6 +1341,8 @@
       "Enable converting image links to image tags for the current site",
     "settings.enableTextToLinksForCurrentSite":
       "Enable converting text links to hyperlinks for the current site",
+    "settings.enableTreatSubdomainsAsSameSiteForCurrentSite":
+      "Treat subdomains as the same site for the current site",
     "settings.eraseLinks": "Erase Links",
     "settings.restoreLinks": "Restore Links",
     "settings.title": "\u{1F517} Links Helper",
@@ -1364,6 +1366,8 @@
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u56FE\u7247\u94FE\u63A5\u81EA\u52A8\u8F6C\u6362\u4E3A\u56FE\u7247\u6807\u7B7E",
     "settings.enableTextToLinksForCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u89E3\u6790\u6587\u672C\u94FE\u63A5\u4E3A\u8D85\u94FE\u63A5",
+    "settings.enableTreatSubdomainsAsSameSiteForCurrentSite":
+      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5C06\u4E8C\u7EA7\u57DF\u540D\u89C6\u4E3A\u540C\u4E00\u7F51\u7AD9",
     "settings.eraseLinks":
       "\u53BB\u9664\u6307\u5B9A\u533A\u57DF\u7684\u94FE\u63A5",
     "settings.restoreLinks": "\u6062\u590D\u53BB\u9664\u7684\u94FE\u63A5",
@@ -1479,9 +1483,9 @@
     if (!href) {
       return
     }
-    const hostname = getHostname(href)
-    if (Object.hasOwn(rules, hostname)) {
-      for (const rule of rules[hostname]) {
+    const hostname2 = getHostname(href)
+    if (Object.hasOwn(rules, hostname2)) {
+      for (const rule of rules[hostname2]) {
         const newHref = processRule(rule, href)
         if (newHref) {
           return newHref
@@ -1843,10 +1847,37 @@
     } catch (e) {}
     return void 0
   }
+  var getBaseDomain = (h) => {
+    const host2 = (h || "").toLowerCase().replace(/^www\./, "")
+    if (
+      /^\d+(?:\.\d+){3}$/.test(host2) ||
+      host2 === "localhost" ||
+      host2.includes(":")
+    ) {
+      return host2
+    }
+    const parts = host2.split(".").filter(Boolean)
+    if (parts.length <= 2) return host2
+    const secondLevelDomains = /* @__PURE__ */ new Set([
+      "co",
+      "com",
+      "org",
+      "net",
+      "edu",
+      "gov",
+      "mil",
+      "ac",
+    ])
+    const secondLast = parts.at(-2)
+    const baseSegments = secondLevelDomains.has(secondLast) ? 3 : 2
+    return parts.slice(-baseSegments).join(".")
+  }
   var origin = location.origin
   var host = location.host
+  var hostname = location.hostname
   var currentUrl
   var currentCanonicalId
+  var enableTreatSubdomainsSameSite = false
   var config = {
     run_at: "document_start",
   }
@@ -1877,6 +1908,11 @@
         type: "tip",
         tipContent: i2("settings.customRulesTipContent"),
         group: groupNumber,
+      },
+      ["enableTreatSubdomainsAsSameSiteForCurrentSite_".concat(host)]: {
+        title: i2("settings.enableTreatSubdomainsAsSameSiteForCurrentSite"),
+        defaultValue: false,
+        group: ++groupNumber,
       },
       ["enableTextToLinksForCurrentSite_".concat(host)]: {
         title: i2("settings.enableTextToLinksForCurrentSite"),
@@ -1909,6 +1945,9 @@
     }
   }
   var getWithoutOrigin = (url) => url.replace(/(^https?:\/\/[^/]+)/, "")
+  var currentBaseDomain = getBaseDomain(hostname)
+  var isSameBaseDomainWithCurrent = (a) =>
+    getBaseDomain(a) === currentBaseDomain
   var shouldOpenInNewTab = (element) => {
     var _a
     const url = element.href
@@ -1923,7 +1962,13 @@
       return false
     }
     if (element.origin !== origin) {
-      return true
+      if (
+        enableTreatSubdomainsSameSite &&
+        isSameBaseDomainWithCurrent(element.hostname)
+      ) {
+      } else {
+        return true
+      }
     }
     if (getSettingsValue("enableCustomRulesForCurrentSite_".concat(host))) {
       if (currentCanonicalId) {
@@ -1977,6 +2022,11 @@
   function onSettingsChange() {
     const locale2 = getSettingsValue("locale") || getPrefferedLocale()
     resetI18n2(locale2)
+    enableTreatSubdomainsSameSite = Boolean(
+      getSettingsValue(
+        "enableTreatSubdomainsAsSameSiteForCurrentSite_".concat(host)
+      )
+    )
   }
   async function main() {
     await initSettings(() => {

@@ -22,6 +22,7 @@ const messages = {
   </p>`,
   "settings.enableLinkToImgForCurrentSite": "Enable converting image links to image tags for the current site",
   "settings.enableTextToLinksForCurrentSite": "Enable converting text links to hyperlinks for the current site",
+  "settings.enableTreatSubdomainsAsSameSiteForCurrentSite": "Treat subdomains as the same site for the current site",
   "settings.eraseLinks": "Erase Links",
   "settings.restoreLinks": "Restore Links",
 

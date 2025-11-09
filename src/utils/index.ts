@@ -20,3 +20,37 @@ export const extractCanonicalId = (href: string): string | undefined => {
 
   return undefined
 }
+
+// Extract base domain (registrable domain) with simple PSL-like heuristic
+export const getBaseDomain = (h: string) => {
+  const host = (h || "").toLowerCase().replace(/^www\./, "")
+  // Handle IP addresses and localhost directly
+  if (
+    /^\d+(?:\.\d+){3}$/.test(host) ||
+    host === "localhost" ||
+    host.includes(":")
+  ) {
+    return host
+  }
+
+  const parts = host.split(".").filter(Boolean)
+  if (parts.length <= 2) return host
+  const secondLevelDomains = new Set([
+    "co",
+    "com",
+    "org",
+    "net",
+    "edu",
+    "gov",
+    "mil",
+    "ac",
+  ])
+  const secondLast = parts.at(-2)!
+  const baseSegments = secondLevelDomains.has(secondLast) ? 3 : 2
+  return parts.slice(-baseSegments).join(".")
+}
+
+export const isSameBaseDomain = (a: string, b: string) => {
+  if (!a || !b) return false
+  return getBaseDomain(a) === getBaseDomain(b)
+}

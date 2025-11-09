@@ -27,7 +27,7 @@ import { getAvailableLocales, i, resetI18n } from "./messages"
 import { eraseLinks, restoreLinks } from "./modules/erase-links"
 import { bindOnError, linkToImg } from "./modules/link-to-img"
 import { scanAndConvertChildNodes } from "./modules/text-to-links"
-import { extractCanonicalId } from "./utils/index"
+import { extractCanonicalId, getBaseDomain } from "./utils/index"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/naming-convention
@@ -38,8 +38,10 @@ declare global {
 
 const origin = location.origin
 const host = location.host
+const hostname = location.hostname
 let currentUrl: string | undefined
 let currentCanonicalId: string | undefined
+let enableTreatSubdomainsSameSite = false
 
 export const config: PlasmoCSConfig = {
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -73,6 +75,11 @@ const getSettingsTable = (): SettingsTable => {
       type: "tip",
       tipContent: i("settings.customRulesTipContent"),
       group: groupNumber,
+    },
+    [`enableTreatSubdomainsAsSameSiteForCurrentSite_${host}`]: {
+      title: i("settings.enableTreatSubdomainsAsSameSiteForCurrentSite"),
+      defaultValue: false,
+      group: ++groupNumber,
     },
     [`enableTextToLinksForCurrentSite_${host}`]: {
       title: i("settings.enableTextToLinksForCurrentSite"),
@@ -110,6 +117,10 @@ const getSettingsTable = (): SettingsTable => {
 const getOrigin = (url: string) => /(^https?:\/\/[^/]+)/.exec(url)?.[1]
 const getWithoutOrigin = (url: string) => url.replace(/(^https?:\/\/[^/]+)/, "")
 
+const currentBaseDomain = getBaseDomain(hostname)
+const isSameBaseDomainWithCurrent = (a: string) =>
+  getBaseDomain(a) === currentBaseDomain
+
 const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
   const url = element.href as string | undefined
   if (
@@ -123,7 +134,15 @@ const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
 
   // Open external links in a new tab
   if (element.origin !== origin) {
-    return true
+    // If enabled, treat subdomains as the same site and continue
+    if (
+      enableTreatSubdomainsSameSite &&
+      isSameBaseDomainWithCurrent(element.hostname)
+    ) {
+      // Consider as internal; fall through to internal rules
+    } else {
+      return true
+    }
   }
 
   // Open matched internal links in a new tab
@@ -189,6 +208,9 @@ function onSettingsChange() {
   const locale =
     (getSettingsValue("locale") as string | undefined) || getPrefferedLocale()
   resetI18n(locale)
+  enableTreatSubdomainsSameSite = Boolean(
+    getSettingsValue(`enableTreatSubdomainsAsSameSiteForCurrentSite_${host}`)
+  )
 }
 
 async function main() {
