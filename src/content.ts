@@ -1,7 +1,9 @@
+import { getPrefferedLocale } from "browser-extension-i18n"
 import {
   getSettingsValue,
   hideSettings,
   initSettings,
+  type SettingsTable,
 } from "browser-extension-settings"
 import {
   $,
@@ -21,13 +23,14 @@ import {
 import styleText from "data-text:./content.scss"
 import type { PlasmoCSConfig } from "plasmo"
 
-import { i } from "./messages"
+import { getAvailableLocales, i, resetI18n } from "./messages"
 import { eraseLinks, restoreLinks } from "./modules/erase-links"
 import { bindOnError, linkToImg } from "./modules/link-to-img"
 import { scanAndConvertChildNodes } from "./modules/text-to-links"
 import { extractCanonicalId } from "./utils/index"
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/naming-convention
   interface HTMLElement {
     __links_helper_scaned?: number
   }
@@ -43,62 +46,65 @@ export const config: PlasmoCSConfig = {
   run_at: "document_start",
 }
 
-const settingsTable = {
-  enable: {
-    title: i("settings.enable"),
-    defaultValue: true,
-  },
-  [`enableCurrentSite_${host}`]: {
-    title: i("settings.enableCurrentSite"),
-    defaultValue: true,
-  },
-  [`enableCustomRulesForCurrentSite_${host}`]: {
-    title: i("settings.enableCustomRulesForTheCurrentSite"),
-    defaultValue: false,
-  },
-  [`customRulesForCurrentSite_${host}`]: {
-    title: i("settings.enableCustomRulesForTheCurrentSite"),
-    defaultValue: "",
-    placeholder: i("settings.customRulesPlaceholder"),
-    type: "textarea",
-    group: 2,
-  },
-  customRulesTip: {
-    title: i("settings.customRulesTipTitle"),
-    type: "tip",
-    tipContent: i("settings.customRulesTipContent"),
-    group: 2,
-  },
-  [`enableTextToLinksForCurrentSite_${host}`]: {
-    title: i("settings.enableTextToLinksForCurrentSite"),
-    // Default false; only v2ex.com and localhost support
-    defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
-    group: 3,
-  },
-  [`enableLinkToImgForCurrentSite_${host}`]: {
-    title: i("settings.enableLinkToImgForCurrentSite"),
-    // Default false; only v2ex.com and localhost support
-    defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
-    group: 3,
-  },
-  eraseLinks: {
-    title: i("settings.eraseLinks"),
-    type: "action",
-    async onclick() {
-      hideSettings()
-      eraseLinks()
+const getSettingsTable = (): SettingsTable => {
+  let groupNumber = 1
+  return {
+    enable: {
+      title: i("settings.enable"),
+      defaultValue: true,
     },
-    group: 4,
-  },
-  restoreLinks: {
-    title: i("settings.restoreLinks"),
-    type: "action",
-    async onclick() {
-      hideSettings()
-      restoreLinks()
+    [`enableCurrentSite_${host}`]: {
+      title: i("settings.enableCurrentSite"),
+      defaultValue: true,
     },
-    group: 4,
-  },
+    [`enableCustomRulesForCurrentSite_${host}`]: {
+      title: i("settings.enableCustomRulesForTheCurrentSite"),
+      defaultValue: false,
+    },
+    [`customRulesForCurrentSite_${host}`]: {
+      title: i("settings.enableCustomRulesForTheCurrentSite"),
+      defaultValue: "",
+      placeholder: i("settings.customRulesPlaceholder"),
+      type: "textarea",
+      group: ++groupNumber,
+    },
+    customRulesTip: {
+      title: i("settings.customRulesTipTitle"),
+      type: "tip",
+      tipContent: i("settings.customRulesTipContent"),
+      group: groupNumber,
+    },
+    [`enableTextToLinksForCurrentSite_${host}`]: {
+      title: i("settings.enableTextToLinksForCurrentSite"),
+      // Default false; only v2ex.com and localhost support
+      defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
+      group: ++groupNumber,
+    },
+    [`enableLinkToImgForCurrentSite_${host}`]: {
+      title: i("settings.enableLinkToImgForCurrentSite"),
+      // Default false; only v2ex.com and localhost support
+      defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
+      group: groupNumber,
+    },
+    eraseLinks: {
+      title: i("settings.eraseLinks"),
+      type: "action",
+      async onclick() {
+        hideSettings()
+        eraseLinks()
+      },
+      group: ++groupNumber,
+    },
+    restoreLinks: {
+      title: i("settings.restoreLinks"),
+      type: "action",
+      async onclick() {
+        hideSettings()
+        restoreLinks()
+      },
+      group: groupNumber,
+    },
+  }
 }
 
 const getOrigin = (url: string) => /(^https?:\/\/[^/]+)/.exec(url)?.[1]
@@ -179,11 +185,19 @@ const removeAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
   removeAttribute(element, "rel")
 }
 
+function onSettingsChange() {
+  const locale =
+    (getSettingsValue("locale") as string | undefined) || getPrefferedLocale()
+  resetI18n(locale)
+}
+
 async function main() {
-  await initSettings({
-    id: "links-helper",
-    title: i("settings.title"),
-    footer: `
+  await initSettings(() => {
+    const settingsTable = getSettingsTable()
+    return {
+      id: "links-helper",
+      title: i("settings.title"),
+      footer: `
     <p>${i("settings.information")}</p>
     <p>
     <a href="https://github.com/utags/links-helper/issues" target="_blank">
@@ -193,17 +207,22 @@ async function main() {
     <a href="https://www.pipecraft.net/" target="_blank">
       Pipecraft
     </a></p>`,
-    settingsTable,
-    onViewUpdate(settingsMainView) {
-      const group2 = $(`.option_groups:nth-of-type(2)`, settingsMainView)
-      if (group2) {
-        group2.style.display = getSettingsValue(
-          `enableCustomRulesForCurrentSite_${host}`
-        )
-          ? "block"
-          : "none"
-      }
-    },
+      settingsTable,
+      availableLocales: getAvailableLocales(),
+      async onValueChange() {
+        onSettingsChange()
+      },
+      onViewUpdate(settingsMainView) {
+        const group2 = $(`.option_groups:nth-of-type(2)`, settingsMainView)
+        if (group2) {
+          group2.style.display = getSettingsValue(
+            `enableCustomRulesForCurrentSite_${host}`
+          )
+            ? "block"
+            : "none"
+        }
+      },
+    }
   })
 
   if (
@@ -212,6 +231,8 @@ async function main() {
   ) {
     return
   }
+
+  onSettingsChange()
 
   runWhenHeadExists(() => {
     addStyle(styleText)

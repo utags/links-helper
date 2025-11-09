@@ -31,6 +31,123 @@
 //
 ;(() => {
   "use strict"
+  var __defProp = Object.defineProperty
+  var __getOwnPropSymbols = Object.getOwnPropertySymbols
+  var __hasOwnProp = Object.prototype.hasOwnProperty
+  var __propIsEnum = Object.prototype.propertyIsEnumerable
+  var __defNormalProp = (obj, key, value) =>
+    key in obj
+      ? __defProp(obj, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value,
+        })
+      : (obj[key] = value)
+  var __spreadValues = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp.call(b, prop)) __defNormalProp(a, prop, b[prop])
+    if (__getOwnPropSymbols)
+      for (var prop of __getOwnPropSymbols(b)) {
+        if (__propIsEnum.call(b, prop)) __defNormalProp(a, prop, b[prop])
+      }
+    return a
+  }
+  var availableLocales = ["en"]
+  var regexCache = /* @__PURE__ */ new Map()
+  function initAvailableLocales(array) {
+    availableLocales = array
+      .map((locale2) => locale2.trim().toLowerCase())
+      .filter(Boolean)
+  }
+  function isLocale(locale2) {
+    return locale2 ? availableLocales.includes(locale2.toLowerCase()) : false
+  }
+  function extractLocaleFromNavigator() {
+    if (typeof navigator === "undefined") {
+      return void 0
+    }
+    const languages = navigator.languages || [navigator.language]
+    for (const language of languages) {
+      const normalizedLang = language.toLowerCase()
+      const baseLang = normalizedLang.split("-")[0]
+      if (isLocale(normalizedLang)) {
+        return normalizedLang
+      }
+      if (baseLang && isLocale(baseLang)) {
+        return baseLang
+      }
+    }
+    return void 0
+  }
+  function getParameterRegex(index) {
+    const pattern = "\\{".concat(index, "\\}")
+    if (!regexCache.has(pattern)) {
+      regexCache.set(pattern, new RegExp(pattern, "g"))
+    }
+    return regexCache.get(pattern)
+  }
+  function initI18n(messageMaps, language) {
+    const validLanguage =
+      typeof language === "string" && language.trim() ? language.trim() : void 0
+    const targetLanguage = (validLanguage || getPrefferedLocale()).toLowerCase()
+    const baseLanguage = targetLanguage.split("-")[0]
+    const { mergedMessages } = resolveMessageMaps(
+      messageMaps,
+      targetLanguage,
+      baseLanguage
+    )
+    return function (key, ...parameters) {
+      const text = mergedMessages[key] || key
+      return parameters.length > 0 && text !== key
+        ? interpolateParameters(text, parameters)
+        : text
+    }
+  }
+  function resolveMessageMaps(messageMaps, targetLanguage, baseLanguage) {
+    const normalizedMaps = Object.fromEntries(
+      Object.entries(messageMaps).map(([locale2, messages16]) => [
+        locale2.toLowerCase(),
+        messages16,
+      ])
+    )
+    let mergedMessages = {}
+    const englishMessages = normalizedMaps.en || normalizedMaps["en-us"] || {}
+    mergedMessages = __spreadValues({}, englishMessages)
+    if (
+      isLocale(baseLanguage) &&
+      normalizedMaps[baseLanguage] &&
+      baseLanguage !== "en" &&
+      baseLanguage !== "en-us"
+    ) {
+      mergedMessages = __spreadValues(
+        __spreadValues({}, mergedMessages),
+        normalizedMaps[baseLanguage]
+      )
+    }
+    if (
+      isLocale(targetLanguage) &&
+      normalizedMaps[targetLanguage] &&
+      targetLanguage !== baseLanguage
+    ) {
+      mergedMessages = __spreadValues(
+        __spreadValues({}, mergedMessages),
+        normalizedMaps[targetLanguage]
+      )
+    }
+    return { mergedMessages }
+  }
+  function interpolateParameters(text, parameters) {
+    let result = text
+    for (const [i3, parameter] of parameters.entries()) {
+      const regex = getParameterRegex(i3 + 1)
+      result = result.replace(regex, String(parameter))
+    }
+    return result
+  }
+  function getPrefferedLocale() {
+    return extractLocaleFromNavigator() || "en"
+  }
   var listeners = {}
   var getValue = async (key) => {
     const value = await GM.getValue(key)
@@ -304,18 +421,6 @@
     }
     func()
   }
-  var runWhenDomReady = (func) => {
-    if (doc.readyState === "interactive" || doc.readyState === "complete") {
-      return func()
-    }
-    const handler = () => {
-      if (doc.readyState === "interactive" || doc.readyState === "complete") {
-        func()
-        removeEventListener(doc, "readystatechange", handler)
-      }
-    }
-    addEventListener(doc, "readystatechange", handler)
-  }
   var escapeHTMLPolicy =
     typeof trustedTypes !== "undefined" &&
     typeof trustedTypes.createPolicy === "function"
@@ -406,61 +511,12 @@
     div.append(createSwitch(options))
     return div
   }
-  var besVersion = 55
-  var openButton =
-    '<svg viewBox="0 0 60.2601318359375 84.8134765625" version="1.1" xmlns="http://www.w3.org/2000/svg" class=" glyph-box" style="height: 9.62969px; width: 6.84191px;"><g transform="matrix(1 0 0 1 -6.194965820312518 77.63671875)"><path d="M66.4551-35.2539C66.4551-36.4746 65.9668-37.5977 65.0391-38.4766L26.3672-76.3672C25.4883-77.1973 24.4141-77.6367 23.1445-77.6367C20.6543-77.6367 18.7012-75.7324 18.7012-73.1934C18.7012-71.9727 19.1895-70.8496 19.9707-70.0195L55.5176-35.2539L19.9707-0.488281C19.1895 0.341797 18.7012 1.41602 18.7012 2.68555C18.7012 5.22461 20.6543 7.12891 23.1445 7.12891C24.4141 7.12891 25.4883 6.68945 26.3672 5.81055L65.0391-32.0312C65.9668-32.959 66.4551-34.0332 66.4551-35.2539Z"></path></g></svg>'
-  var openInNewTabButton =
-    '<svg viewBox="0 0 72.127685546875 72.2177734375" version="1.1" xmlns="http://www.w3.org/2000/svg" class=" glyph-box" style="height: 8.19958px; width: 8.18935px;"><g transform="matrix(1 0 0 1 -12.451127929687573 71.3388671875)"><path d="M84.5703-17.334L84.5215-66.4551C84.5215-69.2383 82.7148-71.1914 79.7852-71.1914L30.6641-71.1914C27.9297-71.1914 26.0742-69.0918 26.0742-66.748C26.0742-64.4043 28.1738-62.4023 30.4688-62.4023L47.4609-62.4023L71.2891-63.1836L62.207-55.2246L13.8184-6.73828C12.9395-5.85938 12.4512-4.73633 12.4512-3.66211C12.4512-1.31836 14.5508 0.878906 16.9922 0.878906C18.1152 0.878906 19.1895 0.488281 20.0684-0.439453L68.5547-48.877L76.6113-58.0078L75.7324-35.2051L75.7324-17.1387C75.7324-14.8438 77.7344-12.6953 80.127-12.6953C82.4707-12.6953 84.5703-14.6973 84.5703-17.334Z"></path></g></svg>'
-  var settingButton =
-    '<svg viewBox="0 0 16 16" version="1.1">\n<path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294.016.257.016.515 0 .772-.01.147.038.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.102-.302c-.067-.019-.177-.011-.3.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.211.224l-.29 1.106c-.168.646-.715 1.196-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.064-1.289-.614-1.458-1.26l-.289-1.106c-.018-.066-.079-.158-.212-.224a5.738 5.738 0 0 1-.668-.386c-.123-.082-.233-.09-.299-.071l-1.103.303c-.644.176-1.392-.021-1.82-.63a8.12 8.12 0 0 1-.704-1.218c-.315-.675-.111-1.422.363-1.891l.815-.806c.05-.048.098-.147.088-.294a6.214 6.214 0 0 1 0-.772c.01-.147-.038-.246-.088-.294l-.815-.806C.635 6.045.431 5.298.746 4.623a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.211-.224l.29-1.106C6.009.645 6.556.095 7.299.03 7.53.01 7.764 0 8 0Zm-.571 1.525c-.036.003-.108.036-.137.146l-.289 1.105c-.147.561-.549.967-.998 1.189-.173.086-.34.183-.5.29-.417.278-.97.423-1.529.27l-1.103-.303c-.109-.03-.175.016-.195.045-.22.312-.412.644-.573.99-.014.031-.021.11.059.19l.815.806c.411.406.562.957.53 1.456a4.709 4.709 0 0 0 0 .582c.032.499-.119 1.05-.53 1.456l-.815.806c-.081.08-.073.159-.059.19.162.346.353.677.573.989.02.03.085.076.195.046l1.102-.303c.56-.153 1.113-.008 1.53.27.161.107.328.204.501.29.447.222.85.629.997 1.189l.289 1.105c.029.109.101.143.137.146a6.6 6.6 0 0 0 1.142 0c.036-.003.108-.036.137-.146l.289-1.105c.147-.561.549-.967.998-1.189.173-.086.34-.183.5-.29.417-.278.97-.423 1.529-.27l1.103.303c.109.029.175-.016.195-.045.22-.313.411-.644.573-.99.014-.031.021-.11-.059-.19l-.815-.806c-.411-.406-.562-.957-.53-1.456a4.709 4.709 0 0 0 0-.582c-.032-.499.119-1.05.53-1.456l.815-.806c.081-.08.073-.159.059-.19a6.464 6.464 0 0 0-.573-.989c-.02-.03-.085-.076-.195-.046l-1.102.303c-.56.153-1.113.008-1.53-.27a4.44 4.44 0 0 0-.501-.29c-.447-.222-.85-.629-.997-1.189l-.289-1.105c-.029-.11-.101-.143-.137-.146a6.6 6.6 0 0 0-1.142 0ZM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM9.5 8a1.5 1.5 0 1 0-3.001.001A1.5 1.5 0 0 0 9.5 8Z"></path>\n</svg>'
-  function initI18n(messageMaps, language) {
-    language = (language || navigator.language).toLowerCase()
-    const language2 = language.slice(0, 2)
-    let messagesDefault
-    let messagesLocal
-    for (const entry of Object.entries(messageMaps)) {
-      const langs = new Set(
-        entry[0]
-          .toLowerCase()
-          .split(",")
-          .map((v) => v.trim())
-      )
-      const value = entry[1]
-      if (langs.has(language)) {
-        messagesLocal = value
-      }
-      if (langs.has(language2) && !messagesLocal) {
-        messagesLocal = value
-      }
-      if (langs.has("en")) {
-        messagesDefault = value
-      }
-      if (langs.has("en-us") && !messagesDefault) {
-        messagesDefault = value
-      }
-    }
-    if (!messagesLocal) {
-      messagesLocal = {}
-    }
-    if (!messagesDefault || messagesDefault === messagesLocal) {
-      messagesDefault = {}
-    }
-    return function (key, ...parameters) {
-      let text = messagesLocal[key] || messagesDefault[key] || key
-      if (parameters && parameters.length > 0 && text !== key) {
-        for (let i3 = 0; i3 < parameters.length; i3++) {
-          text = text.replaceAll(
-            new RegExp("\\{".concat(i3 + 1, "\\}"), "g"),
-            String(parameters[i3])
-          )
-        }
-      }
-      return text
-    }
-  }
+  var besVersion = 62
   var messages = {
     "settings.title": "Settings",
     "settings.otherExtensions": "Other Extensions",
+    "settings.locale": "Language",
+    "settings.systemLanguage": "System Language",
     "settings.displaySettingsButtonInSideMenu":
       "Display Settings Button in Side Menu",
     "settings.menu.settings": "\u2699\uFE0F Settings",
@@ -479,8 +535,10 @@
   var messages2 = {
     "settings.title": "\u8BBE\u7F6E",
     "settings.otherExtensions": "\u5176\u4ED6\u6269\u5C55",
+    "settings.locale": "\u8BED\u8A00",
+    "settings.systemLanguage": "\u7CFB\u7EDF\u8BED\u8A00",
     "settings.displaySettingsButtonInSideMenu":
-      "\u5728\u4FA7\u8FB9\u680F\u83DC\u5355\u4E2D\u663E\u793A\u8BBE\u7F6E\u6309\u94AE",
+      "\u5728\u4FA7\u8FB9\u83DC\u5355\u4E2D\u663E\u793A\u8BBE\u7F6E\u6309\u94AE",
     "settings.menu.settings": "\u2699\uFE0F \u8BBE\u7F6E",
     "settings.extensions.utags.title":
       "\u{1F3F7}\uFE0F \u5C0F\u9C7C\u6807\u7B7E (UTags) - \u4E3A\u94FE\u63A5\u6DFB\u52A0\u7528\u6237\u6807\u7B7E",
@@ -496,10 +554,312 @@
       "\u66F4\u591A\u6709\u8DA3\u7684\u811A\u672C",
   }
   var zh_cn_default = messages2
-  var i = initI18n({
-    "en,en-US": en_default,
-    "zh,zh-CN": zh_cn_default,
-  })
+  var messages3 = {
+    "settings.title": "\u8A2D\u5B9A",
+    "settings.otherExtensions": "\u5176\u4ED6\u64F4\u5145\u529F\u80FD",
+    "settings.locale": "\u8A9E\u8A00",
+    "settings.systemLanguage": "\u7CFB\u7D71\u8A9E\u8A00",
+    "settings.displaySettingsButtonInSideMenu":
+      "\u5728\u5074\u908A\u9078\u55AE\u4E2D\u986F\u793A\u8A2D\u5B9A\u6309\u9215",
+    "settings.menu.settings": "\u2699\uFE0F \u8A2D\u5B9A",
+    "settings.extensions.utags.title":
+      "\u{1F3F7}\uFE0F \u5C0F\u9B5A\u6A19\u7C64 (UTags) - \u70BA\u9023\u7D50\u6DFB\u52A0\u7528\u6236\u6A19\u7C64",
+    "settings.extensions.links-helper.title":
+      "\u{1F517} \u9023\u7D50\u52A9\u624B",
+    "settings.extensions.v2ex.rep.title":
+      "V2EX.REP - \u4E13\u6CE8\u63D0\u5347 V2EX \u4E3B\u9898\u56DE\u590D\u6D4F\u89C8\u4F53\u9A8C",
+    "settings.extensions.v2ex.min.title":
+      "v2ex.min - V2EX \u6975\u7C21\u98A8\u683C",
+    "settings.extensions.replace-ugly-avatars.title":
+      "\u8CDC\u4F60\u500B\u982D\u50CF\u5427",
+    "settings.extensions.more-by-pipecraft.title":
+      "\u66F4\u591A\u6709\u8DA3\u7684\u8173\u672C",
+  }
+  var zh_hk_default = messages3
+  var messages4 = {
+    "settings.title": "\u8A2D\u5B9A",
+    "settings.otherExtensions": "\u5176\u4ED6\u64F4\u5145\u529F\u80FD",
+    "settings.locale": "\u8A9E\u8A00",
+    "settings.systemLanguage": "\u7CFB\u7D71\u8A9E\u8A00",
+    "settings.displaySettingsButtonInSideMenu":
+      "\u5728\u5074\u908A\u9078\u55AE\u4E2D\u986F\u793A\u8A2D\u5B9A\u6309\u9215",
+    "settings.menu.settings": "\u2699\uFE0F \u8A2D\u5B9A",
+    "settings.extensions.utags.title":
+      "\u{1F3F7}\uFE0F \u5C0F\u9B5A\u6A19\u7C64 (UTags) - \u70BA\u9023\u7D50\u65B0\u589E\u4F7F\u7528\u8005\u6A19\u7C64",
+    "settings.extensions.links-helper.title":
+      "\u{1F517} \u9023\u7D50\u52A9\u624B",
+    "settings.extensions.v2ex.rep.title":
+      "V2EX.REP - \u4E13\u6CE8\u63D0\u5347 V2EX \u4E3B\u9898\u56DE\u590D\u6D4F\u89C8\u4F53\u9A8C",
+    "settings.extensions.v2ex.min.title":
+      "v2ex.min - V2EX \u6975\u7C21\u98A8\u683C",
+    "settings.extensions.replace-ugly-avatars.title":
+      "\u66FF\u63DB\u919C\u964B\u7684\u982D\u50CF",
+    "settings.extensions.more-by-pipecraft.title":
+      "\u66F4\u591A\u6709\u8DA3\u7684\u8173\u672C",
+  }
+  var zh_tw_default = messages4
+  var messages5 = {
+    "settings.title": "\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438",
+    "settings.otherExtensions":
+      "\u0414\u0440\u0443\u0433\u0438\u0435 \u0440\u0430\u0441\u0448\u0438\u0440\u0435\u043D\u0438\u044F",
+    "settings.locale": "\u042F\u0437\u044B\u043A",
+    "settings.systemLanguage":
+      "\u0421\u0438\u0441\u0442\u0435\u043C\u043D\u044B\u0439 \u044F\u0437\u044B\u043A",
+    "settings.displaySettingsButtonInSideMenu":
+      "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u043A\u043D\u043E\u043F\u043A\u0443 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043A \u0432 \u0431\u043E\u043A\u043E\u0432\u043E\u043C \u043C\u0435\u043D\u044E",
+    "settings.menu.settings":
+      "\u2699\uFE0F \u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438",
+    "settings.extensions.utags.title":
+      "\u{1F3F7}\uFE0F UTags - \u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C\u0441\u043A\u0438\u0435 \u0442\u0435\u0433\u0438 \u043A \u0441\u0441\u044B\u043B\u043A\u0430\u043C",
+    "settings.extensions.links-helper.title":
+      "\u{1F517} \u041F\u043E\u043C\u043E\u0449\u043D\u0438\u043A \u0441\u0441\u044B\u043B\u043E\u043A",
+    "settings.extensions.v2ex.rep.title":
+      "V2EX.REP - \u4E13\u6CE8\u63D0\u5347 V2EX \u4E3B\u9898\u56DE\u590D\u6D4F\u89C8\u4F53\u9A8C",
+    "settings.extensions.v2ex.min.title":
+      "v2ex.min - V2EX \u041C\u0438\u043D\u0438\u043C\u0430\u043B\u0438\u0441\u0442\u0438\u0447\u043D\u044B\u0439 \u0441\u0442\u0438\u043B\u044C",
+    "settings.extensions.replace-ugly-avatars.title":
+      "\u0417\u0430\u043C\u0435\u043D\u0438\u0442\u044C \u043D\u0435\u043A\u0440\u0430\u0441\u0438\u0432\u044B\u0435 \u0430\u0432\u0430\u0442\u0430\u0440\u044B",
+    "settings.extensions.more-by-pipecraft.title":
+      "\u041D\u0430\u0439\u0442\u0438 \u0431\u043E\u043B\u044C\u0448\u0435 \u043F\u043E\u043B\u0435\u0437\u043D\u044B\u0445 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C\u0441\u043A\u0438\u0445 \u0441\u043A\u0440\u0438\u043F\u0442\u043E\u0432",
+  }
+  var ru_default = messages5
+  var messages6 = {
+    "settings.title": "\uC124\uC815",
+    "settings.otherExtensions":
+      "\uAE30\uD0C0 \uD655\uC7A5 \uD504\uB85C\uADF8\uB7A8",
+    "settings.locale": "\uC5B8\uC5B4",
+    "settings.systemLanguage": "\uC2DC\uC2A4\uD15C \uC5B8\uC5B4",
+    "settings.displaySettingsButtonInSideMenu":
+      "\uC0AC\uC774\uB4DC \uBA54\uB274\uC5D0 \uC124\uC815 \uBC84\uD2BC \uD45C\uC2DC",
+    "settings.menu.settings": "\u2699\uFE0F \uC124\uC815",
+    "settings.extensions.utags.title":
+      "\u{1F3F7}\uFE0F UTags - \uB9C1\uD06C\uC5D0 \uC0AC\uC6A9\uC790 \uD0DC\uADF8 \uCD94\uAC00",
+    "settings.extensions.links-helper.title":
+      "\u{1F517} \uB9C1\uD06C \uB3C4\uC6B0\uBBF8",
+    "settings.extensions.v2ex.rep.title":
+      "V2EX.REP - \u4E13\u6CE8\u63D0\u5347 V2EX \u4E3B\u9898\u56DE\u590D\u6D4F\u89C8\u4F53\u9A8C",
+    "settings.extensions.v2ex.min.title":
+      "v2ex.min - V2EX \uBBF8\uB2C8\uBA40 \uC2A4\uD0C0\uC77C",
+    "settings.extensions.replace-ugly-avatars.title":
+      "\uBABB\uC0DD\uAE34 \uC544\uBC14\uD0C0 \uAD50\uCCB4",
+    "settings.extensions.more-by-pipecraft.title":
+      "\uB354 \uC720\uC6A9\uD55C \uC0AC\uC6A9\uC790 \uC2A4\uD06C\uB9BD\uD2B8 \uCC3E\uAE30",
+  }
+  var ko_default = messages6
+  var messages7 = {
+    "settings.title": "\u8A2D\u5B9A",
+    "settings.otherExtensions":
+      "\u305D\u306E\u4ED6\u306E\u62E1\u5F35\u6A5F\u80FD",
+    "settings.locale": "\u8A00\u8A9E",
+    "settings.systemLanguage": "\u30B7\u30B9\u30C6\u30E0\u8A00\u8A9E",
+    "settings.displaySettingsButtonInSideMenu":
+      "\u30B5\u30A4\u30C9\u30E1\u30CB\u30E5\u30FC\u306B\u8A2D\u5B9A\u30DC\u30BF\u30F3\u3092\u8868\u793A",
+    "settings.menu.settings": "\u2699\uFE0F \u8A2D\u5B9A",
+    "settings.extensions.utags.title":
+      "\u{1F3F7}\uFE0F UTags - \u30EA\u30F3\u30AF\u306B\u30E6\u30FC\u30B6\u30FC\u30BF\u30B0\u3092\u8FFD\u52A0",
+    "settings.extensions.links-helper.title":
+      "\u{1F517} \u30EA\u30F3\u30AF\u30D8\u30EB\u30D1\u30FC",
+    "settings.extensions.v2ex.rep.title":
+      "V2EX.REP - \u4E13\u6CE8\u63D0\u5347 V2EX \u4E3B\u9898\u56DE\u590D\u6D4F\u89C8\u4F53\u9A8C",
+    "settings.extensions.v2ex.min.title":
+      "v2ex.min - V2EX \u30DF\u30CB\u30DE\u30EB\u30B9\u30BF\u30A4\u30EB",
+    "settings.extensions.replace-ugly-avatars.title":
+      "\u919C\u3044\u30A2\u30D0\u30BF\u30FC\u3092\u7F6E\u304D\u63DB\u3048\u308B",
+    "settings.extensions.more-by-pipecraft.title":
+      "\u3088\u308A\u4FBF\u5229\u306A\u30E6\u30FC\u30B6\u30FC\u30B9\u30AF\u30EA\u30D7\u30C8\u3092\u898B\u3064\u3051\u308B",
+  }
+  var ja_default = messages7
+  var messages8 = {
+    "settings.title": "Param\xE8tres",
+    "settings.otherExtensions": "Autres extensions",
+    "settings.locale": "Langue",
+    "settings.systemLanguage": "Langue du syst\xE8me",
+    "settings.displaySettingsButtonInSideMenu":
+      "Afficher le bouton de param\xE8tres dans le menu lat\xE9ral",
+    "settings.menu.settings": "\u2699\uFE0F Param\xE8tres",
+    "settings.extensions.utags.title":
+      "\u{1F3F7}\uFE0F UTags - Ajouter des balises utilisateur aux liens",
+    "settings.extensions.links-helper.title": "\u{1F517} Assistant de liens",
+    "settings.extensions.v2ex.rep.title":
+      "V2EX.REP - \u4E13\u6CE8\u63D0\u5347 V2EX \u4E3B\u9898\u56DE\u590D\u6D4F\u89C8\u4F53\u9A8C",
+    "settings.extensions.v2ex.min.title": "v2ex.min - Style minimaliste V2EX",
+    "settings.extensions.replace-ugly-avatars.title":
+      "Remplacer les avatars laids",
+    "settings.extensions.more-by-pipecraft.title":
+      "Trouver plus de scripts utilisateur utiles",
+  }
+  var fr_default = messages8
+  var messages9 = {
+    "settings.title": "Einstellungen",
+    "settings.otherExtensions": "Andere Erweiterungen",
+    "settings.locale": "Sprache",
+    "settings.systemLanguage": "Systemsprache",
+    "settings.displaySettingsButtonInSideMenu":
+      "Einstellungsschaltfl\xE4che im Seitenmen\xFC anzeigen",
+    "settings.menu.settings": "\u2699\uFE0F Einstellungen",
+    "settings.extensions.utags.title":
+      "\u{1F3F7}\uFE0F UTags - Benutzer-Tags zu Links hinzuf\xFCgen",
+    "settings.extensions.links-helper.title": "\u{1F517} Link-Assistent",
+    "settings.extensions.v2ex.rep.title":
+      "V2EX.REP - \u4E13\u6CE8\u63D0\u5347 V2EX \u4E3B\u9898\u56DE\u590D\u6D4F\u89C8\u4F53\u9A8C",
+    "settings.extensions.v2ex.min.title":
+      "v2ex.min - V2EX Minimalistischer Stil",
+    "settings.extensions.replace-ugly-avatars.title":
+      "H\xE4ssliche Avatare ersetzen",
+    "settings.extensions.more-by-pipecraft.title":
+      "Weitere n\xFCtzliche Benutzerskripte finden",
+  }
+  var de_default = messages9
+  var messages10 = {
+    "settings.title": "Impostazioni",
+    "settings.otherExtensions": "Altre estensioni",
+    "settings.locale": "Lingua",
+    "settings.systemLanguage": "Lingua del sistema",
+    "settings.displaySettingsButtonInSideMenu":
+      "Mostra pulsante impostazioni nel menu laterale",
+    "settings.menu.settings": "\u2699\uFE0F Impostazioni",
+    "settings.extensions.utags.title":
+      "\u{1F3F7}\uFE0F UTags - Aggiungi tag utente ai collegamenti",
+    "settings.extensions.links-helper.title":
+      "\u{1F517} Assistente collegamenti",
+    "settings.extensions.v2ex.rep.title":
+      "V2EX.REP - \u4E13\u6CE8\u63D0\u5347 V2EX \u4E3B\u9898\u56DE\u590D\u6D4F\u89C8\u4F53\u9A8C",
+    "settings.extensions.v2ex.min.title": "v2ex.min - Stile minimalista V2EX",
+    "settings.extensions.replace-ugly-avatars.title":
+      "Sostituisci avatar brutti",
+    "settings.extensions.more-by-pipecraft.title":
+      "Trova pi\xF9 script utente utili",
+  }
+  var it_default = messages10
+  var messages11 = {
+    "settings.title": "Configuraci\xF3n",
+    "settings.otherExtensions": "Otras extensiones",
+    "settings.locale": "Idioma",
+    "settings.systemLanguage": "Idioma del sistema",
+    "settings.displaySettingsButtonInSideMenu":
+      "Mostrar bot\xF3n de configuraci\xF3n en el men\xFA lateral",
+    "settings.menu.settings": "\u2699\uFE0F Configuraci\xF3n",
+    "settings.extensions.utags.title":
+      "\u{1F3F7}\uFE0F UTags - Agregar etiquetas de usuario a los enlaces",
+    "settings.extensions.links-helper.title": "\u{1F517} Asistente de enlaces",
+    "settings.extensions.v2ex.rep.title":
+      "V2EX.REP - \u4E13\u6CE8\u63D0\u5347 V2EX \u4E3B\u9898\u56DE\u590D\u6D4F\u89C8\u4F53\u9A8C",
+    "settings.extensions.v2ex.min.title": "v2ex.min - Estilo minimalista V2EX",
+    "settings.extensions.replace-ugly-avatars.title":
+      "Reemplazar avatares feos",
+    "settings.extensions.more-by-pipecraft.title":
+      "Encontrar m\xE1s scripts de usuario \xFAtiles",
+  }
+  var es_default = messages11
+  var messages12 = {
+    "settings.title": "Configura\xE7\xF5es",
+    "settings.otherExtensions": "Outras extens\xF5es",
+    "settings.locale": "Idioma",
+    "settings.systemLanguage": "Idioma do sistema",
+    "settings.displaySettingsButtonInSideMenu":
+      "Exibir bot\xE3o de configura\xE7\xF5es no menu lateral",
+    "settings.menu.settings": "\u2699\uFE0F Configura\xE7\xF5es",
+    "settings.extensions.utags.title":
+      "\u{1F3F7}\uFE0F UTags - Adicionar tags de usu\xE1rio aos links",
+    "settings.extensions.links-helper.title": "\u{1F517} Assistente de links",
+    "settings.extensions.v2ex.rep.title":
+      "V2EX.REP - \u4E13\u6CE8\u63D0\u5347 V2EX \u4E3B\u9898\u56DE\u590D\u6D4F\u89C8\u4F53\u9A8C",
+    "settings.extensions.v2ex.min.title": "v2ex.min - Estilo minimalista V2EX",
+    "settings.extensions.replace-ugly-avatars.title":
+      "Substituir avatares feios",
+    "settings.extensions.more-by-pipecraft.title":
+      "Encontrar mais scripts de usu\xE1rio \xFAteis",
+  }
+  var pt_default = messages12
+  var messages13 = {
+    "settings.title": "C\xE0i \u0111\u1EB7t",
+    "settings.otherExtensions": "Ti\u1EC7n \xEDch m\u1EDF r\u1ED9ng kh\xE1c",
+    "settings.locale": "Ng\xF4n ng\u1EEF",
+    "settings.systemLanguage": "Ng\xF4n ng\u1EEF h\u1EC7 th\u1ED1ng",
+    "settings.displaySettingsButtonInSideMenu":
+      "Hi\u1EC3n th\u1ECB n\xFAt c\xE0i \u0111\u1EB7t trong menu b\xEAn",
+    "settings.menu.settings": "\u2699\uFE0F C\xE0i \u0111\u1EB7t",
+    "settings.extensions.utags.title":
+      "\u{1F3F7}\uFE0F UTags - Th\xEAm th\u1EBB ng\u01B0\u1EDDi d\xF9ng v\xE0o li\xEAn k\u1EBFt",
+    "settings.extensions.links-helper.title":
+      "\u{1F517} Tr\u1EE3 l\xFD li\xEAn k\u1EBFt",
+    "settings.extensions.v2ex.rep.title":
+      "V2EX.REP - \u4E13\u6CE8\u63D0\u5347 V2EX \u4E3B\u9898\u56DE\u590D\u6D4F\u89C8\u4F53\u9A8C",
+    "settings.extensions.v2ex.min.title":
+      "v2ex.min - Phong c\xE1ch t\u1ED1i gi\u1EA3n V2EX",
+    "settings.extensions.replace-ugly-avatars.title":
+      "Thay th\u1EBF avatar x\u1EA5u",
+    "settings.extensions.more-by-pipecraft.title":
+      "T\xECm th\xEAm script ng\u01B0\u1EDDi d\xF9ng h\u1EEFu \xEDch",
+  }
+  var vi_default = messages13
+  var localeMap = {
+    en: en_default,
+    "en-us": en_default,
+    zh: zh_cn_default,
+    "zh-cn": zh_cn_default,
+    "zh-hk": zh_hk_default,
+    "zh-tw": zh_tw_default,
+    ru: ru_default,
+    "ru-ru": ru_default,
+    ko: ko_default,
+    "ko-kr": ko_default,
+    ja: ja_default,
+    "ja-jp": ja_default,
+    fr: fr_default,
+    "fr-fr": fr_default,
+    de: de_default,
+    "de-de": de_default,
+    it: it_default,
+    "it-it": it_default,
+    es: es_default,
+    "es-es": es_default,
+    pt: pt_default,
+    "pt-pt": pt_default,
+    "pt-br": pt_default,
+    vi: vi_default,
+    "vi-vn": vi_default,
+  }
+  var localeNames = {
+    en: "English",
+    "en-us": "English (US)",
+    zh: "\u4E2D\u6587",
+    "zh-cn": "\u4E2D\u6587 (\u7B80\u4F53)",
+    "zh-hk": "\u4E2D\u6587 (\u9999\u6E2F)",
+    "zh-tw": "\u4E2D\u6587 (\u53F0\u7063)",
+    ru: "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
+    "ru-ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
+    ko: "\uD55C\uAD6D\uC5B4",
+    "ko-kr": "\uD55C\uAD6D\uC5B4",
+    ja: "\u65E5\u672C\u8A9E",
+    "ja-jp": "\u65E5\u672C\u8A9E",
+    fr: "Fran\xE7ais",
+    "fr-fr": "Fran\xE7ais",
+    de: "Deutsch",
+    "de-de": "Deutsch",
+    it: "Italiano",
+    "it-it": "Italiano",
+    es: "Espa\xF1ol",
+    "es-es": "Espa\xF1ol",
+    pt: "Portugu\xEAs",
+    "pt-pt": "Portugu\xEAs",
+    "pt-br": "Portugu\xEAs (Brasil)",
+    vi: "Ti\u1EBFng Vi\u1EC7t",
+    "vi-vn": "Ti\u1EBFng Vi\u1EC7t",
+  }
+  var locales = Object.keys(localeMap)
+  initAvailableLocales(locales)
+  console.log("[settings] prefferedLocale:", getPrefferedLocale())
+  var i = initI18n(localeMap, getPrefferedLocale())
+  function resetI18n(locale2) {
+    console.log(
+      "[settings] prefferedLocale:",
+      getPrefferedLocale(),
+      "locale:",
+      locale2
+    )
+    i = initI18n(localeMap, locale2 || getPrefferedLocale())
+  }
   var lang = navigator.language
   var locale
   if (lang === "zh-TW" || lang === "zh-HK") {
@@ -558,137 +918,6 @@
       url: "https://greasyfork.org/".concat(locale, "/users/1030884-pipecraft"),
     },
   ]
-  var getInstalledExtesionList = () => {
-    return $(".extension_list_container .installed_extension_list")
-  }
-  var getRelatedExtesionList = () => {
-    return $(".extension_list_container .related_extension_list")
-  }
-  var isInstalledExtension = (id) => {
-    const list = getInstalledExtesionList()
-    if (!list) {
-      return false
-    }
-    const installed = $('[data-extension-id="'.concat(id, '"]'), list)
-    return Boolean(installed)
-  }
-  var addCurrentExtension = (extension) => {
-    const list = getInstalledExtesionList()
-    if (!list) {
-      return
-    }
-    if (isInstalledExtension(extension.id)) {
-      return
-    }
-    const element = createInstalledExtension(extension)
-    list.append(element)
-    const list2 = getRelatedExtesionList()
-    if (list2) {
-      updateRelatedExtensions(list2)
-    }
-  }
-  var activeExtension = (id) => {
-    const list = getInstalledExtesionList()
-    if (!list) {
-      return false
-    }
-    for (const element of $$(".active", list)) {
-      removeClass(element, "active")
-    }
-    const installed = $('[data-extension-id="'.concat(id, '"]'), list)
-    if (installed) {
-      addClass(installed, "active")
-    }
-  }
-  var activeExtensionList = () => {
-    const extensionListContainer = $(".extension_list_container")
-    if (extensionListContainer) {
-      addClass(extensionListContainer, "bes_active")
-    }
-  }
-  var deactiveExtensionList = () => {
-    const extensionListContainer = $(".extension_list_container")
-    if (extensionListContainer) {
-      removeClass(extensionListContainer, "bes_active")
-    }
-  }
-  var createInstalledExtension = (installedExtension) => {
-    const div = createElement("div", {
-      class: "installed_extension",
-      "data-extension-id": installedExtension.id,
-    })
-    const a = addElement2(div, "a", {
-      onclick: installedExtension.onclick,
-    })
-    addElement2(a, "span", {
-      textContent: installedExtension.title,
-    })
-    const svg = addElement2(a, "svg")
-    svg.outerHTML = createHTML(openButton)
-    return div
-  }
-  var updateRelatedExtensions = (container) => {
-    const relatedExtensionElements = $$("[data-extension-id]", container)
-    if (relatedExtensionElements.length > 0) {
-      for (const relatedExtensionElement of relatedExtensionElements) {
-        if (
-          isInstalledExtension(
-            relatedExtensionElement.dataset.extensionId || "noid"
-          )
-        ) {
-          relatedExtensionElement.remove()
-        }
-      }
-    } else {
-      container.innerHTML = createHTML("")
-    }
-    for (const relatedExtension of relatedExtensions) {
-      if (
-        isInstalledExtension(relatedExtension.id) ||
-        $('[data-extension-id="'.concat(relatedExtension.id, '"]'), container)
-      ) {
-        continue
-      }
-      if ($$("[data-extension-id]", container).length >= 4) {
-        return
-      }
-      const div4 = addElement2(container, "div", {
-        class: "related_extension",
-        "data-extension-id": relatedExtension.id,
-      })
-      const a = addElement2(div4, "a", {
-        href: relatedExtension.url,
-        target: "_blank",
-      })
-      addElement2(a, "span", {
-        textContent: relatedExtension.title,
-      })
-      const svg = addElement2(a, "svg")
-      svg.outerHTML = createHTML(openInNewTabButton)
-    }
-  }
-  function createExtensionList(installedExtensions) {
-    const div = createElement("div", {
-      class: "extension_list_container thin_scrollbar",
-    })
-    addElement2(div, "h1", { textContent: i("settings.title") })
-    const div2 = addElement2(div, "div", {
-      class: "installed_extension_list",
-    })
-    for (const installedExtension of installedExtensions) {
-      if (isInstalledExtension(installedExtension.id)) {
-        continue
-      }
-      const element = createInstalledExtension(installedExtension)
-      div2.append(element)
-    }
-    addElement2(div, "h2", { textContent: i("settings.otherExtensions") })
-    const div3 = addElement2(div, "div", {
-      class: "related_extension_list",
-    })
-    updateRelatedExtensions(div3)
-    return div
-  }
   var prefix = "browser_extension_settings_"
   var randomId = String(Math.round(Math.random() * 1e4))
   var settingsContainerId = prefix + "container_" + randomId
@@ -732,6 +961,20 @@
   }
   function hideSettings() {
     closeModal()
+  }
+  function destroySettings() {
+    closeModal()
+    const settingsContainer = getSettingsContainer()
+    if (settingsContainer) {
+      settingsContainer.remove()
+    }
+  }
+  function isSettingsShown() {
+    const settingsContainer = getSettingsContainer()
+    if (settingsContainer) {
+      return settingsContainer.style.display === "block"
+    }
+    return false
   }
   var onDocumentClick = (event) => {
     const target = event.target
@@ -839,18 +1082,6 @@
       })
     )
   }
-  function initExtensionList() {
-    const wrapper = getSettingsWrapper()
-    if (!$(".extension_list_container", wrapper)) {
-      const list = createExtensionList([])
-      wrapper.append(list)
-    }
-    addCurrentExtension({
-      id: settingsOptions.id,
-      title: settingsOptions.title,
-      onclick: showSettings,
-    })
-  }
   function createSettingsElement() {
     let settingsMain = getSettingsElement()
     if (!settingsMain) {
@@ -861,13 +1092,6 @@
       settingsMain = addElement2(wrapper, "div", {
         id: settingsElementId,
         class: "".concat(prefix, "main thin_scrollbar"),
-      })
-      addElement2(settingsMain, "a", {
-        textContent: "Settings",
-        class: "navigation_go_previous",
-        onclick() {
-          activeExtensionList()
-        },
       })
       if (settingsOptions.title) {
         addElement2(settingsMain, "h2", { textContent: settingsOptions.title })
@@ -995,6 +1219,9 @@
               })
               break
             }
+            default: {
+              break
+            }
           }
         }
       }
@@ -1009,56 +1236,30 @@
     }
     return settingsMain
   }
-  function addSideMenu() {
-    if (!getSettingsValue("displaySettingsButtonInSideMenu")) {
-      return
-    }
-    const menu =
-      $("#browser_extension_side_menu") ||
-      addElement2(doc.body, "div", {
-        id: "browser_extension_side_menu",
-        "data-bes-version": besVersion,
-      })
-    const button = $("button[data-bes-version]", menu)
-    if (button) {
-      const theVersion = parseInt10(button.dataset.besVersion, 0)
-      if (theVersion >= besVersion) {
-        return
-      }
-      button.remove()
-    }
-    addElement2(menu, "button", {
-      type: "button",
-      "data-bes-version": besVersion,
-      title: i("settings.menu.settings"),
-      onclick() {
-        setTimeout(showSettings, 1)
-      },
-      innerHTML: settingButton,
-    })
-  }
-  function addCommonSettings(settingsTable3) {
+  function addCommonSettings(settingsTable2) {
     let maxGroup = 0
-    for (const key in settingsTable3) {
-      if (Object.hasOwn(settingsTable3, key)) {
-        const item = settingsTable3[key]
+    for (const key in settingsTable2) {
+      if (Object.hasOwn(settingsTable2, key)) {
+        const item = settingsTable2[key]
         const group = item.group || 1
         if (group > maxGroup) {
           maxGroup = group
         }
       }
     }
-    settingsTable3.displaySettingsButtonInSideMenu = {
-      title: i("settings.displaySettingsButtonInSideMenu"),
-      defaultValue: !(
-        typeof GM === "object" && typeof GM.registerMenuCommand === "function"
-      ),
-      group: maxGroup + 1,
+    settingsTable2.locale = {
+      title: i("settings.locale"),
+      type: "select",
+      defaultValue: "",
+      options: {},
+      group: ++maxGroup,
     }
   }
   function handleShowSettingsUrl() {
-    if (location.hash === "#bes-show-settings") {
+    const hashString = "#!show-settings-".concat(settingsOptions.id)
+    if (location.hash === hashString) {
       setTimeout(showSettings, 100)
+      history.replaceState({}, "", location.href.replace(hashString, ""))
     }
   }
   async function showSettings() {
@@ -1068,35 +1269,65 @@
     settingsContainer.style.display = "block"
     addEventListener(document, "click", onDocumentClick, true)
     addEventListener(document, "keydown", onDocumentKeyDown, true)
-    activeExtension(settingsOptions.id)
-    deactiveExtensionList()
   }
-  var initSettings = async (options) => {
+  var lastLocale
+  var resetSettingsUI = (optionsProvider) => {
+    lastLocale = getSettingsValue("locale") || getPrefferedLocale()
+    resetI18n(lastLocale)
+    const options = optionsProvider()
     settingsOptions = options
     settingsTable = options.settingsTable || {}
     addCommonSettings(settingsTable)
+    const availableLocales3 = options.availableLocales
+    if (availableLocales3 == null ? void 0 : availableLocales3.length) {
+      initAvailableLocales(availableLocales3)
+      const localeSelect = settingsTable.locale
+      localeSelect.options = {
+        [i("settings.systemLanguage")]: "",
+      }
+      for (const locale2 of availableLocales3) {
+        const lowerCaseLocale = locale2.toLowerCase()
+        const displayName = localeNames[lowerCaseLocale] || locale2
+        localeSelect.options[displayName] = locale2
+      }
+    }
+  }
+  var initSettings = async (optionsProvider) => {
     addValueChangeListener(storageKey, async () => {
       settings = await getSettings()
       await updateOptions()
-      addSideMenu()
-      if (typeof options.onValueChange === "function") {
-        options.onValueChange()
+      const newLocale = getSettingsValue("locale") || getPrefferedLocale()
+      console.log("lastLocale:", lastLocale, "newLocale:", newLocale)
+      if (lastLocale !== newLocale) {
+        const isShown = isSettingsShown()
+        destroySettings()
+        resetI18n(newLocale)
+        lastLocale = newLocale
+        setTimeout(() => {
+          resetSettingsUI(optionsProvider)
+        }, 50)
+        if (isShown) {
+          setTimeout(showSettings, 100)
+        }
+      }
+      if (typeof settingsOptions.onValueChange === "function") {
+        settingsOptions.onValueChange()
       }
     })
     settings = await getSettings()
+    resetSettingsUI(optionsProvider)
+    setTimeout(() => {
+      resetSettingsUI(optionsProvider)
+    }, 50)
     runWhenHeadExists(() => {
       addStyle(getSettingsStyle())
-    })
-    runWhenDomReady(() => {
-      initExtensionList()
-      addSideMenu()
     })
     registerMenuCommand(i("settings.menu.settings"), showSettings, "o")
     handleShowSettingsUrl()
   }
   var content_default =
     ".lh_selected_element{border:solid 1px red;cursor:not-allowed}a[data-lh-erased-href],a[data-lh-erased-href]:hover{cursor:default;pointer-events:none;text-decoration:none}.bes_tip_content{overflow-y:auto;max-height:300px}"
-  var messages3 = {
+  var messages14 = {
     "settings.enable": "Enable",
     "settings.enableCurrentSite": "Enable on current site",
     "settings.enableCustomRulesForTheCurrentSite":
@@ -1117,8 +1348,8 @@
       "After changing the settings, reload the page to take effect",
     "settings.report": "Report and Issue...",
   }
-  var en_default2 = messages3
-  var messages4 = {
+  var en_default2 = messages14
+  var messages15 = {
     "settings.enable": "\u542F\u7528\u811A\u672C",
     "settings.enableCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u811A\u672C",
@@ -1141,11 +1372,30 @@
       "\u66F4\u6539\u8BBE\u7F6E\u540E\uFF0C\u91CD\u65B0\u52A0\u8F7D\u9875\u9762\u5373\u53EF\u751F\u6548",
     "settings.report": "\u53CD\u9988\u95EE\u9898",
   }
-  var zh_cn_default2 = messages4
-  var i2 = initI18n({
-    "en,en-US": en_default2,
-    "zh,zh-CN": zh_cn_default2,
-  })
+  var zh_cn_default2 = messages15
+  var availableLocales2 =
+    /** @type {const} */
+    ["en", "zh"]
+  initAvailableLocales(availableLocales2)
+  console.log("[links-helper] prefferedLocale:", getPrefferedLocale())
+  var localeMap2 = {
+    zh: zh_cn_default2,
+    "zh-cn": zh_cn_default2,
+    en: en_default2,
+  }
+  var i2 = initI18n(localeMap2, getPrefferedLocale())
+  function resetI18n2(locale2) {
+    console.log(
+      "[links-helper] prefferedLocale:",
+      getPrefferedLocale(),
+      "locale:",
+      locale2
+    )
+    i2 = initI18n(localeMap2, locale2 || getPrefferedLocale())
+  }
+  function getAvailableLocales() {
+    return availableLocales2
+  }
   var lastTarget
   var handleMouseOver = (event) => {
     const target = event.target
@@ -1600,60 +1850,63 @@
   var config = {
     run_at: "document_start",
   }
-  var settingsTable2 = {
-    enable: {
-      title: i2("settings.enable"),
-      defaultValue: true,
-    },
-    ["enableCurrentSite_".concat(host)]: {
-      title: i2("settings.enableCurrentSite"),
-      defaultValue: true,
-    },
-    ["enableCustomRulesForCurrentSite_".concat(host)]: {
-      title: i2("settings.enableCustomRulesForTheCurrentSite"),
-      defaultValue: false,
-    },
-    ["customRulesForCurrentSite_".concat(host)]: {
-      title: i2("settings.enableCustomRulesForTheCurrentSite"),
-      defaultValue: "",
-      placeholder: i2("settings.customRulesPlaceholder"),
-      type: "textarea",
-      group: 2,
-    },
-    customRulesTip: {
-      title: i2("settings.customRulesTipTitle"),
-      type: "tip",
-      tipContent: i2("settings.customRulesTipContent"),
-      group: 2,
-    },
-    ["enableTextToLinksForCurrentSite_".concat(host)]: {
-      title: i2("settings.enableTextToLinksForCurrentSite"),
-      defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
-      group: 3,
-    },
-    ["enableLinkToImgForCurrentSite_".concat(host)]: {
-      title: i2("settings.enableLinkToImgForCurrentSite"),
-      defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
-      group: 3,
-    },
-    eraseLinks: {
-      title: i2("settings.eraseLinks"),
-      type: "action",
-      async onclick() {
-        hideSettings()
-        eraseLinks()
+  var getSettingsTable = () => {
+    let groupNumber = 1
+    return {
+      enable: {
+        title: i2("settings.enable"),
+        defaultValue: true,
       },
-      group: 4,
-    },
-    restoreLinks: {
-      title: i2("settings.restoreLinks"),
-      type: "action",
-      async onclick() {
-        hideSettings()
-        restoreLinks()
+      ["enableCurrentSite_".concat(host)]: {
+        title: i2("settings.enableCurrentSite"),
+        defaultValue: true,
       },
-      group: 4,
-    },
+      ["enableCustomRulesForCurrentSite_".concat(host)]: {
+        title: i2("settings.enableCustomRulesForTheCurrentSite"),
+        defaultValue: false,
+      },
+      ["customRulesForCurrentSite_".concat(host)]: {
+        title: i2("settings.enableCustomRulesForTheCurrentSite"),
+        defaultValue: "",
+        placeholder: i2("settings.customRulesPlaceholder"),
+        type: "textarea",
+        group: ++groupNumber,
+      },
+      customRulesTip: {
+        title: i2("settings.customRulesTipTitle"),
+        type: "tip",
+        tipContent: i2("settings.customRulesTipContent"),
+        group: groupNumber,
+      },
+      ["enableTextToLinksForCurrentSite_".concat(host)]: {
+        title: i2("settings.enableTextToLinksForCurrentSite"),
+        defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
+        group: ++groupNumber,
+      },
+      ["enableLinkToImgForCurrentSite_".concat(host)]: {
+        title: i2("settings.enableLinkToImgForCurrentSite"),
+        defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
+        group: groupNumber,
+      },
+      eraseLinks: {
+        title: i2("settings.eraseLinks"),
+        type: "action",
+        async onclick() {
+          hideSettings()
+          eraseLinks()
+        },
+        group: ++groupNumber,
+      },
+      restoreLinks: {
+        title: i2("settings.restoreLinks"),
+        type: "action",
+        async onclick() {
+          hideSettings()
+          restoreLinks()
+        },
+        group: groupNumber,
+      },
+    }
   }
   var getWithoutOrigin = (url) => url.replace(/(^https?:\/\/[^/]+)/, "")
   var shouldOpenInNewTab = (element) => {
@@ -1721,30 +1974,41 @@
     removeAttribute(element, "target")
     removeAttribute(element, "rel")
   }
+  function onSettingsChange() {
+    const locale2 = getSettingsValue("locale") || getPrefferedLocale()
+    resetI18n2(locale2)
+  }
   async function main() {
-    await initSettings({
-      id: "links-helper",
-      title: i2("settings.title"),
-      footer: "\n    <p>"
-        .concat(
-          i2("settings.information"),
-          '</p>\n    <p>\n    <a href="https://github.com/utags/links-helper/issues" target="_blank">\n    '
-        )
-        .concat(
-          i2("settings.report"),
-          '\n    </a></p>\n    <p>Made with \u2764\uFE0F by\n    <a href="https://www.pipecraft.net/" target="_blank">\n      Pipecraft\n    </a></p>'
-        ),
-      settingsTable: settingsTable2,
-      onViewUpdate(settingsMainView) {
-        const group2 = $(".option_groups:nth-of-type(2)", settingsMainView)
-        if (group2) {
-          group2.style.display = getSettingsValue(
-            "enableCustomRulesForCurrentSite_".concat(host)
+    await initSettings(() => {
+      const settingsTable2 = getSettingsTable()
+      return {
+        id: "links-helper",
+        title: i2("settings.title"),
+        footer: "\n    <p>"
+          .concat(
+            i2("settings.information"),
+            '</p>\n    <p>\n    <a href="https://github.com/utags/links-helper/issues" target="_blank">\n    '
           )
-            ? "block"
-            : "none"
-        }
-      },
+          .concat(
+            i2("settings.report"),
+            '\n    </a></p>\n    <p>Made with \u2764\uFE0F by\n    <a href="https://www.pipecraft.net/" target="_blank">\n      Pipecraft\n    </a></p>'
+          ),
+        settingsTable: settingsTable2,
+        availableLocales: getAvailableLocales(),
+        async onValueChange() {
+          onSettingsChange()
+        },
+        onViewUpdate(settingsMainView) {
+          const group2 = $(".option_groups:nth-of-type(2)", settingsMainView)
+          if (group2) {
+            group2.style.display = getSettingsValue(
+              "enableCustomRulesForCurrentSite_".concat(host)
+            )
+              ? "block"
+              : "none"
+          }
+        },
+      }
     })
     if (
       !getSettingsValue("enable") ||
@@ -1752,6 +2016,7 @@
     ) {
       return
     }
+    onSettingsChange()
     runWhenHeadExists(() => {
       addStyle(content_default)
     })
