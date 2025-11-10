@@ -124,6 +124,7 @@ Compatible with the following userscript managers
 
 - 0.8.x
   - Add setting option to treat subdomains as the same site for the current site
+  - Browser extension version supports opening settings
 - 0.7.x
   - Handle discourse, flarum, v2ex topic page same page links
   - Add separate switch setting for whether to parse text links to hyperlinks, V2EX default on, other sites default off

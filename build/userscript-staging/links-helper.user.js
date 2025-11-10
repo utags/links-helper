@@ -1891,6 +1891,24 @@
   var currentUrl
   var currentCanonicalId
   var enableTreatSubdomainsSameSite = false
+  if (false) {
+    const runtime =
+      (_c = (_a = globalThis.chrome) == null ? void 0 : _a.runtime) != null
+        ? _c
+        : (_b = globalThis.browser) == null
+          ? void 0
+          : _b.runtime
+    ;(_d = runtime == null ? void 0 : runtime.onMessage) == null
+      ? void 0
+      : _d.addListener((message) => {
+          if (
+            (message == null ? void 0 : message.type) ===
+            "links-helper:show-settings"
+          ) {
+            showSettings2()
+          }
+        })
+  }
   var config = {
     run_at: "document_start",
   }
