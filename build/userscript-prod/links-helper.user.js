@@ -1326,7 +1326,7 @@
     handleShowSettingsUrl()
   }
   var content_default =
-    ".lh_selected_element{border:solid 1px red;cursor:not-allowed}a[data-lh-erased-href],a[data-lh-erased-href]:hover{cursor:default;pointer-events:none;text-decoration:none}.bes_tip_content{overflow-y:auto;max-height:300px}"
+    ".lh_selected_element{border:solid 1px red;cursor:not-allowed}a[data-lh-erased-href],a[data-lh-erased-href]:hover{cursor:default;pointer-events:none;text-decoration:none}.bes_tip_content{overflow-y:auto;max-height:300px}.bes_textarea textarea{padding:4px 8px}"
   var messages14 = {
     "settings.enable": "Enable",
     "settings.enableCurrentSite": "Enable on current site",
