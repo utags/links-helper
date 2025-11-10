@@ -31,6 +31,8 @@ build/firefox-*/**
 build/bookmarklet-*/**
 build/module-*/**
 build/*-dev/**
+*.zip
+*.crx
 dist/
 
 # plasmo - https://www.plasmo.com
