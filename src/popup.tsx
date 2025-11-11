@@ -29,7 +29,7 @@ function IndexPopup() {
         display: "flex",
         flexDirection: "column",
         padding: 16,
-        width: "200px",
+        width: "300px",
       }}>
       <h1>🔗 Links Helper</h1>
       <button onClick={openSettings} style={{ marginTop: 8, marginBottom: 20 }}>

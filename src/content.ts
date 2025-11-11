@@ -43,6 +43,8 @@ const hostname = location.hostname
 let currentUrl: string | undefined
 let currentCanonicalId: string | undefined
 let enableTreatSubdomainsSameSite = false
+let enableBackground = false
+let enableLinkToImg = false
 
 if (
   // eslint-disable-next-line n/prefer-global/process
@@ -92,6 +94,11 @@ const getSettingsTable = (): SettingsTable => {
       type: "tip",
       tipContent: i("settings.customRulesTipContent"),
       group: groupNumber,
+    },
+    [`enableOpenNewTabInBackgroundForCurrentSite_${host}`]: {
+      title: i("settings.enableOpenNewTabInBackgroundForCurrentSite"),
+      defaultValue: false,
+      group: ++groupNumber,
     },
     [`enableTreatSubdomainsAsSameSiteForCurrentSite_${host}`]: {
       title: i("settings.enableTreatSubdomainsAsSameSiteForCurrentSite"),
@@ -210,7 +217,7 @@ const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
 }
 
 const setAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
-  if (shouldOpenInNewTab(element)) {
+  if (!enableBackground && shouldOpenInNewTab(element)) {
     setAttribute(element, "target", "_blank")
     addAttribute(element, "rel", "noopener")
   }
@@ -221,12 +228,34 @@ const removeAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
   removeAttribute(element, "rel")
 }
 
+function openInBackgroundTab(url: string) {
+  if (
+    // eslint-disable-next-line n/prefer-global/process
+    process.env.PLASMO_TARGET === "chrome-mv3" ||
+    // eslint-disable-next-line n/prefer-global/process
+    process.env.PLASMO_TARGET === "firefox-mv3"
+  ) {
+    chrome.runtime.sendMessage({
+      type: "open_background_tab",
+      url,
+    })
+  } else if (typeof GM_openInTab === "function") {
+    GM_openInTab(url, { active: false, insert: true })
+  }
+}
+
 function onSettingsChange() {
   const locale =
     (getSettingsValue("locale") as string | undefined) || getPrefferedLocale()
   resetI18n(locale)
   enableTreatSubdomainsSameSite = Boolean(
     getSettingsValue(`enableTreatSubdomainsAsSameSiteForCurrentSite_${host}`)
+  )
+  enableBackground = Boolean(
+    getSettingsValue(`enableOpenNewTabInBackgroundForCurrentSite_${host}`)
+  )
+  enableLinkToImg = Boolean(
+    getSettingsValue(`enableLinkToImgForCurrentSite_${host}`)
   )
 }
 
@@ -305,9 +334,19 @@ async function main() {
       // Handle SPA apps
       if (anchorElement) {
         setAttributeAsOpenInNewTab(anchorElement as HTMLAnchorElement)
-        if (getAttribute(anchorElement, "target") === "_blank") {
+        const isNewTab = getAttribute(anchorElement, "target") === "_blank"
+        const shouldOpenBackground =
+          enableBackground &&
+          shouldOpenInNewTab(anchorElement as HTMLAnchorElement)
+
+        if (isNewTab || shouldOpenBackground) {
           event.stopImmediatePropagation()
           event.stopPropagation()
+
+          if (shouldOpenBackground) {
+            event.preventDefault()
+            openInBackgroundTab(anchorElement.href)
+          }
         }
       }
     },
@@ -319,6 +358,10 @@ async function main() {
     if (currentUrl !== location.href) {
       currentUrl = location.href
       currentCanonicalId = extractCanonicalId(currentUrl)
+    }
+
+    if (!enableLinkToImg && enableBackground) {
+      return
     }
 
     for (const element of $$("a")) {
@@ -333,7 +376,7 @@ async function main() {
         console.error(error)
       }
 
-      if (getSettingsValue(`enableLinkToImgForCurrentSite_${host}`)) {
+      if (enableLinkToImg) {
         try {
           linkToImg(element as HTMLAnchorElement)
         } catch (error) {

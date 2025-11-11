@@ -1,6 +1,6 @@
 export const messages = {
-  "settings.enable": "启用脚本",
-  "settings.enableCurrentSite": "在当前网站启用脚本",
+  "settings.enable": "在所有网站启用",
+  "settings.enableCurrentSite": "在当前网站启用",
   "settings.enableCustomRulesForTheCurrentSite": "在当前网站启用自定义规则",
   "settings.customRulesPlaceholder": "/* 内部链接的自定义规则，匹配的链接会在新窗口打开 */",
   "settings.customRulesTipTitle": "示例",
@@ -20,9 +20,10 @@ export const messages = {
 !^/users/\\d+
 !*</pre>
   </p>`,
-  "settings.enableLinkToImgForCurrentSite": "在当前网站启用图片链接自动转换为图片标签",
-  "settings.enableTextToLinksForCurrentSite": "在当前网站启用解析文本链接为超链接",
+  "settings.enableLinkToImgForCurrentSite": "在当前网站启用将图片链接自动转换为图片标签",
+  "settings.enableTextToLinksForCurrentSite": "在当前网站启用将文本链接自动转换为超链接",
   "settings.enableTreatSubdomainsAsSameSiteForCurrentSite": "在当前网站启用将二级域名视为同一网站",
+  "settings.enableOpenNewTabInBackgroundForCurrentSite": "在当前网站启用在后台打开新标签页",
   "settings.eraseLinks": "去除指定区域的链接",
   "settings.restoreLinks": "恢复去除的链接",
 
