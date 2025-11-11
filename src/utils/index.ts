@@ -16,6 +16,12 @@ export const extractCanonicalId = (href: string): string | undefined => {
     // Flarum
     m = /^(\/d\/\d+(?:-[^/]+)?)(?:\/|$)/.exec(p)
     if (m) return m[1]
+
+    const f = p + u.search
+
+    // Youtube
+    m = /^(\/watch\?v=[\w-]+)/.exec(f)
+    if (m) return m[1]
   } catch {}
 
   return undefined

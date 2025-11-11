@@ -35,6 +35,7 @@
 | Discourse   | `^/t/`                      | 话题页                       |
 | Discourse   | `^/u/[^/]+$`                | 用户页                       |
 | Flarum      | `^/d/`                      | 讨论页                       |
+| GitHub      | `/issues/\d+$`              | 问题页                       |
 | V2EX        | `^/t/\d+`                   | 主题页                       |
 | V2EX        | `^/member/[^/]+$`           | 用户主页                     |
 | V2EX        | `^/settings`                | 设置页                       |

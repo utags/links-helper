@@ -35,6 +35,7 @@ Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 | Discourse   | `^/t/`                      | Post page                                       |
 | Discourse   | `^/u/[^/]+$`                | User page                                       |
 | Flarum      | `^/d/`                      | Discussions                                     |
+| GitHub      | `/issues/\d+$`              | Issue page                                      |
 | V2EX        | `^/t/\d+`                   | Subject page                                    |
 | V2EX        | `^/member/[^/]+$`           | Member page                                     |
 | V2EX        | `^/settings`                | Settings page                                   |

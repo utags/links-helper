@@ -1861,6 +1861,9 @@
       if (m) return m[1]
       m = /^(\/d\/\d+(?:-[^/]+)?)(?:\/|$)/.exec(p)
       if (m) return m[1]
+      const f = p + u.search
+      m = /^(\/watch\?v=[\w-]+)/.exec(f)
+      if (m) return m[1]
     } catch (e) {}
     return void 0
   }
