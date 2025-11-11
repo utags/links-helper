@@ -4,10 +4,11 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.8.1
+// @version              0.8.3
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
-// @icon                 data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUnIGhlaWdodD0nMTUnIHZpZXdCb3g9JzAgMCAxNSAxNScgZmlsbD0nbm9uZScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cGF0aCBkPSdNMyAyQzIuNDQ3NzIgMiAyIDIuNDQ3NzIgMiAzVjEyQzIgMTIuNTUyMyAyLjQ0NzcyIDEzIDMgMTNIMTJDMTIuNTUyMyAxMyAxMyAxMi41NTIzIDEzIDEyVjguNUMxMyA4LjIyMzg2IDEyLjc3NjEgOCAxMi41IDhDMTIuMjIzOSA4IDEyIDguMjIzODYgMTIgOC41VjEySDNWM0w2LjUgM0M2Ljc3NjE0IDMgNyAyLjc3NjE0IDcgMi41QzcgMi4yMjM4NiA2Ljc3NjE0IDIgNi41IDJIM1pNMTIuODUzNiAyLjE0NjQ1QzEyLjkwMTUgMi4xOTQzOSAxMi45Mzc3IDIuMjQ5NjQgMTIuOTYyMSAyLjMwODYxQzEyLjk4NjEgMi4zNjY2OSAxMi45OTk2IDIuNDMwMyAxMyAyLjQ5N0wxMyAyLjVWMi41MDA0OVY1LjVDMTMgNS43NzYxNCAxMi43NzYxIDYgMTIuNSA2QzEyLjIyMzkgNiAxMiA1Ljc3NjE0IDEyIDUuNVYzLjcwNzExTDYuODUzNTUgOC44NTM1NUM2LjY1ODI5IDkuMDQ4ODIgNi4zNDE3MSA5LjA0ODgyIDYuMTQ2NDUgOC44NTM1NUM1Ljk1MTE4IDguNjU4MjkgNS45NTExOCA4LjM0MTcxIDYuMTQ2NDUgOC4xNDY0NUwxMS4yOTI5IDNIOS41QzkuMjIzODYgMyA5IDIuNzc2MTQgOSAyLjVDOSAyLjIyMzg2IDkuMjIzODYgMiA5LjUgMkgxMi40OTk5SDEyLjVDMTIuNTY3OCAyIDEyLjYzMjQgMi4wMTM0OSAxMi42OTE0IDIuMDM3OTRDMTIuNzUwNCAyLjA2MjM0IDEyLjgwNTYgMi4wOTg1MSAxMi44NTM2IDIuMTQ2NDVaJyBmaWxsPSdjdXJyZW50Q29sb3InIGZpbGwtcnVsZT0nZXZlbm9kZCcgY2xpcC1ydWxlPSdldmVub2RkJz48L3BhdGg+PC9zdmc+
+// @icon                 https://wsrv.nl/?w=32&h=32&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
+// @icon64               https://wsrv.nl/?w=64&h=64&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
 // @author               Pipecraft
 // @license              MIT
 // @match                https://*/*
@@ -27,6 +28,7 @@
 // @grant                GM_removeValueChangeListener
 // @grant                GM_addElement
 // @grant                GM.registerMenuCommand
+// @grant                GM_openInTab
 // ==/UserScript==
 //
 ;(() => {
@@ -1328,8 +1330,8 @@
   var content_default =
     ".lh_selected_element{border:solid 1px red;cursor:not-allowed}a[data-lh-erased-href],a[data-lh-erased-href]:hover{cursor:default;pointer-events:none;text-decoration:none}.bes_tip_content{overflow-y:auto;max-height:300px}.bes_textarea textarea{padding:4px 8px}"
   var messages14 = {
-    "settings.enable": "Enable",
-    "settings.enableCurrentSite": "Enable on current site",
+    "settings.enable": "Enable for all sites",
+    "settings.enableCurrentSite": "Enable for the current site",
     "settings.enableCustomRulesForTheCurrentSite":
       "Enable custom rules for the current site",
     "settings.customRulesPlaceholder":
@@ -1343,6 +1345,8 @@
       "Enable converting text links to hyperlinks for the current site",
     "settings.enableTreatSubdomainsAsSameSiteForCurrentSite":
       "Treat subdomains as the same site for the current site",
+    "settings.enableOpenNewTabInBackgroundForCurrentSite":
+      "Open new tab in background for the current site",
     "settings.eraseLinks": "Erase Links",
     "settings.restoreLinks": "Restore Links",
     "settings.title": "\u{1F517} Links Helper",
@@ -1352,9 +1356,8 @@
   }
   var en_default2 = messages14
   var messages15 = {
-    "settings.enable": "\u542F\u7528\u811A\u672C",
-    "settings.enableCurrentSite":
-      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u811A\u672C",
+    "settings.enable": "\u5728\u6240\u6709\u7F51\u7AD9\u542F\u7528",
+    "settings.enableCurrentSite": "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528",
     "settings.enableCustomRulesForTheCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u81EA\u5B9A\u4E49\u89C4\u5219",
     "settings.customRulesPlaceholder":
@@ -1363,11 +1366,13 @@
     "settings.customRulesTipContent":
       "<p>\u5185\u90E8\u94FE\u63A5\u7684\u81EA\u5B9A\u4E49\u89C4\u5219\uFF0C\u5339\u914D\u7684\u94FE\u63A5\u4F1A\u5728\u65B0\u7A97\u53E3\u6253\u5F00</p>\n  <p>\n  - \u6BCF\u884C\u4E00\u6761\u89C4\u5219<br>\n  - \u6240\u6709\u5305\u542B '/posts' \u6216 '/users/' \u7684\u94FE\u63A5<br>\n  <pre>/posts/\n/users/</pre>\n\n  - \u652F\u6301\u6B63\u5219\u8868\u8FBE\u5F0F<br>\n  <pre>^/(posts|members)/d+</pre>\n\n  - '*' \u4EE3\u8868\u5339\u914D\u6240\u6709\u94FE\u63A5<br>\n  - \u6392\u9664\u89C4\u5219\uFF1A\u4EE5 '!' \u5F00\u5934\uFF0C\u5339\u914D\u5219\u6392\u9664\uFF08\u4E0D\u5728\u65B0\u7A97\u53E3\u6253\u5F00\uFF09<br>\n  <pre>!/posts/\n!^/users/\\d+\n!*</pre>\n  </p>",
     "settings.enableLinkToImgForCurrentSite":
-      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u56FE\u7247\u94FE\u63A5\u81EA\u52A8\u8F6C\u6362\u4E3A\u56FE\u7247\u6807\u7B7E",
+      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5C06\u56FE\u7247\u94FE\u63A5\u81EA\u52A8\u8F6C\u6362\u4E3A\u56FE\u7247\u6807\u7B7E",
     "settings.enableTextToLinksForCurrentSite":
-      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u89E3\u6790\u6587\u672C\u94FE\u63A5\u4E3A\u8D85\u94FE\u63A5",
+      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5C06\u6587\u672C\u94FE\u63A5\u81EA\u52A8\u8F6C\u6362\u4E3A\u8D85\u94FE\u63A5",
     "settings.enableTreatSubdomainsAsSameSiteForCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5C06\u4E8C\u7EA7\u57DF\u540D\u89C6\u4E3A\u540C\u4E00\u7F51\u7AD9",
+    "settings.enableOpenNewTabInBackgroundForCurrentSite":
+      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5728\u540E\u53F0\u6253\u5F00\u65B0\u6807\u7B7E\u9875",
     "settings.eraseLinks":
       "\u53BB\u9664\u6307\u5B9A\u533A\u57DF\u7684\u94FE\u63A5",
     "settings.restoreLinks": "\u6062\u590D\u53BB\u9664\u7684\u94FE\u63A5",
@@ -1891,6 +1896,8 @@
   var currentUrl
   var currentCanonicalId
   var enableTreatSubdomainsSameSite = false
+  var enableBackground = false
+  var enableLinkToImg = false
   if (false) {
     const runtime =
       (_c = (_a = globalThis.chrome) == null ? void 0 : _a.runtime) != null
@@ -1939,6 +1946,11 @@
         type: "tip",
         tipContent: i2("settings.customRulesTipContent"),
         group: groupNumber,
+      },
+      ["enableOpenNewTabInBackgroundForCurrentSite_".concat(host)]: {
+        title: i2("settings.enableOpenNewTabInBackgroundForCurrentSite"),
+        defaultValue: false,
+        group: ++groupNumber,
       },
       ["enableTreatSubdomainsAsSameSiteForCurrentSite_".concat(host)]: {
         title: i2("settings.enableTreatSubdomainsAsSameSiteForCurrentSite"),
@@ -2041,7 +2053,7 @@
     }
   }
   var setAttributeAsOpenInNewTab = (element) => {
-    if (shouldOpenInNewTab(element)) {
+    if (!enableBackground && shouldOpenInNewTab(element)) {
       setAttribute(element, "target", "_blank")
       addAttribute(element, "rel", "noopener")
     }
@@ -2050,6 +2062,16 @@
     removeAttribute(element, "target")
     removeAttribute(element, "rel")
   }
+  function openInBackgroundTab(url) {
+    if (false) {
+      chrome.runtime.sendMessage({
+        type: "open_background_tab",
+        url,
+      })
+    } else if (typeof GM_openInTab === "function") {
+      GM_openInTab(url, { active: false, insert: true })
+    }
+  }
   function onSettingsChange() {
     const locale2 = getSettingsValue("locale") || getPrefferedLocale()
     resetI18n2(locale2)
@@ -2057,6 +2079,14 @@
       getSettingsValue(
         "enableTreatSubdomainsAsSameSiteForCurrentSite_".concat(host)
       )
+    )
+    enableBackground = Boolean(
+      getSettingsValue(
+        "enableOpenNewTabInBackgroundForCurrentSite_".concat(host)
+      )
+    )
+    enableLinkToImg = Boolean(
+      getSettingsValue("enableLinkToImgForCurrentSite_".concat(host))
     )
   }
   async function main() {
@@ -2123,9 +2153,16 @@
         }
         if (anchorElement) {
           setAttributeAsOpenInNewTab(anchorElement)
-          if (getAttribute(anchorElement, "target") === "_blank") {
+          const isNewTab = getAttribute(anchorElement, "target") === "_blank"
+          const shouldOpenBackground =
+            enableBackground && shouldOpenInNewTab(anchorElement)
+          if (isNewTab || shouldOpenBackground) {
             event.stopImmediatePropagation()
             event.stopPropagation()
+            if (shouldOpenBackground) {
+              event.preventDefault()
+              openInBackgroundTab(anchorElement.href)
+            }
           }
         }
       },
@@ -2135,6 +2172,9 @@
       if (currentUrl !== location.href) {
         currentUrl = location.href
         currentCanonicalId = extractCanonicalId(currentUrl)
+      }
+      if (!enableLinkToImg && enableBackground) {
+        return
       }
       for (const element of $$("a")) {
         if (element.__links_helper_scaned) {
@@ -2146,7 +2186,7 @@
         } catch (error) {
           console.error(error)
         }
-        if (getSettingsValue("enableLinkToImgForCurrentSite_".concat(host))) {
+        if (enableLinkToImg) {
           try {
             linkToImg(element)
           } catch (error) {
