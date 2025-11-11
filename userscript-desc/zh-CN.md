@@ -27,65 +27,22 @@
 
 ### 内部链接新标签页打开规则示例（仅供参考）
 
-#### V2EX
-
-主题页，用户主页，设置页
-
-```js
-^/t/\d+(#.*)?$
-^/member/[^?]*$
-^/settings
-^/notifications
-```
-
-#### Youtube
-
-播放页
-
-```js
-^/watch
-^/shorts
-```
-
-#### X (Twitter)
-
-- 用户主页
-
-```regex
-^/\w+$
-```
-
-- 推文 (点击**日期时间**时才会生效)
-
-```regex
-/status/
-```
-
-- 所有链接
-
-```regex
-*
-```
-
-#### Discourse
-
-- post 页
-
-```regex
-^/t/
-```
-
-- user 页
-
-```regex
-^/u/[^/]+$
-```
-
-#### Flarum
-
-```regex
-^/d/
-```
+| 网站        | 规则                        | 备注                         |
+| ----------- | --------------------------- | ---------------------------- |
+| Youtube     | `^/watch`<br/>`^/shorts`    | 播放页                       |
+| X (Twitter) | `^/\w+$`                    | 用户主页                     |
+| X (Twitter) | `/status/`                  | 推文（点击日期链接时生效）   |
+| Discourse   | `^/t/`                      | 话题页                       |
+| Discourse   | `^/u/[^/]+$`                | 用户页                       |
+| Flarum      | `^/d/`                      | 讨论页                       |
+| V2EX        | `^/t/\d+`                   | 主题页                       |
+| V2EX        | `^/member/[^/]+$`           | 用户主页                     |
+| V2EX        | `^/settings`                | 设置页                       |
+| V2EX        | `^/notifications`           | 通知页                       |
+| GreasyFork  | `/scripts/[^/]+$`           | 脚本页                       |
+| GreasyFork  | `/discussions/\d+$`         | 讨论页                       |
+| 通用        | `*`                         | 所有链接                     |
+| 通用        | `!/posts/new`<br/>`/posts/` | 帖子页除了 `/posts/new` 页面 |
 
 ## 其他
 

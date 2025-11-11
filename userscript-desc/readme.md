@@ -27,65 +27,22 @@ Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 
 ### Examples of rules that open links in a new tab
 
-#### Youtube
-
-Video player page
-
-```js
-^/watch
-^/shorts
-```
-
-#### X (Twitter)
-
-- User profiles
-
-```regex
-^/\w+$
-```
-
-- Tweets (should click the **dates** links)
-
-```regex
-/status/
-```
-
-- All links
-
-```regex
-*
-```
-
-#### Discourse
-
-- post page
-
-```regex
-^/t/
-```
-
-- user page
-
-```regex
-^/u/[^/]+$
-```
-
-#### Flarum
-
-```regex
-^/d/
-```
-
-#### V2EX
-
-Subject page, member page, settings page
-
-```regex
-^/t/\d+(#.*)?$
-^/member/[^?]*$
-^/settings
-^/notifications
-```
+| Site        | Rules                       | Notes                                           |
+| ----------- | --------------------------- | ----------------------------------------------- |
+| Youtube     | `^/watch`<br/>`^/shorts`    | Video player page                               |
+| X (Twitter) | `^/\w+$`                    | User profiles                                   |
+| X (Twitter) | `/status/`                  | Tweets (click the dates links)                  |
+| Discourse   | `^/t/`                      | Post page                                       |
+| Discourse   | `^/u/[^/]+$`                | User page                                       |
+| Flarum      | `^/d/`                      | Discussions                                     |
+| V2EX        | `^/t/\d+`                   | Subject page                                    |
+| V2EX        | `^/member/[^/]+$`           | Member page                                     |
+| V2EX        | `^/settings`                | Settings page                                   |
+| V2EX        | `^/notifications`           | Notifications                                   |
+| GreasyFork  | `/scripts/[^/]+$`           | Script page                                     |
+| GreasyFork  | `/discussions/\d+$`         | Discussion page                                 |
+| General     | `*`                         | All links                                       |
+| General     | `!/posts/new`<br/>`/posts/` | Posts pages except new post page (`/posts/new`) |
 
 ## Other
 
