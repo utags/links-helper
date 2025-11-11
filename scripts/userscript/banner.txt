@@ -7,8 +7,7 @@
 // @version              {version}
 // @description          {description_userscript}
 // @description:zh-CN    {description_userscript:zh-CN}
-// @icon                 https://wsrv.nl/?w=32&h=32&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
-// @icon64               https://wsrv.nl/?w=64&h=64&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
+// @icon                 {icon}
 // @author               {author}
 // @license              {license}
 // @match                https://*/*
