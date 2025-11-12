@@ -25,10 +25,11 @@ Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 
 ## Installation
 
-- Chrome Extension: [Manual Installation](manual-installation.md)
-- Edge Extension: [Manual Installation](manual-installation.md)
-- Firefox Addon: [Manual Installation](manual-installation.md)
-- Userscript: [https://greasyfork.org/scripts/464541-links-helper](https://greasyfork.org/scripts/464541-links-helper)
+- Chrome: [Chrome Web Store](https://chromewebstore.google.com/detail/links-helper/lkgnmfiahabppglkjkggllokkiidikij)
+- Edge: [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/links-helper/ehoanikfmmcknoiofnnfnnloaclakpcj)
+- Firefox: [Firefox Addon Store](https://addons.mozilla.org/firefox/addon/links-helper/)
+- Userscript: [Greasy Fork](https://greasyfork.org/scripts/464541-links-helper), [ScriptCat](https://scriptcat.org/script-show-page/4486), [GitHub](https://github.com/utags/links-helper/raw/refs/heads/main/build/userscript-prod/links-helper.user.js)
+- [Manually install browser extensions](manual-installation.md)
 
 ## More Useful Scripts
 
