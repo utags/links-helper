@@ -31,7 +31,7 @@ import { scanAndConvertChildNodes } from "./modules/text-to-links"
 import { extractCanonicalId, getBaseDomain } from "./utils/index"
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/naming-convention
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface HTMLElement {
     __links_helper_scaned?: number
   }
@@ -57,13 +57,12 @@ if (
     (globalThis as any).chrome?.runtime ?? (globalThis as any).browser?.runtime
   runtime?.onMessage?.addListener((message: any) => {
     if (message?.type === "links-helper:show-settings") {
-      showSettings()
+      void showSettings()
     }
   })
 }
 
 export const config: PlasmoCSConfig = {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   run_at: "document_start",
 }
 
@@ -235,7 +234,7 @@ function openInBackgroundTab(url: string) {
     // eslint-disable-next-line n/prefer-global/process
     process.env.PLASMO_TARGET === "firefox-mv3"
   ) {
-    chrome.runtime.sendMessage({
+    void chrome.runtime.sendMessage({
       type: "open_background_tab",
       url,
     })
@@ -345,7 +344,7 @@ async function main() {
 
           if (shouldOpenBackground) {
             event.preventDefault()
-            openInBackgroundTab(anchorElement.href)
+            openInBackgroundTab((anchorElement as HTMLAnchorElement).href)
           }
         }
       }

@@ -52,7 +52,7 @@ export const convertImgUrl = (href: string | undefined) => {
 
   const hostname = getHostname(href)
   if (Object.hasOwn(rules, hostname)) {
-    for (const rule of rules[hostname]) {
+    for (const rule of rules[hostname] as string[]) {
       const newHref = processRule(rule, href)
       if (newHref) {
         return newHref
@@ -72,7 +72,11 @@ export const bindOnError = () => {
     addEventListener(element, "error", (event) => {
       const img = event.target as HTMLElement
       const anchor = img.parentElement
-      img.outerHTML = createHTML(getAttribute(img, "src"))
+      const imgSrc = getAttribute(img, "src")
+      if (imgSrc) {
+        img.outerHTML = createHTML(imgSrc)
+      }
+
       if (anchor?.tagName === "A") {
         setStyle(anchor, "opacity: 50%;")
         setAttribute(anchor, "data-message", "failed to load image")

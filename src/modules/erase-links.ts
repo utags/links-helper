@@ -62,7 +62,7 @@ export function eraseLinks() {
 export function restoreLinks() {
   for (const element of $$("a[data-lh-erased-href]")) {
     const href = getAttribute(element, "data-lh-erased-href")
-    setAttribute(element, "href", href)
+    if (href) setAttribute(element, "href", href)
     delete element.dataset.lhErasedHref
   }
 }

@@ -27,6 +27,7 @@ const ignoredTags = new Set([
 ])
 
 const urlPattern =
+  // eslint-disable-next-line unicorn/prefer-string-raw
   "\\b((?:https?:\\/\\/(?:[\\w-.]+\\.[a-z]{2,15}|localhost|(?:\\d{1,3}\\.){3}\\d{1,3}))(?::\\d+)?(?:\\/[\\w-/%.~+:;!@=&?#]*)?)"
 
 // ![img](url)
@@ -62,11 +63,11 @@ const linkPattern6 = new RegExp(
 
 const replaceMarkdownImgLinks = (text: string) => {
   if (text.search(linkPattern1) >= 0) {
-    text = text.replaceAll(linkPattern1, (m, p1: string, p2: string) => {
+    text = text.replaceAll(linkPattern1, (m, p1: string, p2: string) =>
       // console.log(m, p1, p2)
 
-      return createImgTagString(convertImgUrl(p2) || p2, p1)
-    })
+      createImgTagString(convertImgUrl(p2) || p2, p1)
+    )
   }
 
   return text
@@ -74,9 +75,11 @@ const replaceMarkdownImgLinks = (text: string) => {
 
 const replaceMarkdownLinks = (text: string) => {
   if (text.search(linkPattern2) >= 0) {
-    text = text.replaceAll(linkPattern2, (m, p1: string, p2: string) => {
-      return `<a href="${p2}">${p1.replaceAll(/<br>$/gi, "")}</a>`
-    })
+    text = text.replaceAll(
+      linkPattern2,
+      (m, p1: string, p2: string) =>
+        `<a href="${p2}">${p1.replaceAll(/<br>$/gi, "")}</a>`
+    )
   }
 
   return text
@@ -84,38 +87,40 @@ const replaceMarkdownLinks = (text: string) => {
 
 const replaceTextLinks = (text: string) => {
   if (text.search(linkPattern3) >= 0) {
-    text = text.replaceAll(linkPattern3, (m, p1: string) => {
-      // console.log(m, p1)
-      return `<a href="${p1}">${p1}</a>`
-    })
+    text = text.replaceAll(
+      linkPattern3,
+      (m, p1: string) =>
+        // console.log(m, p1)
+        `<a href="${p1}">${p1}</a>`
+    )
   }
 
   return text
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const replaceBBCodeImgLinks = (text: string) => {
   if (text.search(linkPattern4) >= 0) {
-    text = text.replaceAll(linkPattern4, (m, p1: string) => {
-      return createImgTagString(convertImgUrl(p1) || p1, p1)
-    })
+    text = text.replaceAll(linkPattern4, (m, p1: string) =>
+      createImgTagString(convertImgUrl(p1) || p1, p1)
+    )
   }
 
   return text
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const replaceBBCodeLinks = (text: string) => {
   if (text.search(linkPattern5) >= 0) {
-    text = text.replaceAll(linkPattern5, (m, p1: string) => {
-      return `<a href="${p1}">${p1}</a>`
-    })
+    text = text.replaceAll(
+      linkPattern5,
+      (m, p1: string) => `<a href="${p1}">${p1}</a>`
+    )
   }
 
   if (text.search(linkPattern6) >= 0) {
-    text = text.replaceAll(linkPattern6, (m, p1: string, p2: string) => {
-      return `<a href="${p1}">${p2}</a>`
-    })
+    text = text.replaceAll(
+      linkPattern6,
+      (m, p1: string, p2: string) => `<a href="${p1}">${p2}</a>`
+    )
   }
 
   return text
@@ -232,8 +237,8 @@ const textToLink = (textNode: HTMLElement, previousText: string) => {
         /\[(img|url)[^\]]*]([^[\]]+?)\[\/\1]/gim,
         (m: string, p1: string) => {
           // console.error("m", m)
-          let tagsRemoved
-          let converted
+          let tagsRemoved: string
+          let converted: string
           if (p1 === "img") {
             tagsRemoved = m
               .replaceAll(
@@ -297,16 +302,13 @@ const fixAnchorTag = (anchorElement: HTMLAnchorElement) => {
   }
 }
 
-const isCodeViewer = (element: HTMLElement) => {
+const isCodeViewer = (element: HTMLElement) =>
   // https://github.com/utags/links-helper/issues/10
-  return (
-    hasClass(element, "diff-view") ||
-    hasClass(element, "diff") ||
-    hasClass(element, "react-code-lines") ||
-    hasClass(element, "virtual-blame-wrapper") ||
-    $('[role="code"]', element)
-  )
-}
+  hasClass(element, "diff-view") ||
+  hasClass(element, "diff") ||
+  hasClass(element, "react-code-lines") ||
+  hasClass(element, "virtual-blame-wrapper") ||
+  $('[role="code"]', element)
 
 export const scanAndConvertChildNodes = (parentNode: HTMLElement) => {
   if (
