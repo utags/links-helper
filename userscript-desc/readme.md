@@ -89,6 +89,7 @@ Compatible with the following userscript managers
 ## Release Notes
 
 - 0.8.x
+  - Fix compatibility issues with utags-shortcuts
   - Add setting option to treat subdomains as the same site for the current site
   - Browser extension version supports opening settings
   - Add setting option to open new tab in background, default off

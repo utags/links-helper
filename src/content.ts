@@ -63,6 +63,7 @@ if (
 }
 
 export const config: PlasmoCSConfig = {
+  all_frames: true,
   run_at: "document_start",
 }
 
