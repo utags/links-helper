@@ -40,29 +40,29 @@
   },
   "dependencies": {
     "browser-extension-i18n": "^0.1.3",
-    "browser-extension-settings": "^0.7.1",
+    "browser-extension-settings": "^0.8.0",
     "browser-extension-storage": "^0.1.2",
     "browser-extension-utils": "^0.2.2",
     "plasmo": "^0.90.5",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.6.2",
-    "@types/chrome": "^0.1.31",
-    "@types/node": "^24.10.1",
+    "@types/chrome": "^0.1.32",
+    "@types/node": "^25.0.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "addons-linter": "^9.2.0",
+    "addons-linter": "^9.3.0",
     "bookmarkleter": "^1.1.0",
     "cross-env": "^10.1.0",
-    "esbuild": "^0.27.0",
+    "esbuild": "^0.27.2",
     "http-server": "^14.1.1",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.6.2",
-    "sass": "^1.94.2",
+    "prettier": "^3.7.4",
+    "sass": "^1.97.1",
     "typescript": "^5.2.2",
-    "xo": "^0.60.0"
+    "xo": "^1.2.3"
   },
   "manifest": {
     "host_permissions": [
