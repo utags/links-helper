@@ -61,21 +61,53 @@
 
 ## 更多实用脚本
 
-- 🏷️ UTags - 为链接添加用户标签
-  - [Greasy Fork](https://greasyfork.org/zh-CN/scripts/460718-utags-add-usertags-to-links)
-  - 为用户/帖子等添加标签与备注，支持过滤、导入导出、自动标记已读等
+### 🏷️ UTags - 为链接添加用户标签
 
-- 🔄 Discourse 话题快捷切换器
-  - [Greasy Fork](https://greasyfork.org/zh-CN/scripts/550982-discourse-topic-quick-switcher)
-  - 在 Discourse 论坛中通过悬浮面板与快捷键快速导航话题
+- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/460718-utags-add-usertags-to-links)
+- **功能**：为用户、帖子、视频和其他链接添加自定义标签和备注
+- **亮点**：支持特殊标签过滤（如垃圾、屏蔽、标题党等），数据导出/导入，自动标记已查看帖子
+- **支持网站**：V2EX、X(Twitter)、Reddit、GitHub、哔哩哔哩、知乎、Linux.do、Youtube 等 50+ 网站
+- **描述**：超级实用的标签管理工具，可为论坛用户或帖子添加标签，轻松识别或屏蔽低质量内容
 
-- 🔍 查找适用于当前网站的脚本
-  - [Greasy Fork](https://greasyfork.org/zh-CN/scripts/550659-find-scripts-for-this-site)
-  - 一键在多个仓库中查找当前网站的相关脚本
+### 🧰 UTags Advanced Filter
 
-- 🔃 赐你个头像吧
-  - [Greasy Fork](https://greasyfork.org/zh-CN/scripts/472616-replace-ugly-avatars)
-  - 换掉别人的头像与昵称
+- **链接**：[Greasy Fork](https://greasyfork.org/scripts/556095-utags-advanced-filter) · [ScriptCat](https://scriptcat.org/en/script-show-page/4653) · [GitHub](https://github.com/utags/utags-advanced-filter/raw/refs/heads/main/build/userscript-prod/utags-advanced-filter.user.js)
+- **功能**：支持在 GreasyFork 实时过滤与隐藏脚本
+- **亮点**：同时提供用户脚本与浏览器扩展两个版本
+- **支持网站**：Greasy Fork
+- **描述**：支持在 GreasyFork 实时过滤与隐藏脚本的工具，提供用户脚本和浏览器扩展两种版本。
+
+### ⚡ UTags 快捷导航 (UTags Shortcuts)
+
+- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/558485-utags-shortcuts) · [ScriptCat](https://scriptcat.org/zh-CN/script-show-page/4910) · [GitHub](https://github.com/utags/userscripts/raw/main/utags-shortcuts/utags-shortcuts.user.js)
+- **功能**：按站点分组、自定义图标、悬浮球或侧边栏导航面板
+- **亮点**：悬浮/侧边栏模式、支持链接与脚本、可视化编辑、快捷键支持
+- **支持网站**：所有网站
+- **描述**：一款功能强大的用户脚本，提供便捷的快捷导航面板，帮助你高效管理常用链接与自动化脚本，提升浏览体验
+
+### 🔗 链接助手
+
+- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/464541-links-helper)
+- **功能**：在新标签页中打开第三方网站链接，将文本链接解析为超链接
+- **亮点**：支持自定义规则，解析 Markdown 和 BBCode 格式，将图片链接转换为图片标签
+- **支持网站**：适用于所有网站，包括谷歌、YouTube、GitHub、V2EX 等
+- **描述**：增强链接浏览体验，自动处理各种链接格式，使网页浏览更加便捷
+
+### 🔍 查找适用于当前网站的脚本
+
+- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/550659-find-scripts-for-this-site)
+- **功能**：快速查找当前网站的用户脚本
+- **亮点**：支持多个流行的脚本仓库，轻松发现有用的脚本
+- **支持网站**：适用于任何网站，查找相关用户脚本
+- **描述**：一个方便的工具，用于发现和安装专为您访问的网站设计的用户脚本
+
+### 🔄 Discourse 话题快捷切换器
+
+- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/550982-discourse-topic-quick-switcher)
+- **功能**：在 Discourse 论坛中快速导航切换主题
+- **亮点**：键盘快捷键、导航按钮、带语言选项的设置对话框
+- **支持网站**：所有基于 Discourse 的论坛，包括 Discourse Meta、LINUX.DO 等
+- **描述**：通过便捷的主题切换和可自定义设置，增强 Discourse 论坛中的导航体验
 
 ## 其他类似脚本
 
@@ -89,6 +121,7 @@
 ## Release Notes
 
 - 0.8.x
+  - 修复与 utags-shortcuts 兼容性问题
   - 添加设置项：在当前网站启用将二级域名视为同一网站
   - 浏览器扩展版本支持打开设置
   - 支持在后台打开新标签页，需要在设置里启用，默认关闭

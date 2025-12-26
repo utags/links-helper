@@ -7,7 +7,7 @@ export const availableLocales = /** @type {const} */ ["en", "zh"]
 
 initAvailableLocales(availableLocales)
 
-console.log("[links-helper] prefferedLocale:", getPrefferedLocale())
+// console.log("[links-helper] prefferedLocale:", getPrefferedLocale())
 export const localeMap = {
   zh: messagesZh,
   "zh-cn": messagesZh,

@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.8.7
+// @version              0.8.9
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -194,6 +194,7 @@
     }
   }
   var doc = document
+  var win = globalThis
   if (typeof String.prototype.replaceAll !== "function") {
     String.prototype.replaceAll = String.prototype.replace
   }
@@ -484,7 +485,7 @@
     return GM.registerMenuCommand(name, callback, options)
   }
   var style_default =
-    ':host{--browser-extension-settings-background-color: #f2f2f7;--browser-extension-settings-text-color: #444444;--browser-extension-settings-link-color: #217dfc;--browser-extension-settings-border-radius: 8px;--sb-track-color: #00000000;--sb-thumb-color: #33334480;--sb-size: 2px;--font-family: "helvetica neue", "microsoft yahei", arial, sans-serif;position:fixed;top:10px;right:30px;display:none;z-index:200000;border-radius:var(--browser-extension-settings-border-radius);-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}:host .browser_extension_settings_v2_wrapper{display:flex;background-color:var(--browser-extension-settings-background-color);font-family:var(--font-family);border-radius:var(--browser-extension-settings-border-radius)}:host .browser_extension_settings_v2_wrapper h1,:host .browser_extension_settings_v2_wrapper h2{border:none;color:var(--browser-extension-settings-text-color);padding:0;font-family:var(--font-family);line-height:normal;letter-spacing:normal}:host .browser_extension_settings_v2_wrapper h1{font-size:26px;font-weight:800;margin:18px 0}:host .browser_extension_settings_v2_wrapper h2{font-size:18px;font-weight:600;margin:14px 0}:host .browser_extension_settings_v2_wrapper footer{display:flex;justify-content:center;flex-direction:column;font-size:11px;margin:10px auto 0px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);font-family:var(--font-family)}:host .browser_extension_settings_v2_wrapper footer a{color:var(--browser-extension-settings-link-color) !important;font-family:var(--font-family);text-decoration:none;padding:0}:host .browser_extension_settings_v2_wrapper footer p{text-align:center;padding:0;margin:2px;line-height:13px;font-size:11px;color:var(--browser-extension-settings-text-color);font-family:var(--font-family)}:host .thin_scrollbar{scrollbar-color:var(--sb-thumb-color) var(--sb-track-color);scrollbar-width:thin}:host .thin_scrollbar::-webkit-scrollbar{width:var(--sb-size)}:host .thin_scrollbar::-webkit-scrollbar-track{background:var(--sb-track-color);border-radius:10px}:host .thin_scrollbar::-webkit-scrollbar-thumb{background:var(--sb-thumb-color);border-radius:10px}.browser_extension_settings_v2_main{min-width:300px;max-height:90vh;overflow-y:auto;overflow-x:hidden;border-radius:var(--browser-extension-settings-border-radius);box-sizing:border-box;padding:10px 15px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);font-family:var(--font-family)}.browser_extension_settings_v2_main h2{text-align:center;margin:5px 0 0}.browser_extension_settings_v2_main .option_groups{background-color:#fff;padding:6px 15px 6px 15px;border-radius:10px;display:flex;flex-direction:column;margin:10px 0 0}.browser_extension_settings_v2_main .option_groups .action{font-size:14px;padding:6px 0 6px 0;color:var(--browser-extension-settings-link-color);cursor:pointer}.browser_extension_settings_v2_main .bes_external_link{font-size:14px;padding:6px 0 6px 0}.browser_extension_settings_v2_main .bes_external_link a,.browser_extension_settings_v2_main .bes_external_link a:visited,.browser_extension_settings_v2_main .bes_external_link a:hover{color:var(--browser-extension-settings-link-color);font-family:var(--font-family);text-decoration:none;cursor:pointer}.browser_extension_settings_v2_main .option_groups textarea{background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);font-size:12px;margin:10px 0 10px 0;padding:4px 8px;height:100px;width:100%;border:1px solid #a9a9a9;border-radius:4px;box-sizing:border-box}.browser_extension_settings_v2_main .switch_option,.browser_extension_settings_v2_main .select_option{display:flex;justify-content:space-between;align-items:center;padding:6px 0 6px 0;font-size:14px}.browser_extension_settings_v2_main .option_groups>*{border-top:1px solid #ccc}.browser_extension_settings_v2_main .option_groups>*:first-child{border-top:none}.browser_extension_settings_v2_main .bes_option>.bes_icon{width:24px;height:24px;margin-right:10px}.browser_extension_settings_v2_main .bes_option>.bes_title{margin-right:10px;flex-grow:1}.browser_extension_settings_v2_main .bes_option>.bes_select{color:var(--browser-extension-settings-text-color);box-sizing:border-box;background-color:#fff;height:24px;padding:0 2px 0 2px;margin:0;border-radius:6px;border:1px solid #ccc}.browser_extension_settings_v2_main .option_groups .bes_tip{position:relative;margin:0;padding:0 15px 0 0;border:none;max-width:none;font-size:14px}.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_anchor{cursor:help;text-decoration:underline}.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_content{position:absolute;bottom:15px;left:0;background-color:#fff;color:var(--browser-extension-settings-text-color);text-align:left;overflow-y:auto;max-height:300px;padding:10px;display:none;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_anchor:hover+.bes_tip_content,.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_content:hover{display:block}.browser_extension_settings_v2_main .option_groups .bes_tip p,.browser_extension_settings_v2_main .option_groups .bes_tip pre{margin:revert;padding:revert}.browser_extension_settings_v2_main .option_groups .bes_tip pre{font-family:Consolas,panic sans,bitstream vera sans mono,Menlo,microsoft yahei,monospace;font-size:13px;letter-spacing:.015em;line-height:120%;white-space:pre;overflow:auto;background-color:#f5f5f5;word-break:normal;overflow-wrap:normal;padding:.5em;border:none}.browser_extension_settings_v2_main .bes_switch_container{--button-width: 51px;--button-height: 24px;--toggle-diameter: 20px;--color-off: #e9e9eb;--color-on: #34c759;width:var(--button-width);height:var(--button-height);position:relative;padding:0;margin:0;flex:none;user-select:none}.browser_extension_settings_v2_main input[type=checkbox]{opacity:0;width:0;height:0;position:absolute}.browser_extension_settings_v2_main .bes_switch{width:100%;height:100%;display:block;background-color:var(--color-off);border-radius:calc(var(--button-height)/2);border:none;cursor:pointer;transition:all .2s ease-out}.browser_extension_settings_v2_main .bes_switch::before{display:none}.browser_extension_settings_v2_main .bes_slider{width:var(--toggle-diameter);height:var(--toggle-diameter);position:absolute;left:2px;top:calc(50% - var(--toggle-diameter)/2);border-radius:50%;background:#fff;box-shadow:0px 3px 8px rgba(0,0,0,.15),0px 3px 1px rgba(0,0,0,.06);transition:all .2s ease-out;cursor:pointer}.browser_extension_settings_v2_main input[type=checkbox]:checked+.bes_switch{background-color:var(--color-on)}.browser_extension_settings_v2_main input[type=checkbox]:checked+.bes_switch .bes_slider{left:calc(var(--button-width) - var(--toggle-diameter) - 2px)}@media(max-width: 500px){:host{right:10px}.browser_extension_settings_v2_main{max-height:85%}}'
+    ':host{all:initial;--browser-extension-settings-background-color: #f2f2f7;--browser-extension-settings-text-color: #444444;--browser-extension-settings-link-color: #217dfc;--browser-extension-settings-border-radius: 8px;--sb-track-color: #00000000;--sb-thumb-color: #33334480;--sb-size: 2px;--font-family: "helvetica neue", "microsoft yahei", arial, sans-serif}:host .browser_extension_settings_v2_wrapper{position:fixed;top:10px;right:30px;display:none;z-index:2147483647;border-radius:var(--browser-extension-settings-border-radius);-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important;display:flex;background-color:var(--browser-extension-settings-background-color);font-family:var(--font-family);border-radius:var(--browser-extension-settings-border-radius)}:host .browser_extension_settings_v2_wrapper h1,:host .browser_extension_settings_v2_wrapper h2{border:none;color:var(--browser-extension-settings-text-color);padding:0;font-family:var(--font-family);line-height:normal;letter-spacing:normal}:host .browser_extension_settings_v2_wrapper h1{font-size:26px;font-weight:800;margin:18px 0}:host .browser_extension_settings_v2_wrapper h2{font-size:18px;font-weight:600;margin:14px 0}:host .browser_extension_settings_v2_wrapper footer{display:flex;justify-content:center;flex-direction:column;font-size:11px;margin:10px auto 0px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);font-family:var(--font-family)}:host .browser_extension_settings_v2_wrapper footer a{color:var(--browser-extension-settings-link-color) !important;font-family:var(--font-family);text-decoration:none;padding:0}:host .browser_extension_settings_v2_wrapper footer p{text-align:center;padding:0;margin:2px;line-height:13px;font-size:11px;color:var(--browser-extension-settings-text-color);font-family:var(--font-family)}:host .thin_scrollbar{scrollbar-color:var(--sb-thumb-color) var(--sb-track-color);scrollbar-width:thin}:host .thin_scrollbar::-webkit-scrollbar{width:var(--sb-size)}:host .thin_scrollbar::-webkit-scrollbar-track{background:var(--sb-track-color);border-radius:10px}:host .thin_scrollbar::-webkit-scrollbar-thumb{background:var(--sb-thumb-color);border-radius:10px}.browser_extension_settings_v2_main{min-width:300px;max-height:90vh;overflow-y:auto;overflow-x:hidden;border-radius:var(--browser-extension-settings-border-radius);box-sizing:border-box;padding:10px 15px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);font-family:var(--font-family)}.browser_extension_settings_v2_main h2{text-align:center;margin:5px 0 0}.browser_extension_settings_v2_main .close-button{cursor:pointer;width:18px;height:18px;opacity:.5;transition:opacity .2s}.browser_extension_settings_v2_main .close-button:hover{opacity:1}.browser_extension_settings_v2_main .option_groups{background-color:#fff;padding:6px 15px 6px 15px;border-radius:10px;display:flex;flex-direction:column;margin:10px 0 0}.browser_extension_settings_v2_main .option_groups .action{font-size:14px;padding:6px 0 6px 0;color:var(--browser-extension-settings-link-color);cursor:pointer}.browser_extension_settings_v2_main .bes_external_link{font-size:14px;padding:6px 0 6px 0}.browser_extension_settings_v2_main .bes_external_link a,.browser_extension_settings_v2_main .bes_external_link a:visited,.browser_extension_settings_v2_main .bes_external_link a:hover{color:var(--browser-extension-settings-link-color);font-family:var(--font-family);text-decoration:none;cursor:pointer}.browser_extension_settings_v2_main .option_groups textarea{background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);font-size:12px;margin:10px 0 10px 0;padding:4px 8px;height:100px;width:100%;border:1px solid #a9a9a9;border-radius:4px;box-sizing:border-box}.browser_extension_settings_v2_main .switch_option,.browser_extension_settings_v2_main .select_option{display:flex;justify-content:space-between;align-items:center;padding:6px 0 6px 0;font-size:14px}.browser_extension_settings_v2_main .option_groups>*{border-top:1px solid #ccc}.browser_extension_settings_v2_main .option_groups>*:first-child{border-top:none}.browser_extension_settings_v2_main .bes_option>.bes_icon{width:24px;height:24px;margin-right:10px}.browser_extension_settings_v2_main .bes_option>.bes_title{margin-right:10px;flex-grow:1}.browser_extension_settings_v2_main .bes_option>.bes_select{color:var(--browser-extension-settings-text-color);box-sizing:border-box;background-color:#fff;height:24px;padding:0 2px 0 2px;margin:0;border-radius:6px;border:1px solid #ccc}.browser_extension_settings_v2_main .option_groups .bes_tip{position:relative;margin:0;padding:0 15px 0 0;border:none;max-width:none;font-size:14px}.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_anchor{cursor:help;text-decoration:underline}.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_content{position:absolute;bottom:15px;left:0;background-color:#fff;color:var(--browser-extension-settings-text-color);text-align:left;overflow-y:auto;max-height:300px;padding:10px;display:none;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_anchor:hover+.bes_tip_content,.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_content:hover{display:block}.browser_extension_settings_v2_main .option_groups .bes_tip p,.browser_extension_settings_v2_main .option_groups .bes_tip pre{margin:revert;padding:revert}.browser_extension_settings_v2_main .option_groups .bes_tip pre{font-family:Consolas,panic sans,bitstream vera sans mono,Menlo,microsoft yahei,monospace;font-size:13px;letter-spacing:.015em;line-height:120%;white-space:pre;overflow:auto;background-color:#f5f5f5;word-break:normal;overflow-wrap:normal;padding:.5em;border:none}.browser_extension_settings_v2_main .bes_switch_container{--button-width: 51px;--button-height: 24px;--toggle-diameter: 20px;--color-off: #e9e9eb;--color-on: #34c759;width:var(--button-width);height:var(--button-height);position:relative;padding:0;margin:0;flex:none;user-select:none}.browser_extension_settings_v2_main input[type=checkbox]{opacity:0;width:0;height:0;position:absolute}.browser_extension_settings_v2_main .bes_switch{width:100%;height:100%;display:block;background-color:var(--color-off);border-radius:calc(var(--button-height)/2);border:none;cursor:pointer;transition:all .2s ease-out}.browser_extension_settings_v2_main .bes_switch::before{display:none}.browser_extension_settings_v2_main .bes_slider{width:var(--toggle-diameter);height:var(--toggle-diameter);position:absolute;left:2px;top:calc(50% - var(--toggle-diameter)/2);border-radius:50%;background:#fff;box-shadow:0px 3px 8px rgba(0,0,0,.15),0px 3px 1px rgba(0,0,0,.06);transition:all .2s ease-out;cursor:pointer}.browser_extension_settings_v2_main input[type=checkbox]:checked+.bes_switch{background-color:var(--color-on)}.browser_extension_settings_v2_main input[type=checkbox]:checked+.bes_switch .bes_slider{left:calc(var(--button-width) - var(--toggle-diameter) - 2px)}@media(max-width: 500px){:host{right:10px}.browser_extension_settings_v2_main{max-height:85%}}'
   function createSwitch(options = {}) {
     const container = createElement("label", { class: "bes_switch_container" })
     const checkbox = createElement(
@@ -512,7 +513,7 @@
     div.append(createSwitch(options))
     return div
   }
-  var besVersion = 71
+  var besVersion = 81
   var messages = {
     "settings.title": "Settings",
     "settings.otherExtensions": "Other Extensions",
@@ -850,15 +851,8 @@
   }
   var locales = Object.keys(localeMap)
   initAvailableLocales(locales)
-  console.log("[settings] prefferedLocale:", getPrefferedLocale())
   var i = initI18n(localeMap, getPrefferedLocale())
   function resetI18n(locale) {
-    console.log(
-      "[settings] prefferedLocale:",
-      getPrefferedLocale(),
-      "locale:",
-      locale
-    )
     i = initI18n(localeMap, locale || getPrefferedLocale())
   }
   var prefix = "browser_extension_settings_v2_"
@@ -897,27 +891,31 @@
   var closeModal = () => {
     const settingsContainer = getSettingsContainer()
     if (settingsContainer) {
-      settingsContainer.style.display = "none"
       settingsContainer.remove()
     }
-    removeEventListener(document, "click", onDocumentClick, true)
-    removeEventListener(document, "keydown", onDocumentKeyDown, true)
-    removeEventListener(
-      globalThis,
-      "beforeShowSettings",
-      onBeforeShowSettings,
-      true
-    )
+    removeEventListener(doc, "click", onDocumentClick, true)
+    removeEventListener(doc, "keydown", onDocumentKeyDown, true)
+    removeEventListener(win, "beforeShowSettings", onBeforeShowSettings, true)
   }
   function hideSettings() {
+    var _a
+    if (win.self !== win.top) {
+      ;(_a = win.top) == null
+        ? void 0
+        : _a.postMessage(
+            {
+              type: "bes-hide-settings",
+              id: settingsOptions == null ? void 0 : settingsOptions.id,
+            },
+            "*"
+          )
+      return
+    }
     closeModal()
   }
   function isSettingsShown() {
     const settingsContainer = $(".".concat(prefix, "container"))
-    if (settingsContainer) {
-      return settingsContainer.style.display === "block"
-    }
-    return false
+    return Boolean(settingsContainer)
   }
   var onDocumentClick = (event) => {
     var _a
@@ -1015,10 +1013,9 @@
       return container
     }
     if (create) {
-      return addElement2(doc.body, "div", {
+      return addElement2(doc.documentElement, "div", {
         class: "".concat(prefix, "container"),
         "data-bes-version": besVersion,
-        style: "display: none;",
       })
     }
   }
@@ -1060,6 +1057,16 @@
       }
       settingsMain = addElement2(wrapper, "div", {
         class: "".concat(prefix, "main thin_scrollbar"),
+      })
+      const header = addElement2(settingsMain, "header", {
+        style: "display: flex; justify-content: flex-end;",
+      })
+      addElement2(header, "div", {
+        class: "close-button",
+        innerHTML: createHTML(
+          '<svg viewBox="0 0 24 24" width="100%" height="100%" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'
+        ),
+        onclick: hideSettings,
       })
       if (settingsOptions.title) {
         addElement2(settingsMain, "h2", { textContent: settingsOptions.title })
@@ -1234,21 +1241,27 @@
     closeModal()
   }
   async function showSettings() {
+    var _a
+    if (win.self !== win.top) {
+      ;(_a = win.top) == null
+        ? void 0
+        : _a.postMessage(
+            {
+              type: "bes-show-settings",
+              id: settingsOptions == null ? void 0 : settingsOptions.id,
+            },
+            "*"
+          )
+      return
+    }
     closeModal()
     const event = new CustomEvent("beforeShowSettings")
-    globalThis.dispatchEvent(event)
-    addEventListener(
-      globalThis,
-      "beforeShowSettings",
-      onBeforeShowSettings,
-      true
-    )
-    const settingsContainer = getSettingsContainer(true)
-    const settingsMain = createSettingsElement()
+    win.dispatchEvent(event)
+    addEventListener(win, "beforeShowSettings", onBeforeShowSettings, true)
+    createSettingsElement()
     await updateOptions()
-    settingsContainer.style.display = "block"
-    addEventListener(document, "click", onDocumentClick, true)
-    addEventListener(document, "keydown", onDocumentKeyDown, true)
+    addEventListener(doc, "click", onDocumentClick, true)
+    addEventListener(doc, "keydown", onDocumentKeyDown, true)
   }
   var lastLocale
   var resetSettingsUI = (optionsProvider) => {
@@ -1277,7 +1290,6 @@
       settings = await getSettings()
       await updateOptions()
       const newLocale = getSettingsValue("locale") || getPrefferedLocale()
-      console.log("lastLocale:", lastLocale, "newLocale:", newLocale)
       if (lastLocale !== newLocale) {
         const isShown = isSettingsShown()
         closeModal()
@@ -1301,6 +1313,20 @@
     }, 50)
     void registerMenuCommand(i("settings.menu.settings"), showSettings, {
       accessKey: "o",
+    })
+    addEventListener(win, "message", (event) => {
+      if (
+        !event.data ||
+        event.data.id !==
+          (settingsOptions == null ? void 0 : settingsOptions.id)
+      ) {
+        return
+      }
+      if (event.data.type === "bes-show-settings") {
+        void showSettings()
+      } else if (event.data.type === "bes-hide-settings") {
+        hideSettings()
+      }
     })
     handleShowSettingsUrl()
   }
@@ -1363,7 +1389,6 @@
     /** @type {const} */
     ["en", "zh"]
   initAvailableLocales(availableLocales2)
-  console.log("[links-helper] prefferedLocale:", getPrefferedLocale())
   var localeMap2 = {
     zh: zh_cn_default2,
     "zh-cn": zh_cn_default2,
@@ -1424,7 +1449,7 @@
   function restoreLinks() {
     for (const element of $$("a[data-lh-erased-href]")) {
       const href = getAttribute(element, "data-lh-erased-href")
-      setAttribute(element, "href", href)
+      if (href) setAttribute(element, "href", href)
       delete element.dataset.lhErasedHref
     }
   }
@@ -1502,7 +1527,10 @@
       addEventListener(element, "error", (event) => {
         const img = event.target
         const anchor = img.parentElement
-        img.outerHTML = createHTML(getAttribute(img, "src"))
+        const imgSrc = getAttribute(img, "src")
+        if (imgSrc) {
+          img.outerHTML = createHTML(imgSrc)
+        }
         if ((anchor == null ? void 0 : anchor.tagName) === "A") {
           setStyle(anchor, "opacity: 50%;")
           setAttribute(anchor, "data-message", "failed to load image")
@@ -1583,48 +1611,48 @@
   )
   var replaceMarkdownImgLinks = (text) => {
     if (text.search(linkPattern1) >= 0) {
-      text = text.replaceAll(linkPattern1, (m, p1, p2) => {
-        return createImgTagString(convertImgUrl(p2) || p2, p1)
-      })
+      text = text.replaceAll(linkPattern1, (m, p1, p2) =>
+        createImgTagString(convertImgUrl(p2) || p2, p1)
+      )
     }
     return text
   }
   var replaceMarkdownLinks = (text) => {
     if (text.search(linkPattern2) >= 0) {
-      text = text.replaceAll(linkPattern2, (m, p1, p2) => {
-        return '<a href="'
+      text = text.replaceAll(linkPattern2, (m, p1, p2) =>
+        '<a href="'
           .concat(p2, '">')
           .concat(p1.replaceAll(/<br>$/gi, ""), "</a>")
-      })
+      )
     }
     return text
   }
   var replaceTextLinks = (text) => {
     if (text.search(linkPattern3) >= 0) {
-      text = text.replaceAll(linkPattern3, (m, p1) => {
-        return '<a href="'.concat(p1, '">').concat(p1, "</a>")
-      })
+      text = text.replaceAll(linkPattern3, (m, p1) =>
+        '<a href="'.concat(p1, '">').concat(p1, "</a>")
+      )
     }
     return text
   }
   var replaceBBCodeImgLinks = (text) => {
     if (text.search(linkPattern4) >= 0) {
-      text = text.replaceAll(linkPattern4, (m, p1) => {
-        return createImgTagString(convertImgUrl(p1) || p1, p1)
-      })
+      text = text.replaceAll(linkPattern4, (m, p1) =>
+        createImgTagString(convertImgUrl(p1) || p1, p1)
+      )
     }
     return text
   }
   var replaceBBCodeLinks = (text) => {
     if (text.search(linkPattern5) >= 0) {
-      text = text.replaceAll(linkPattern5, (m, p1) => {
-        return '<a href="'.concat(p1, '">').concat(p1, "</a>")
-      })
+      text = text.replaceAll(linkPattern5, (m, p1) =>
+        '<a href="'.concat(p1, '">').concat(p1, "</a>")
+      )
     }
     if (text.search(linkPattern6) >= 0) {
-      text = text.replaceAll(linkPattern6, (m, p1, p2) => {
-        return '<a href="'.concat(p1, '">').concat(p2, "</a>")
-      })
+      text = text.replaceAll(linkPattern6, (m, p1, p2) =>
+        '<a href="'.concat(p1, '">').concat(p2, "</a>")
+      )
     }
     return text
   }
@@ -1786,15 +1814,12 @@
       }
     }
   }
-  var isCodeViewer = (element) => {
-    return (
-      hasClass(element, "diff-view") ||
-      hasClass(element, "diff") ||
-      hasClass(element, "react-code-lines") ||
-      hasClass(element, "virtual-blame-wrapper") ||
-      $('[role="code"]', element)
-    )
-  }
+  var isCodeViewer = (element) =>
+    hasClass(element, "diff-view") ||
+    hasClass(element, "diff") ||
+    hasClass(element, "react-code-lines") ||
+    hasClass(element, "virtual-blame-wrapper") ||
+    $('[role="code"]', element)
   var scanAndConvertChildNodes = (parentNode) => {
     if (
       !parentNode ||
@@ -1892,11 +1917,12 @@
             (message == null ? void 0 : message.type) ===
             "links-helper:show-settings"
           ) {
-            showSettings2()
+            void showSettings2()
           }
         })
   }
   var config = {
+    all_frames: true,
     run_at: "document_start",
   }
   var getSettingsTable = () => {
@@ -2044,7 +2070,7 @@
   }
   function openInBackgroundTab(url) {
     if (false) {
-      chrome.runtime.sendMessage({
+      void chrome.runtime.sendMessage({
         type: "open_background_tab",
         url,
       })
