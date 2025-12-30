@@ -6,6 +6,7 @@ import {
   showSettings,
   type SettingsTable,
 } from "browser-extension-settings"
+import { setPolling } from "browser-extension-storage"
 import {
   $,
   $$,
@@ -260,6 +261,8 @@ function onSettingsChange() {
 }
 
 async function main() {
+  setPolling(true)
+
   await initSettings(() => {
     const settingsTable = getSettingsTable()
     return {

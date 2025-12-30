@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.8.9
+// @version              0.9.0
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -21,10 +21,11 @@
 // @exclude              *://ep2.adtrafficquality.google/*
 // @exclude              *://www.google.com/recaptcha/*
 // @run-at               document-start
+// @grant                GM.info
+// @grant                GM.addValueChangeListener
 // @grant                GM.getValue
+// @grant                GM.deleteValue
 // @grant                GM.setValue
-// @grant                GM_addValueChangeListener
-// @grant                GM_removeValueChangeListener
 // @grant                GM_addElement
 // @grant                GM.registerMenuCommand
 // @grant                GM_openInTab
@@ -149,88 +150,229 @@
   function getPrefferedLocale() {
     return extractLocaleFromNavigator() || "en"
   }
-  var listeners = {}
-  var getValue = async (key) => {
-    const value = await GM.getValue(key)
-    return value && value !== "undefined" ? JSON.parse(value) : void 0
-  }
-  var setValue = async (key, value) => {
-    if (value !== void 0) {
-      const newValue = JSON.stringify(value)
-      if (listeners[key]) {
-        const oldValue = await GM.getValue(key)
-        await GM.setValue(key, newValue)
-        if (newValue !== oldValue) {
-          for (const func of listeners[key]) {
-            func(key, oldValue, newValue)
-          }
-        }
-      } else {
-        await GM.setValue(key, newValue)
-      }
+  function deepEqual(a, b) {
+    if (a === b) {
+      return true
     }
-  }
-  var _addValueChangeListener = (key, func) => {
-    listeners[key] = listeners[key] || []
-    listeners[key].push(func)
-    return () => {
-      if (listeners[key] && listeners[key].length > 0) {
-        for (let i3 = listeners[key].length - 1; i3 >= 0; i3--) {
-          if (listeners[key][i3] === func) {
-            listeners[key].splice(i3, 1)
-          }
+    if (
+      typeof a !== "object" ||
+      a === null ||
+      typeof b !== "object" ||
+      b === null
+    ) {
+      return false
+    }
+    if (Array.isArray(a) !== Array.isArray(b)) {
+      return false
+    }
+    if (Array.isArray(a)) {
+      if (a.length !== b.length) {
+        return false
+      }
+      for (let i3 = 0; i3 < a.length; i3++) {
+        if (!deepEqual(a[i3], b[i3])) {
+          return false
         }
       }
+      return true
+    }
+    const keysA = Object.keys(a)
+    const keysB = Object.keys(b)
+    if (keysA.length !== keysB.length) {
+      return false
+    }
+    for (const key of keysA) {
+      if (
+        !Object.prototype.hasOwnProperty.call(b, key) ||
+        !deepEqual(a[key], b[key])
+      ) {
+        return false
+      }
+    }
+    return true
+  }
+  var valueChangeListeners = /* @__PURE__ */ new Map()
+  var valueChangeListenerIdCounter = 0
+  var valueChangeBroadcastChannel = new BroadcastChannel(
+    "gm_value_change_channel"
+  )
+  var lastKnownValues = /* @__PURE__ */ new Map()
+  var pollingIntervalId = null
+  var pollingEnabled = false
+  function setPolling(enabled) {
+    pollingEnabled = enabled
+    if (!enabled) {
+      if (pollingIntervalId) {
+        clearInterval(pollingIntervalId)
+        pollingIntervalId = null
+      }
+    } else if (valueChangeListeners.size > 0) {
+      startPolling()
     }
   }
-  var addValueChangeListener = (key, func) => {
-    if (typeof GM_addValueChangeListener !== "function") {
-      console.warn("Do not support GM_addValueChangeListener!")
-      return _addValueChangeListener(key, func)
+  function startPolling() {
+    if (pollingIntervalId || isNativeListenerSupported() || !pollingEnabled)
+      return
+    pollingIntervalId = setInterval(async () => {
+      const keys = new Set(
+        Array.from(valueChangeListeners.values()).map((l) => l.key)
+      )
+      for (const key of keys) {
+        const newValue = await getValue(key)
+        if (!lastKnownValues.has(key)) {
+          lastKnownValues.set(key, newValue)
+          continue
+        }
+        const oldValue = lastKnownValues.get(key)
+        if (!deepEqual(oldValue, newValue)) {
+          lastKnownValues.set(key, newValue)
+          triggerValueChangeListeners(key, oldValue, newValue, true)
+          valueChangeBroadcastChannel.postMessage({ key, oldValue, newValue })
+        }
+      }
+    }, 1500)
+  }
+  var getScriptHandler = () => {
+    if (typeof GM !== "undefined" && GM.info) {
+      return GM.info.scriptHandler || ""
     }
-    const listenerId = GM_addValueChangeListener(key, func)
-    return () => {
-      GM_removeValueChangeListener(listenerId)
+    return ""
+  }
+  var scriptHandler = getScriptHandler().toLowerCase()
+  var isIgnoredHandler =
+    scriptHandler === "tamp" || scriptHandler.includes("stay")
+  var shouldCloneValue = () =>
+    scriptHandler === "tamp" || // ScriptCat support addValueChangeListener, don't need to clone
+    scriptHandler.includes("stay")
+  var isNativeListenerSupported = () =>
+    !isIgnoredHandler &&
+    typeof GM !== "undefined" &&
+    typeof GM.addValueChangeListener === "function"
+  function triggerValueChangeListeners(key, oldValue, newValue, remote) {
+    const list = Array.from(valueChangeListeners.values()).filter(
+      (l) => l.key === key
+    )
+    for (const l of list) {
+      l.callback(key, oldValue, newValue, remote)
     }
+  }
+  valueChangeBroadcastChannel.addEventListener("message", (event) => {
+    const { key, oldValue, newValue } = event.data
+    if (shouldCloneValue()) {
+      void setValue(key, newValue)
+    } else {
+      lastKnownValues.set(key, newValue)
+      triggerValueChangeListeners(key, oldValue, newValue, true)
+    }
+  })
+  async function getValue(key, defaultValue) {
+    if (typeof GM !== "undefined" && typeof GM.getValue === "function") {
+      try {
+        const value = await GM.getValue(key, defaultValue)
+        if (value && typeof value === "object" && shouldCloneValue()) {
+          return JSON.parse(JSON.stringify(value))
+        }
+        return value
+      } catch (error) {
+        console.warn("GM.getValue failed", error)
+      }
+    }
+    return defaultValue
+  }
+  async function updateValue(key, newValue, updater) {
+    let oldValue
+    if (!isNativeListenerSupported()) {
+      oldValue = await getValue(key)
+    }
+    await updater()
+    if (!isNativeListenerSupported()) {
+      if (deepEqual(oldValue, newValue)) {
+        return
+      }
+      lastKnownValues.set(key, newValue)
+      triggerValueChangeListeners(key, oldValue, newValue, false)
+      valueChangeBroadcastChannel.postMessage({ key, oldValue, newValue })
+    }
+  }
+  async function setValue(key, value) {
+    await updateValue(key, value, async () => {
+      if (typeof GM !== "undefined") {
+        if (value === void 0 || value === null) {
+          if (typeof GM.deleteValue === "function") {
+            await GM.deleteValue(key)
+          }
+        } else if (typeof GM.setValue === "function") {
+          await GM.setValue(key, value)
+        }
+      }
+    })
+  }
+  async function addValueChangeListener(key, callback) {
+    if (
+      isNativeListenerSupported() &&
+      typeof GM !== "undefined" &&
+      typeof GM.addValueChangeListener === "function"
+    ) {
+      return GM.addValueChangeListener(key, callback)
+    }
+    const id = ++valueChangeListenerIdCounter
+    valueChangeListeners.set(id, { key, callback })
+    if (!lastKnownValues.has(key)) {
+      void getValue(key).then((v) => {
+        lastKnownValues.set(key, v)
+      })
+    }
+    startPolling()
+    return id
+  }
+  function safeJsonParse(jsonString, defaultValue) {
+    if (jsonString === void 0 || jsonString === null) {
+      return defaultValue
+    }
+    try {
+      return JSON.parse(jsonString)
+    } catch (e) {
+      return defaultValue
+    }
+  }
+  function safeJsonParseWithFallback(jsonString) {
+    if (jsonString === void 0) {
+      return void 0
+    }
+    if (jsonString === null) {
+      return null
+    }
+    try {
+      return JSON.parse(jsonString)
+    } catch (e) {
+      return jsonString
+    }
+  }
+  async function getValue2(key, defaultValue) {
+    const val = await getValue(key)
+    return safeJsonParse(val, defaultValue)
+  }
+  async function setValue2(key, value) {
+    await setValue(
+      key,
+      value === void 0 || value === null ? void 0 : JSON.stringify(value)
+    )
+  }
+  async function addValueChangeListener2(key, func) {
+    return addValueChangeListener(key, (k, oldVal, newVal, remote) => {
+      const parsedOld = safeJsonParseWithFallback(oldVal)
+      const parsedNew = safeJsonParseWithFallback(newVal)
+      func(k, parsedOld, parsedNew, remote)
+    })
   }
   var doc = document
   var win = globalThis
   if (typeof String.prototype.replaceAll !== "function") {
     String.prototype.replaceAll = String.prototype.replace
   }
-  var $ = (selectors, element) =>
-    (element || doc).querySelector(selectors) || void 0
-  var $$ = (selectors, element) => [
-    ...(element || doc).querySelectorAll(selectors),
-  ]
-  var getRootElement = (type) =>
-    type === 1
-      ? doc.head || doc.body || doc.documentElement
-      : type === 2
-        ? doc.body || doc.documentElement
-        : doc.documentElement
-  var createElement = (tagName, attributes) =>
-    setAttributes(doc.createElement(tagName), attributes)
-  var addElement = (parentNode, tagName, attributes) => {
-    if (typeof parentNode === "string") {
-      return addElement(null, parentNode, tagName)
-    }
-    if (!tagName) {
-      return
-    }
-    if (!parentNode) {
-      parentNode = /^(script|link|style|meta)$/.test(tagName)
-        ? getRootElement(1)
-        : getRootElement(2)
-    }
-    if (typeof tagName === "string") {
-      const element = createElement(tagName, attributes)
-      parentNode.append(element)
-      return element
-    }
-    setAttributes(tagName, attributes)
-    parentNode.append(tagName)
-    return tagName
+  if (typeof Object.hasOwn !== "function") {
+    Object.hasOwn = (instance, prop) =>
+      Object.prototype.hasOwnProperty.call(instance, prop)
   }
   var addEventListener = (element, type, listener, options) => {
     if (!element) {
@@ -261,35 +403,18 @@
     }
   }
   var getAttribute = (element, name) =>
-    element && element.getAttribute ? element.getAttribute(name) : void 0
-  var setAttribute = (element, name, value) =>
-    element && element.setAttribute ? element.setAttribute(name, value) : void 0
-  var removeAttribute = (element, name) =>
-    element && element.removeAttribute ? element.removeAttribute(name) : void 0
-  var setAttributes = (element, attributes) => {
-    if (element && attributes) {
-      for (const name in attributes) {
-        if (Object.hasOwn(attributes, name)) {
-          const value = attributes[name]
-          if (value === void 0) {
-            continue
-          }
-          if (/^(value|textContent|innerText)$/.test(name)) {
-            element[name] = value
-          } else if (/^(innerHTML)$/.test(name)) {
-            element[name] = createHTML(value)
-          } else if (name === "style") {
-            setStyle(element, value, true)
-          } else if (/on\w+/.test(name)) {
-            const type = name.slice(2)
-            addEventListener(element, type, value)
-          } else {
-            setAttribute(element, name, value)
-          }
-        }
-      }
+    element && element.getAttribute
+      ? element.getAttribute(name) || void 0
+      : void 0
+  var setAttribute = (element, name, value) => {
+    if (element && element.setAttribute) {
+      element.setAttribute(name, value)
     }
-    return element
+  }
+  var removeAttribute = (element, name) => {
+    if (element && element.removeAttribute) {
+      element.removeAttribute(name)
+    }
   }
   var addAttribute = (element, name, value) => {
     const orgValue = getAttribute(element, name)
@@ -331,33 +456,77 @@
     }
     for (const key in values) {
       if (Object.hasOwn(values, key)) {
-        style[key] = values[key].replace("!important", "")
+        style[key] = String(values[key]).replace("!important", "")
       }
     }
   }
-  var throttle = (func, interval) => {
-    let timeoutId = null
-    let next = false
-    const handler = (...args) => {
-      if (timeoutId) {
-        next = true
-      } else {
-        func.apply(void 0, args)
-        timeoutId = setTimeout(() => {
-          timeoutId = null
-          if (next) {
-            next = false
-            handler()
+  var tt = globalThis.trustedTypes
+  var escapeHTMLPolicy =
+    tt !== void 0 && typeof tt.createPolicy === "function"
+      ? tt.createPolicy("beuEscapePolicy", {
+          createHTML: (string) => string,
+        })
+      : void 0
+  var createHTML = (html) =>
+    escapeHTMLPolicy ? escapeHTMLPolicy.createHTML(html) : html
+  var getRootElement = (type) =>
+    type === 1
+      ? doc.head || doc.body || doc.documentElement
+      : type === 2
+        ? doc.body || doc.documentElement
+        : doc.documentElement
+  var setAttributes = (element, attributes) => {
+    if (element && attributes) {
+      for (const name in attributes) {
+        if (Object.hasOwn(attributes, name)) {
+          const value = attributes[name]
+          if (value === void 0) {
+            continue
           }
-        }, interval)
+          if (/^(value|textContent|innerText)$/.test(name)) {
+            element[name] = value
+          } else if (/^(innerHTML)$/.test(name)) {
+            element.innerHTML = createHTML(value)
+          } else if (name === "style") {
+            setStyle(element, value, true)
+          } else if (/on\w+/.test(name)) {
+            const type = name.slice(2)
+            addEventListener(element, type, value)
+          } else {
+            setAttribute(element, name, String(value))
+          }
+        }
       }
     }
-    return handler
+    return element
   }
-  if (typeof Object.hasOwn !== "function") {
-    Object.hasOwn = (instance, prop) =>
-      Object.prototype.hasOwnProperty.call(instance, prop)
+  var createElement = (tagName, attributes) =>
+    setAttributes(doc.createElement(tagName), attributes)
+  var addElement = (parentNode, tagName, attributes) => {
+    if (typeof parentNode === "string") {
+      return addElement(null, parentNode, tagName)
+    }
+    if (!tagName) {
+      return void 0
+    }
+    if (!parentNode) {
+      parentNode = /^(script|link|style|meta)$/.test(tagName)
+        ? getRootElement(1)
+        : getRootElement(2)
+    }
+    if (typeof tagName === "string") {
+      const element = createElement(tagName, attributes)
+      parentNode.append(element)
+      return element
+    }
+    setAttributes(tagName, attributes)
+    parentNode.append(tagName)
+    return tagName
   }
+  var $ = (selector, context = doc) => context.querySelector(selector)
+  var $$ = (selector, context = doc) =>
+    // @ts-ignore
+    [...context.querySelectorAll(selector)]
   var parseInt10 = (number, defaultValue) => {
     if (typeof number === "number" && !Number.isNaN(number)) {
       return number
@@ -368,7 +537,7 @@
     if (!number) {
       return defaultValue
     }
-    const result = Number.parseInt(number, 10)
+    const result = Number.parseInt(String(number), 10)
     return Number.isNaN(result) ? defaultValue : result
   }
   var rootFuncArray = []
@@ -423,15 +592,24 @@
     }
     func()
   }
-  var escapeHTMLPolicy =
-    typeof trustedTypes !== "undefined" &&
-    typeof trustedTypes.createPolicy === "function"
-      ? trustedTypes.createPolicy("beuEscapePolicy", {
-          createHTML: (string) => string,
-        })
-      : void 0
-  var createHTML = (html) => {
-    return escapeHTMLPolicy ? escapeHTMLPolicy.createHTML(html) : html
+  var throttle = (func, interval) => {
+    let timeoutId = null
+    let next = false
+    const handler = (...args) => {
+      if (timeoutId) {
+        next = true
+      } else {
+        func.apply(void 0, args)
+        timeoutId = setTimeout(() => {
+          timeoutId = null
+          if (next) {
+            next = false
+            handler()
+          }
+        }, interval)
+      }
+    }
+    return handler
   }
   var addElement2 =
     typeof GM_addElement === "function"
@@ -440,7 +618,7 @@
             return addElement2(null, parentNode, tagName)
           }
           if (!tagName) {
-            return
+            return void 0
           }
           if (!parentNode) {
             parentNode = /^(script|link|style|meta)$/.test(tagName)
@@ -448,24 +626,30 @@
               : getRootElement(2)
           }
           if (typeof tagName === "string") {
+            let attributes1
             let attributes2
             if (attributes) {
               const entries1 = []
               const entries2 = []
               for (const entry of Object.entries(attributes)) {
-                if (/^(on\w+|innerHTML)$/.test(entry[0])) {
+                if (/^(on\w+|innerHTML|class|data-.+)$/.test(entry[0])) {
                   entries2.push(entry)
                 } else {
                   entries1.push(entry)
                 }
               }
-              attributes = Object.fromEntries(entries1)
+              attributes1 = Object.fromEntries(entries1)
               attributes2 = Object.fromEntries(entries2)
             }
-            const element = GM_addElement(null, tagName, attributes)
-            setAttributes(element, attributes2)
-            parentNode.append(element)
-            return element
+            try {
+              const element = GM_addElement(tagName, attributes1 || {})
+              setAttributes(element, attributes2)
+              parentNode.append(element)
+              return element
+            } catch (error) {
+              console.error("GM_addElement error:", error)
+              return addElement(parentNode, tagName, attributes)
+            }
           }
           setAttributes(tagName, attributes)
           parentNode.append(tagName)
@@ -474,15 +658,28 @@
       : addElement
   var addStyle = (styleText) =>
     addElement2(null, "style", { textContent: styleText })
-  var registerMenuCommand = (name, callback, options) => {
-    if (globalThis !== top) {
-      return
+  var registerMenuCommand = async (name, callback, options) => {
+    if (globalThis.self !== globalThis.top) {
+      return 0
     }
     if (typeof GM.registerMenuCommand !== "function") {
       console.warn("Do not support GM.registerMenuCommand!")
-      return
+      return 0
     }
-    return GM.registerMenuCommand(name, callback, options)
+    try {
+      return await GM.registerMenuCommand(name, callback, options)
+    } catch (error) {
+      if (typeof options === "object") {
+        try {
+          return await GM.registerMenuCommand(name, callback, options.accessKey)
+        } catch (error_) {
+          console.error("GM.registerMenuCommand error:", error_)
+        }
+      } else {
+        console.error("GM.registerMenuCommand error:", error)
+      }
+      return 0
+    }
   }
   var style_default =
     ':host{all:initial;--browser-extension-settings-background-color: #f2f2f7;--browser-extension-settings-text-color: #444444;--browser-extension-settings-link-color: #217dfc;--browser-extension-settings-border-radius: 8px;--sb-track-color: #00000000;--sb-thumb-color: #33334480;--sb-size: 2px;--font-family: "helvetica neue", "microsoft yahei", arial, sans-serif}:host .browser_extension_settings_v2_wrapper{position:fixed;top:10px;right:30px;display:none;z-index:2147483647;border-radius:var(--browser-extension-settings-border-radius);-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important;display:flex;background-color:var(--browser-extension-settings-background-color);font-family:var(--font-family);border-radius:var(--browser-extension-settings-border-radius)}:host .browser_extension_settings_v2_wrapper h1,:host .browser_extension_settings_v2_wrapper h2{border:none;color:var(--browser-extension-settings-text-color);padding:0;font-family:var(--font-family);line-height:normal;letter-spacing:normal}:host .browser_extension_settings_v2_wrapper h1{font-size:26px;font-weight:800;margin:18px 0}:host .browser_extension_settings_v2_wrapper h2{font-size:18px;font-weight:600;margin:14px 0}:host .browser_extension_settings_v2_wrapper footer{display:flex;justify-content:center;flex-direction:column;font-size:11px;margin:10px auto 0px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);font-family:var(--font-family)}:host .browser_extension_settings_v2_wrapper footer a{color:var(--browser-extension-settings-link-color) !important;font-family:var(--font-family);text-decoration:none;padding:0}:host .browser_extension_settings_v2_wrapper footer p{text-align:center;padding:0;margin:2px;line-height:13px;font-size:11px;color:var(--browser-extension-settings-text-color);font-family:var(--font-family)}:host .thin_scrollbar{scrollbar-color:var(--sb-thumb-color) var(--sb-track-color);scrollbar-width:thin}:host .thin_scrollbar::-webkit-scrollbar{width:var(--sb-size)}:host .thin_scrollbar::-webkit-scrollbar-track{background:var(--sb-track-color);border-radius:10px}:host .thin_scrollbar::-webkit-scrollbar-thumb{background:var(--sb-thumb-color);border-radius:10px}.browser_extension_settings_v2_main{min-width:300px;max-height:90vh;overflow-y:auto;overflow-x:hidden;border-radius:var(--browser-extension-settings-border-radius);box-sizing:border-box;padding:10px 15px;background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);font-family:var(--font-family)}.browser_extension_settings_v2_main h2{text-align:center;margin:5px 0 0}.browser_extension_settings_v2_main .close-button{cursor:pointer;width:18px;height:18px;opacity:.5;transition:opacity .2s}.browser_extension_settings_v2_main .close-button:hover{opacity:1}.browser_extension_settings_v2_main .option_groups{background-color:#fff;padding:6px 15px 6px 15px;border-radius:10px;display:flex;flex-direction:column;margin:10px 0 0}.browser_extension_settings_v2_main .option_groups .action{font-size:14px;padding:6px 0 6px 0;color:var(--browser-extension-settings-link-color);cursor:pointer}.browser_extension_settings_v2_main .bes_external_link{font-size:14px;padding:6px 0 6px 0}.browser_extension_settings_v2_main .bes_external_link a,.browser_extension_settings_v2_main .bes_external_link a:visited,.browser_extension_settings_v2_main .bes_external_link a:hover{color:var(--browser-extension-settings-link-color);font-family:var(--font-family);text-decoration:none;cursor:pointer}.browser_extension_settings_v2_main .option_groups textarea{background-color:var(--browser-extension-settings-background-color);color:var(--browser-extension-settings-text-color);font-size:12px;margin:10px 0 10px 0;padding:4px 8px;height:100px;width:100%;border:1px solid #a9a9a9;border-radius:4px;box-sizing:border-box}.browser_extension_settings_v2_main .switch_option,.browser_extension_settings_v2_main .select_option{display:flex;justify-content:space-between;align-items:center;padding:6px 0 6px 0;font-size:14px}.browser_extension_settings_v2_main .option_groups>*{border-top:1px solid #ccc}.browser_extension_settings_v2_main .option_groups>*:first-child{border-top:none}.browser_extension_settings_v2_main .bes_option>.bes_icon{width:24px;height:24px;margin-right:10px}.browser_extension_settings_v2_main .bes_option>.bes_title{margin-right:10px;flex-grow:1}.browser_extension_settings_v2_main .bes_option>.bes_select{color:var(--browser-extension-settings-text-color);box-sizing:border-box;background-color:#fff;height:24px;padding:0 2px 0 2px;margin:0;border-radius:6px;border:1px solid #ccc}.browser_extension_settings_v2_main .option_groups .bes_tip{position:relative;margin:0;padding:0 15px 0 0;border:none;max-width:none;font-size:14px}.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_anchor{cursor:help;text-decoration:underline}.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_content{position:absolute;bottom:15px;left:0;background-color:#fff;color:var(--browser-extension-settings-text-color);text-align:left;overflow-y:auto;max-height:300px;padding:10px;display:none;border-radius:5px;-webkit-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);-moz-box-shadow:0px 10px 39px 10px rgba(62,66,66,.22);box-shadow:0px 10px 39px 10px rgba(62,66,66,.22) !important}.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_anchor:hover+.bes_tip_content,.browser_extension_settings_v2_main .option_groups .bes_tip .bes_tip_content:hover{display:block}.browser_extension_settings_v2_main .option_groups .bes_tip p,.browser_extension_settings_v2_main .option_groups .bes_tip pre{margin:revert;padding:revert}.browser_extension_settings_v2_main .option_groups .bes_tip pre{font-family:Consolas,panic sans,bitstream vera sans mono,Menlo,microsoft yahei,monospace;font-size:13px;letter-spacing:.015em;line-height:120%;white-space:pre;overflow:auto;background-color:#f5f5f5;word-break:normal;overflow-wrap:normal;padding:.5em;border:none}.browser_extension_settings_v2_main .bes_switch_container{--button-width: 51px;--button-height: 24px;--toggle-diameter: 20px;--color-off: #e9e9eb;--color-on: #34c759;width:var(--button-width);height:var(--button-height);position:relative;padding:0;margin:0;flex:none;user-select:none}.browser_extension_settings_v2_main input[type=checkbox]{opacity:0;width:0;height:0;position:absolute}.browser_extension_settings_v2_main .bes_switch{width:100%;height:100%;display:block;background-color:var(--color-off);border-radius:calc(var(--button-height)/2);border:none;cursor:pointer;transition:all .2s ease-out}.browser_extension_settings_v2_main .bes_switch::before{display:none}.browser_extension_settings_v2_main .bes_slider{width:var(--toggle-diameter);height:var(--toggle-diameter);position:absolute;left:2px;top:calc(50% - var(--toggle-diameter)/2);border-radius:50%;background:#fff;box-shadow:0px 3px 8px rgba(0,0,0,.15),0px 3px 1px rgba(0,0,0,.06);transition:all .2s ease-out;cursor:pointer}.browser_extension_settings_v2_main input[type=checkbox]:checked+.bes_switch{background-color:var(--color-on)}.browser_extension_settings_v2_main input[type=checkbox]:checked+.bes_switch .bes_slider{left:calc(var(--button-width) - var(--toggle-diameter) - 2px)}@media(max-width: 500px){:host{right:10px}.browser_extension_settings_v2_main{max-height:85%}}'
@@ -870,7 +1067,7 @@
   var settings = {}
   async function getSettings() {
     var _a
-    return (_a = await getValue(storageKey)) != null ? _a : {}
+    return (_a = await getValue2(storageKey)) != null ? _a : {}
   }
   async function saveSettingsValue(key, value) {
     const settings2 = await getSettings()
@@ -878,7 +1075,7 @@
       settingsTable[key] && settingsTable[key].defaultValue === value
         ? void 0
         : value
-    await setValue(storageKey, settings2)
+    await setValue2(storageKey, settings2)
   }
   function getSettingsValue(key) {
     var _a
@@ -1075,11 +1272,10 @@
       const getOptionGroup = (index) => {
         if (index > optionGroups.length) {
           for (let i3 = optionGroups.length; i3 < index; i3++) {
-            optionGroups.push(
-              addElement2(settingsMain, "div", {
-                class: "option_groups",
-              })
-            )
+            const optionGroup = addElement2(settingsMain, "div", {
+              class: "option_groups",
+            })
+            if (optionGroup) optionGroups.push(optionGroup)
           }
         }
         return optionGroups[index - 1]
@@ -1286,7 +1482,7 @@
     }
   }
   var initSettings = async (optionsProvider) => {
-    addValueChangeListener(storageKey, async () => {
+    await addValueChangeListener2(storageKey, async () => {
       settings = await getSettings()
       await updateOptions()
       const newLocale = getSettingsValue("locale") || getPrefferedLocale()
@@ -1396,12 +1592,6 @@
   }
   var i2 = initI18n(localeMap2, getPrefferedLocale())
   function resetI18n2(locale) {
-    console.log(
-      "[links-helper] prefferedLocale:",
-      getPrefferedLocale(),
-      "locale:",
-      locale
-    )
     i2 = initI18n(localeMap2, locale || getPrefferedLocale())
   }
   function getAvailableLocales() {
@@ -2096,6 +2286,7 @@
     )
   }
   async function main() {
+    setPolling(true)
     await initSettings(() => {
       const settingsTable2 = getSettingsTable()
       return {

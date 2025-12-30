@@ -120,6 +120,9 @@
 
 ## Release Notes
 
+- 0.9.x
+  - 优化 GM.* API fallback 逻辑
+  - 提升 Greasymonkey, quoid-userscripts, Stay 等脚本管理器的兼容性
 - 0.8.x
   - 修复与 utags-shortcuts 兼容性问题
   - 添加设置项：在当前网站启用将二级域名视为同一网站

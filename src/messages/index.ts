@@ -18,7 +18,7 @@ export const localeMap = {
 export let i = initI18n(localeMap, getPrefferedLocale())
 
 export function resetI18n(locale?: string) {
-  console.log("[links-helper] prefferedLocale:", getPrefferedLocale(), "locale:", locale)
+  // console.log("[links-helper] prefferedLocale:", getPrefferedLocale(), "locale:", locale)
   i = initI18n(localeMap, locale || getPrefferedLocale())
 }
 
