@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.9.1
+// @version              0.9.2
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -1068,8 +1068,11 @@
   var settingsTable = {}
   var settings = {}
   async function getSettings() {
-    var _a
-    return (_a = await getValue2(storageKey)) != null ? _a : {}
+    let settings2 = await getValue2(storageKey)
+    if (!settings2 || typeof settings2 !== "object") {
+      settings2 = {}
+    }
+    return settings2
   }
   async function saveSettingsValue(key, value) {
     const settings2 = await getSettings()
@@ -1552,6 +1555,8 @@
       "Enable converting text links to hyperlinks for the current site",
     "settings.enableTreatSubdomainsAsSameSiteForCurrentSite":
       "Treat subdomains as the same site for the current site",
+    "settings.enableOpenNewTabInBackground":
+      "Open new tab in background for *all sites*",
     "settings.enableOpenNewTabInBackgroundForCurrentSite":
       "Open new tab in background for the current site",
     "settings.eraseLinks": "Erase Links",
@@ -1578,6 +1583,8 @@
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5C06\u6587\u672C\u94FE\u63A5\u81EA\u52A8\u8F6C\u6362\u4E3A\u8D85\u94FE\u63A5",
     "settings.enableTreatSubdomainsAsSameSiteForCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5C06\u4E8C\u7EA7\u57DF\u540D\u89C6\u4E3A\u540C\u4E00\u7F51\u7AD9",
+    "settings.enableOpenNewTabInBackground":
+      "\u5728*\u6240\u6709\u7F51\u7AD9*\u542F\u7528\u5728\u540E\u53F0\u6253\u5F00\u65B0\u6807\u7B7E\u9875",
     "settings.enableOpenNewTabInBackgroundForCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5728\u540E\u53F0\u6253\u5F00\u65B0\u6807\u7B7E\u9875",
     "settings.eraseLinks":
@@ -1622,6 +1629,7 @@
       return
     }
     globalThis.open(url, "_blank")
+    globalThis.focus()
   }
   var handleLinkClick = (event, deps) => {
     let anchorElement = event.target
@@ -2275,10 +2283,15 @@
         tipContent: i2("settings.customRulesTipContent"),
         group: groupNumber,
       },
-      ["enableOpenNewTabInBackgroundForCurrentSite_".concat(host)]: {
-        title: i2("settings.enableOpenNewTabInBackgroundForCurrentSite"),
+      ["enableOpenNewTabInBackground"]: {
+        title: i2("settings.enableOpenNewTabInBackground"),
         defaultValue: false,
         group: ++groupNumber,
+      },
+      ["enableOpenNewTabInBackgroundForCurrentSite_".concat(host)]: {
+        title: i2("settings.enableOpenNewTabInBackgroundForCurrentSite"),
+        defaultValue: void 0,
+        group: groupNumber,
       },
       ["enableTreatSubdomainsAsSameSiteForCurrentSite_".concat(host)]: {
         title: i2("settings.enableTreatSubdomainsAsSameSiteForCurrentSite"),
@@ -2351,11 +2364,15 @@
         "enableTreatSubdomainsAsSameSiteForCurrentSite_".concat(host)
       )
     )
-    enableBackground = Boolean(
-      getSettingsValue(
+    {
+      const siteSetting = getSettingsValue(
         "enableOpenNewTabInBackgroundForCurrentSite_".concat(host)
       )
-    )
+      const globalSetting = getSettingsValue("enableOpenNewTabInBackground")
+      enableBackground = Boolean(
+        siteSetting != null ? siteSetting : globalSetting
+      )
+    }
     enableLinkToImg = Boolean(
       getSettingsValue("enableLinkToImgForCurrentSite_".concat(host))
     )
@@ -2389,6 +2406,25 @@
             )
               ? "block"
               : "none"
+          }
+          {
+            const siteSetting = getSettingsValue(
+              "enableOpenNewTabInBackgroundForCurrentSite_".concat(host)
+            )
+            const globalSetting = getSettingsValue(
+              "enableOpenNewTabInBackground"
+            )
+            if (globalSetting !== void 0 && siteSetting === void 0) {
+              const checkbox = settingsMainView.querySelector(
+                '[data-key="enableOpenNewTabInBackgroundForCurrentSite_'.concat(
+                  host,
+                  '"] input[type="checkbox"]'
+                )
+              )
+              if (checkbox) {
+                checkbox.checked = globalSetting
+              }
+            }
           }
         },
       }
