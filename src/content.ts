@@ -26,8 +26,10 @@ import styleText from "data-text:./content.scss"
 import type { PlasmoCSConfig } from "plasmo"
 
 import { getAvailableLocales, i, resetI18n } from "./messages"
+import { handleLinkClick } from "./modules/click-handler"
 import { eraseLinks, restoreLinks } from "./modules/erase-links"
 import { bindOnError, linkToImg } from "./modules/link-to-img"
+import { shouldOpenInNewTab as shouldOpenInNewTabFn } from "./modules/should-open-in-new-tab"
 import { scanAndConvertChildNodes } from "./modules/text-to-links"
 import { extractCanonicalId, getBaseDomain } from "./utils/index"
 
@@ -43,6 +45,8 @@ const host = location.host
 const hostname = location.hostname
 let currentUrl: string | undefined
 let currentCanonicalId: string | undefined
+let enableCustomRules = false
+let customRules = ""
 let enableTreatSubdomainsSameSite = false
 let enableBackground = false
 let enableLinkToImg = false
@@ -139,83 +143,20 @@ const getSettingsTable = (): SettingsTable => {
   }
 }
 
-const getOrigin = (url: string) => /(^https?:\/\/[^/]+)/.exec(url)?.[1]
-const getWithoutOrigin = (url: string) => url.replace(/(^https?:\/\/[^/]+)/, "")
-
 const currentBaseDomain = getBaseDomain(hostname)
-const isSameBaseDomainWithCurrent = (a: string) =>
-  getBaseDomain(a) === currentBaseDomain
 
-const shouldOpenInNewTab = (element: HTMLAnchorElement) => {
-  const url = element.href as string | undefined
-  if (
-    !url ||
-    !/^https?:\/\//.test(url) ||
-    element.getAttribute("href")?.startsWith("#") ||
-    url === currentUrl
-  ) {
-    return false
-  }
-
-  // Open external links in a new tab
-  if (element.origin !== origin) {
-    // If enabled, treat subdomains as the same site and continue
-    if (
-      enableTreatSubdomainsSameSite &&
-      isSameBaseDomainWithCurrent(element.hostname)
-    ) {
-      // Consider as internal; fall through to internal rules
-    } else {
-      return true
-    }
-  }
-
-  // Open matched internal links in a new tab
-  if (getSettingsValue(`enableCustomRulesForCurrentSite_${host}`)) {
-    if (currentCanonicalId) {
-      const canonicalId = extractCanonicalId(url)
-
-      if (canonicalId && canonicalId === currentCanonicalId) {
-        removeAttributeAsOpenInNewTab(element)
-        return false
-      }
-    }
-
-    const rules = (
-      (getSettingsValue(`customRulesForCurrentSite_${host}`) as string) || ""
-    ).split("\n")
-
-    const hrefWithoutOrigin = getWithoutOrigin(url)
-    for (let rule of rules) {
-      rule = rule.trim()
-      if (rule.length === 0) {
-        continue
-      }
-
-      const isExclude = rule.startsWith("!")
-      const pattern = isExclude ? rule.slice(1).trim() : rule
-      if (pattern.length === 0) {
-        continue
-      }
-
-      if (pattern === "*") {
-        return !isExclude
-      }
-
-      try {
-        const regexp = new RegExp(pattern)
-        if (regexp.test(hrefWithoutOrigin)) {
-          return !isExclude
-        }
-      } catch (error) {
-        console.log(error.message)
-        if (hrefWithoutOrigin.includes(pattern)) {
-          return !isExclude
-        }
-      }
-    }
-  }
-}
+const shouldOpenInNewTab = (element: HTMLAnchorElement) =>
+  shouldOpenInNewTabFn(element, {
+    currentUrl,
+    currentCanonicalId,
+    origin,
+    host,
+    currentBaseDomain,
+    enableTreatSubdomainsSameSite,
+    enableCustomRules,
+    customRules,
+    removeAttributeAsOpenInNewTab,
+  })
 
 const setAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
   if (!enableBackground && shouldOpenInNewTab(element)) {
@@ -229,34 +170,37 @@ const removeAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
   removeAttribute(element, "rel")
 }
 
-function openInBackgroundTab(url: string) {
-  if (
-    // eslint-disable-next-line n/prefer-global/process
-    process.env.PLASMO_TARGET === "chrome-mv3" ||
-    // eslint-disable-next-line n/prefer-global/process
-    process.env.PLASMO_TARGET === "firefox-mv3"
-  ) {
-    void chrome.runtime.sendMessage({
-      type: "open_background_tab",
-      url,
-    })
-  } else if (typeof GM_openInTab === "function") {
-    GM_openInTab(url, { active: false, insert: true })
-  }
-}
-
 function onSettingsChange() {
   const locale =
-    (getSettingsValue("locale") as string | undefined) || getPrefferedLocale()
+    getSettingsValue<string | undefined>("locale") || getPrefferedLocale()
   resetI18n(locale)
+
+  enableCustomRules = Boolean(
+    getSettingsValue<boolean | undefined>(
+      `enableCustomRulesForCurrentSite_${host}`
+    )
+  )
+
+  customRules =
+    getSettingsValue<string | undefined>(`customRulesForCurrentSite_${host}`) ||
+    ""
+
   enableTreatSubdomainsSameSite = Boolean(
-    getSettingsValue(`enableTreatSubdomainsAsSameSiteForCurrentSite_${host}`)
+    getSettingsValue<boolean | undefined>(
+      `enableTreatSubdomainsAsSameSiteForCurrentSite_${host}`
+    )
   )
+
   enableBackground = Boolean(
-    getSettingsValue(`enableOpenNewTabInBackgroundForCurrentSite_${host}`)
+    getSettingsValue<boolean | undefined>(
+      `enableOpenNewTabInBackgroundForCurrentSite_${host}`
+    )
   )
+
   enableLinkToImg = Boolean(
-    getSettingsValue(`enableLinkToImgForCurrentSite_${host}`)
+    getSettingsValue<boolean | undefined>(
+      `enableLinkToImgForCurrentSite_${host}`
+    )
   )
 }
 
@@ -313,45 +257,11 @@ async function main() {
     doc,
     "click",
     (event) => {
-      let anchorElement = event.target as HTMLElement | undefined
-
-      if (!anchorElement) {
-        return
-      }
-
-      if (anchorElement.closest(".utags_ul")) {
-        if (
-          hasClass(anchorElement, "utags_captain_tag") ||
-          hasClass(anchorElement, "utags_captain_tag2")
-        ) {
-          event.preventDefault()
-        }
-
-        return
-      }
-
-      while (anchorElement && anchorElement.tagName !== "A") {
-        anchorElement = anchorElement.parentNode as HTMLElement | undefined
-      }
-
-      // Handle SPA apps
-      if (anchorElement) {
-        setAttributeAsOpenInNewTab(anchorElement as HTMLAnchorElement)
-        const isNewTab = getAttribute(anchorElement, "target") === "_blank"
-        const shouldOpenBackground =
-          enableBackground &&
-          shouldOpenInNewTab(anchorElement as HTMLAnchorElement)
-
-        if (isNewTab || shouldOpenBackground) {
-          event.stopImmediatePropagation()
-          event.stopPropagation()
-
-          if (shouldOpenBackground) {
-            event.preventDefault()
-            openInBackgroundTab((anchorElement as HTMLAnchorElement).href)
-          }
-        }
-      }
+      handleLinkClick(event, {
+        enableBackground,
+        shouldOpenInNewTab,
+        setAttributeAsOpenInNewTab,
+      })
     },
     true
   )

@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.9.0
+// @version              0.9.1
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -28,6 +28,7 @@
 // @grant                GM.setValue
 // @grant                GM_addElement
 // @grant                GM.registerMenuCommand
+// @grant                GM.openInTab
 // @grant                GM_openInTab
 // ==/UserScript==
 //
@@ -523,10 +524,11 @@
     parentNode.append(tagName)
     return tagName
   }
-  var $ = (selector, context = doc) => context.querySelector(selector)
+  var $ = (selector, context = doc) =>
+    (context ? context.querySelector(selector) : void 0) || void 0
   var $$ = (selector, context = doc) =>
     // @ts-ignore
-    [...context.querySelectorAll(selector)]
+    [...(context ? context.querySelectorAll(selector) : [])]
   var parseInt10 = (number, defaultValue) => {
     if (typeof number === "number" && !Number.isNaN(number)) {
       return number
@@ -1407,7 +1409,7 @@
     }
     return settingsMain
   }
-  function addCommonSettings(settingsTable2) {
+  function addCommonSettings(settingsTable2, options) {
     let maxGroup = 0
     for (const key in settingsTable2) {
       if (Object.hasOwn(settingsTable2, key)) {
@@ -1418,12 +1420,14 @@
         }
       }
     }
-    settingsTable2.locale = {
-      title: i("settings.locale"),
-      type: "select",
-      defaultValue: "",
-      options: {},
-      group: ++maxGroup,
+    if (options.locale) {
+      settingsTable2.locale = {
+        title: i("settings.locale"),
+        type: "select",
+        defaultValue: "",
+        options: {},
+        group: ++maxGroup,
+      }
     }
   }
   function handleShowSettingsUrl() {
@@ -1465,9 +1469,13 @@
     resetI18n(lastLocale)
     const options = optionsProvider()
     settingsOptions = options
-    settingsTable = options.settingsTable || {}
-    addCommonSettings(settingsTable)
+    settingsTable = __spreadValues({}, options.settingsTable)
     const availableLocales3 = options.availableLocales
+    addCommonSettings(settingsTable, {
+      locale: Boolean(
+        availableLocales3 == null ? void 0 : availableLocales3.length
+      ),
+    })
     if (availableLocales3 == null ? void 0 : availableLocales3.length) {
       initAvailableLocales(availableLocales3)
       const localeSelect = settingsTable.locale
@@ -1596,6 +1604,56 @@
   }
   function getAvailableLocales() {
     return availableLocales2
+  }
+  var openInBackgroundTab = (url) => {
+    if (false) {
+      void chrome.runtime.sendMessage({
+        type: "open_background_tab",
+        url,
+      })
+      return
+    }
+    if (typeof GM !== "undefined" && typeof GM.openInTab === "function") {
+      void GM.openInTab(url, { active: false, insert: true })
+      return
+    }
+    if (typeof GM_openInTab === "function") {
+      GM_openInTab(url, { active: false, insert: true })
+      return
+    }
+    globalThis.open(url, "_blank")
+  }
+  var handleLinkClick = (event, deps) => {
+    let anchorElement = event.target
+    if (!anchorElement) {
+      return
+    }
+    if (anchorElement.closest(".utags_ul")) {
+      if (
+        hasClass(anchorElement, "utags_captain_tag") ||
+        hasClass(anchorElement, "utags_captain_tag2")
+      ) {
+        event.preventDefault()
+      }
+      return
+    }
+    while (anchorElement && anchorElement.tagName !== "A") {
+      anchorElement = anchorElement.parentNode
+    }
+    if (anchorElement) {
+      deps.setAttributeAsOpenInNewTab(anchorElement)
+      const isNewTab = getAttribute(anchorElement, "target") === "_blank"
+      const shouldOpenBackground =
+        deps.enableBackground && deps.shouldOpenInNewTab(anchorElement)
+      if (isNewTab || shouldOpenBackground) {
+        event.stopImmediatePropagation()
+        event.stopPropagation()
+        if (shouldOpenBackground) {
+          event.preventDefault()
+          openInBackgroundTab(anchorElement.href)
+        }
+      }
+    }
   }
   var lastTarget
   var handleMouseOver = (event) => {
@@ -1752,6 +1810,120 @@
       /^https:[^?]+\.(?:jpg|jpeg|jpe|bmp|png|gif|webp|ico|svg)/i.test(href)
     ) {
       anchorElementToImgElement(anchor, href, text)
+    }
+  }
+  var base = location.origin
+  var extractCanonicalId = (href) => {
+    try {
+      const u = new URL(href, base)
+      const p = u.pathname.toLowerCase()
+      let m = /^(\/t\/\d+)(?:\/|$)/.exec(p)
+      if (m) return m[1]
+      m = /^(\/t\/[^/]+\/\d+)(?:\/|$)/.exec(p)
+      if (m) return m[1]
+      m = /^(\/d\/\d+(?:-[^/]+)?)(?:\/|$)/.exec(p)
+      if (m) return m[1]
+      const f = p + u.search
+      m = /^(\/watch\?v=[\w-]+)/.exec(f)
+      if (m) return m[1]
+    } catch (e) {}
+    return void 0
+  }
+  var getBaseDomain = (h) => {
+    const host2 = (h || "").toLowerCase().replace(/^www\./, "")
+    if (
+      /^\d+(?:\.\d+){3}$/.test(host2) ||
+      host2 === "localhost" ||
+      host2.includes(":")
+    ) {
+      return host2
+    }
+    const parts = host2.split(".").filter(Boolean)
+    if (parts.length <= 2) return host2
+    const secondLevelDomains = /* @__PURE__ */ new Set([
+      "co",
+      "com",
+      "org",
+      "net",
+      "edu",
+      "gov",
+      "mil",
+      "ac",
+    ])
+    const secondLast = parts.at(-2)
+    const baseSegments = secondLevelDomains.has(secondLast) ? 3 : 2
+    return parts.slice(-baseSegments).join(".")
+  }
+  var getWithoutOrigin = (url) => url.replace(/(^https?:\/\/[^/]+)/, "")
+  var shouldOpenInNewTab = (element, context) => {
+    var _a
+    const {
+      currentUrl: currentUrl2,
+      currentCanonicalId: currentCanonicalId2,
+      origin: origin2,
+      host: host2,
+      currentBaseDomain: currentBaseDomain2,
+      enableTreatSubdomainsSameSite: enableTreatSubdomainsSameSite2,
+      enableCustomRules: enableCustomRules2,
+      customRules: customRules2,
+      removeAttributeAsOpenInNewTab: removeAttributeAsOpenInNewTab2,
+    } = context
+    const url = element.href
+    if (
+      !url ||
+      !/^https?:\/\//.test(url) ||
+      ((_a = element.getAttribute("href")) == null
+        ? void 0
+        : _a.startsWith("#")) ||
+      url === currentUrl2
+    ) {
+      return false
+    }
+    if (element.origin !== origin2) {
+      if (
+        enableTreatSubdomainsSameSite2 &&
+        currentBaseDomain2 &&
+        getBaseDomain(element.hostname) === currentBaseDomain2
+      ) {
+      } else {
+        return true
+      }
+    }
+    const rules = (customRules2 || "").split("\n")
+    if (enableCustomRules2 && rules.length > 0) {
+      if (currentCanonicalId2) {
+        const canonicalId = extractCanonicalId(url)
+        if (canonicalId && canonicalId === currentCanonicalId2) {
+          removeAttributeAsOpenInNewTab2(element)
+          return false
+        }
+      }
+      const hrefWithoutOrigin = getWithoutOrigin(url)
+      for (let rule of rules) {
+        rule = rule.trim()
+        if (rule.length === 0) {
+          continue
+        }
+        const isExclude = rule.startsWith("!")
+        const pattern = isExclude ? rule.slice(1).trim() : rule
+        if (pattern.length === 0) {
+          continue
+        }
+        if (pattern === "*") {
+          return !isExclude
+        }
+        try {
+          const regexp = new RegExp(pattern)
+          if (regexp.test(hrefWithoutOrigin)) {
+            return !isExclude
+          }
+        } catch (error) {
+          console.log(error.message)
+          if (hrefWithoutOrigin.includes(pattern)) {
+            return !isExclude
+          }
+        }
+      }
     }
   }
   var ignoredTags = /* @__PURE__ */ new Set([
@@ -2043,53 +2215,13 @@
       }
     }
   }
-  var base = location.origin
-  var extractCanonicalId = (href) => {
-    try {
-      const u = new URL(href, base)
-      const p = u.pathname.toLowerCase()
-      let m = /^(\/t\/\d+)(?:\/|$)/.exec(p)
-      if (m) return m[1]
-      m = /^(\/t\/[^/]+\/\d+)(?:\/|$)/.exec(p)
-      if (m) return m[1]
-      m = /^(\/d\/\d+(?:-[^/]+)?)(?:\/|$)/.exec(p)
-      if (m) return m[1]
-      const f = p + u.search
-      m = /^(\/watch\?v=[\w-]+)/.exec(f)
-      if (m) return m[1]
-    } catch (e) {}
-    return void 0
-  }
-  var getBaseDomain = (h) => {
-    const host2 = (h || "").toLowerCase().replace(/^www\./, "")
-    if (
-      /^\d+(?:\.\d+){3}$/.test(host2) ||
-      host2 === "localhost" ||
-      host2.includes(":")
-    ) {
-      return host2
-    }
-    const parts = host2.split(".").filter(Boolean)
-    if (parts.length <= 2) return host2
-    const secondLevelDomains = /* @__PURE__ */ new Set([
-      "co",
-      "com",
-      "org",
-      "net",
-      "edu",
-      "gov",
-      "mil",
-      "ac",
-    ])
-    const secondLast = parts.at(-2)
-    const baseSegments = secondLevelDomains.has(secondLast) ? 3 : 2
-    return parts.slice(-baseSegments).join(".")
-  }
   var origin = location.origin
   var host = location.host
   var hostname = location.hostname
   var currentUrl
   var currentCanonicalId
+  var enableCustomRules = false
+  var customRules = ""
   var enableTreatSubdomainsSameSite = false
   var enableBackground = false
   var enableLinkToImg = false
@@ -2183,73 +2315,21 @@
       },
     }
   }
-  var getWithoutOrigin = (url) => url.replace(/(^https?:\/\/[^/]+)/, "")
   var currentBaseDomain = getBaseDomain(hostname)
-  var isSameBaseDomainWithCurrent = (a) =>
-    getBaseDomain(a) === currentBaseDomain
-  var shouldOpenInNewTab = (element) => {
-    var _a
-    const url = element.href
-    if (
-      !url ||
-      !/^https?:\/\//.test(url) ||
-      ((_a = element.getAttribute("href")) == null
-        ? void 0
-        : _a.startsWith("#")) ||
-      url === currentUrl
-    ) {
-      return false
-    }
-    if (element.origin !== origin) {
-      if (
-        enableTreatSubdomainsSameSite &&
-        isSameBaseDomainWithCurrent(element.hostname)
-      ) {
-      } else {
-        return true
-      }
-    }
-    if (getSettingsValue("enableCustomRulesForCurrentSite_".concat(host))) {
-      if (currentCanonicalId) {
-        const canonicalId = extractCanonicalId(url)
-        if (canonicalId && canonicalId === currentCanonicalId) {
-          removeAttributeAsOpenInNewTab(element)
-          return false
-        }
-      }
-      const rules = (
-        getSettingsValue("customRulesForCurrentSite_".concat(host)) || ""
-      ).split("\n")
-      const hrefWithoutOrigin = getWithoutOrigin(url)
-      for (let rule of rules) {
-        rule = rule.trim()
-        if (rule.length === 0) {
-          continue
-        }
-        const isExclude = rule.startsWith("!")
-        const pattern = isExclude ? rule.slice(1).trim() : rule
-        if (pattern.length === 0) {
-          continue
-        }
-        if (pattern === "*") {
-          return !isExclude
-        }
-        try {
-          const regexp = new RegExp(pattern)
-          if (regexp.test(hrefWithoutOrigin)) {
-            return !isExclude
-          }
-        } catch (error) {
-          console.log(error.message)
-          if (hrefWithoutOrigin.includes(pattern)) {
-            return !isExclude
-          }
-        }
-      }
-    }
-  }
+  var shouldOpenInNewTab2 = (element) =>
+    shouldOpenInNewTab(element, {
+      currentUrl,
+      currentCanonicalId,
+      origin,
+      host,
+      currentBaseDomain,
+      enableTreatSubdomainsSameSite,
+      enableCustomRules,
+      customRules,
+      removeAttributeAsOpenInNewTab,
+    })
   var setAttributeAsOpenInNewTab = (element) => {
-    if (!enableBackground && shouldOpenInNewTab(element)) {
+    if (!enableBackground && shouldOpenInNewTab2(element)) {
       setAttribute(element, "target", "_blank")
       addAttribute(element, "rel", "noopener")
     }
@@ -2258,19 +2338,14 @@
     removeAttribute(element, "target")
     removeAttribute(element, "rel")
   }
-  function openInBackgroundTab(url) {
-    if (false) {
-      void chrome.runtime.sendMessage({
-        type: "open_background_tab",
-        url,
-      })
-    } else if (typeof GM_openInTab === "function") {
-      GM_openInTab(url, { active: false, insert: true })
-    }
-  }
   function onSettingsChange() {
     const locale = getSettingsValue("locale") || getPrefferedLocale()
     resetI18n2(locale)
+    enableCustomRules = Boolean(
+      getSettingsValue("enableCustomRulesForCurrentSite_".concat(host))
+    )
+    customRules =
+      getSettingsValue("customRulesForCurrentSite_".concat(host)) || ""
     enableTreatSubdomainsSameSite = Boolean(
       getSettingsValue(
         "enableTreatSubdomainsAsSameSiteForCurrentSite_".concat(host)
@@ -2332,36 +2407,11 @@
       doc,
       "click",
       (event) => {
-        let anchorElement = event.target
-        if (!anchorElement) {
-          return
-        }
-        if (anchorElement.closest(".utags_ul")) {
-          if (
-            hasClass(anchorElement, "utags_captain_tag") ||
-            hasClass(anchorElement, "utags_captain_tag2")
-          ) {
-            event.preventDefault()
-          }
-          return
-        }
-        while (anchorElement && anchorElement.tagName !== "A") {
-          anchorElement = anchorElement.parentNode
-        }
-        if (anchorElement) {
-          setAttributeAsOpenInNewTab(anchorElement)
-          const isNewTab = getAttribute(anchorElement, "target") === "_blank"
-          const shouldOpenBackground =
-            enableBackground && shouldOpenInNewTab(anchorElement)
-          if (isNewTab || shouldOpenBackground) {
-            event.stopImmediatePropagation()
-            event.stopPropagation()
-            if (shouldOpenBackground) {
-              event.preventDefault()
-              openInBackgroundTab(anchorElement.href)
-            }
-          }
-        }
+        handleLinkClick(event, {
+          enableBackground,
+          shouldOpenInNewTab: shouldOpenInNewTab2,
+          setAttributeAsOpenInNewTab,
+        })
       },
       true
     )

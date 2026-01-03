@@ -15,6 +15,7 @@
       ]
     },
     "strictNullChecks": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "skipLibCheck": true
   }
 }

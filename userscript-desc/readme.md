@@ -105,7 +105,7 @@ Compatible with the following userscript managers
 ## Release Notes
 
 - 0.9.x
-  - Optimize GM.* API fallback logic.
+  - Optimize GM.\* API fallback logic.
   - Improve compatibility with script managers such as Greasymonkey, quoid-userscripts, Stay, etc.
 - 0.8.x
   - Fix compatibility issues with utags-shortcuts
