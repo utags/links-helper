@@ -23,6 +23,7 @@ export const messages = {
   "settings.enableLinkToImgForCurrentSite": "在当前网站启用将图片链接自动转换为图片标签",
   "settings.enableTextToLinksForCurrentSite": "在当前网站启用将文本链接自动转换为超链接",
   "settings.enableTreatSubdomainsAsSameSiteForCurrentSite": "在当前网站启用将二级域名视为同一网站",
+  "settings.enableOpenNewTabInBackground": "在*所有网站*启用在后台打开新标签页",
   "settings.enableOpenNewTabInBackgroundForCurrentSite": "在当前网站启用在后台打开新标签页",
   "settings.eraseLinks": "去除指定区域的链接",
   "settings.restoreLinks": "恢复去除的链接",

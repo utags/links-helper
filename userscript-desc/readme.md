@@ -107,6 +107,7 @@ Compatible with the following userscript managers
 - 0.9.x
   - Optimize GM.\* API fallback logic.
   - Improve compatibility with script managers such as Greasymonkey, quoid-userscripts, Stay, etc.
+  - Add setting option to "Open new tab in background for **all sites**"
 - 0.8.x
   - Fix compatibility issues with utags-shortcuts
   - Add setting option to treat subdomains as the same site for the current site

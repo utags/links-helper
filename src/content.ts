@@ -100,10 +100,15 @@ const getSettingsTable = (): SettingsTable => {
       tipContent: i("settings.customRulesTipContent"),
       group: groupNumber,
     },
-    [`enableOpenNewTabInBackgroundForCurrentSite_${host}`]: {
-      title: i("settings.enableOpenNewTabInBackgroundForCurrentSite"),
+    [`enableOpenNewTabInBackground`]: {
+      title: i("settings.enableOpenNewTabInBackground"),
       defaultValue: false,
       group: ++groupNumber,
+    },
+    [`enableOpenNewTabInBackgroundForCurrentSite_${host}`]: {
+      title: i("settings.enableOpenNewTabInBackgroundForCurrentSite"),
+      defaultValue: undefined as any as boolean,
+      group: groupNumber,
     },
     [`enableTreatSubdomainsAsSameSiteForCurrentSite_${host}`]: {
       title: i("settings.enableTreatSubdomainsAsSameSiteForCurrentSite"),
@@ -191,11 +196,25 @@ function onSettingsChange() {
     )
   )
 
-  enableBackground = Boolean(
-    getSettingsValue<boolean | undefined>(
+  {
+    const siteSetting = getSettingsValue<boolean | undefined>(
       `enableOpenNewTabInBackgroundForCurrentSite_${host}`
     )
-  )
+    const globalSetting = getSettingsValue<boolean | undefined>(
+      `enableOpenNewTabInBackground`
+    )
+    enableBackground = Boolean(siteSetting ?? globalSetting)
+    // if (
+    //   globalSetting !== undefined &&
+    //   siteSetting !== undefined &&
+    //   globalSetting === siteSetting
+    // ) {
+    //   setSettingsValue<boolean | undefined>(
+    //     `enableOpenNewTabInBackgroundForCurrentSite_${host}`,
+    //     undefined
+    //   )
+    // }
+  }
 
   enableLinkToImg = Boolean(
     getSettingsValue<boolean | undefined>(
@@ -235,6 +254,23 @@ async function main() {
           )
             ? "block"
             : "none"
+        }
+
+        {
+          const siteSetting = getSettingsValue<boolean | undefined>(
+            `enableOpenNewTabInBackgroundForCurrentSite_${host}`
+          )
+          const globalSetting = getSettingsValue<boolean | undefined>(
+            `enableOpenNewTabInBackground`
+          )
+          if (globalSetting !== undefined && siteSetting === undefined) {
+            const checkbox = settingsMainView.querySelector(
+              `[data-key="enableOpenNewTabInBackgroundForCurrentSite_${host}"] input[type="checkbox"]`
+            )
+            if (checkbox) {
+              ;(checkbox as HTMLInputElement).checked = globalSetting
+            }
+          }
         }
       },
     }
