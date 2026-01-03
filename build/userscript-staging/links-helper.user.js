@@ -1622,6 +1622,7 @@
       return
     }
     globalThis.open(url, "_blank")
+    globalThis.focus()
   }
   var handleLinkClick = (event, deps) => {
     let anchorElement = event.target

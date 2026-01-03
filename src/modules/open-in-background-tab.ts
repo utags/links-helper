@@ -23,4 +23,5 @@ export const openInBackgroundTab = (url: string) => {
   }
 
   globalThis.open(url, "_blank")
+  globalThis.focus()
 }

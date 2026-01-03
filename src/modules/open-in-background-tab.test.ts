@@ -9,6 +9,7 @@ describe("openInBackgroundTab", () => {
   const mockGMOpenInTab = vi.fn()
   const mockGMOpenInTabStandalone = vi.fn()
   const mockWindowOpen = vi.fn()
+  const mockFocus = vi.fn()
 
   beforeEach(() => {
     vi.resetModules()
@@ -18,6 +19,7 @@ describe("openInBackgroundTab", () => {
       },
     })
     vi.stubGlobal("open", mockWindowOpen)
+    vi.stubGlobal("focus", mockFocus)
 
     // Reset process.env
     // eslint-disable-next-line n/prefer-global/process
@@ -73,5 +75,6 @@ describe("openInBackgroundTab", () => {
     process.env.PLASMO_TARGET = "userscript" as any
     openInBackgroundTab("https://example.com")
     expect(mockWindowOpen).toHaveBeenCalledWith("https://example.com", "_blank")
+    expect(mockFocus).toHaveBeenCalledOnce()
   })
 })
