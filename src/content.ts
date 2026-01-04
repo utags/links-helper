@@ -192,7 +192,7 @@ const getSettingsTable = (): SettingsTable => {
 
 const currentBaseDomain = getBaseDomain(hostname)
 
-const shouldOpenInNewTab = (element: HTMLAnchorElement) =>
+const shouldOpenInNewTab = (element: HTMLAnchorElement): boolean =>
   shouldOpenInNewTabFn(element, {
     currentUrl,
     currentCanonicalId,
@@ -438,6 +438,7 @@ async function main() {
       handleLinkClick(event, {
         enableBackground,
         enableOpenInternalLinksInCurrentTab,
+        hostname,
         shouldOpenInNewTab,
       })
     },

@@ -18,7 +18,7 @@ export const shouldOpenInNewTab = (
   element: HTMLAnchorElement,
   context: LinkHelperContext
   // eslint-disable-next-line complexity
-) => {
+): boolean => {
   const {
     currentUrl,
     currentCanonicalId,
@@ -97,4 +97,6 @@ export const shouldOpenInNewTab = (
       }
     }
   }
+
+  return false
 }

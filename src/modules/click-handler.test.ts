@@ -27,6 +27,7 @@ describe("handleLinkClick", () => {
   const deps: ClickHandlerDeps = {
     enableBackground: false,
     enableOpenInternalLinksInCurrentTab: false,
+    hostname: "www.example.com",
     shouldOpenInNewTab: vi.fn(),
   }
 

@@ -6,9 +6,11 @@ import { removeLinkTargetBlank, setLinkTargetToBlank } from "./link-attributes"
 export type ClickHandlerDeps = {
   enableBackground: boolean
   enableOpenInternalLinksInCurrentTab: boolean
+  hostname: string
   shouldOpenInNewTab: (el: HTMLAnchorElement) => boolean | undefined
 }
 
+const STOP_PROPAGATION_SITES = [".zhihu.com"]
 const BLACKLIST_CLASSES = ["bili-watch-later"]
 
 export const isBlacklisted = (el: HTMLElement) =>
@@ -71,8 +73,11 @@ export const handleLinkClick = (
         openInBackgroundTab((anchorElement as HTMLAnchorElement).href)
       }
     } else if (deps.enableOpenInternalLinksInCurrentTab) {
-      // event.stopImmediatePropagation()
-      // event.stopPropagation()
+      if (STOP_PROPAGATION_SITES.some((site) => deps.hostname.includes(site))) {
+        event.stopImmediatePropagation()
+        // event.stopPropagation()
+      }
+
       removeLinkTargetBlank(anchorElement as HTMLAnchorElement)
     }
   }

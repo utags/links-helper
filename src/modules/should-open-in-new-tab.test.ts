@@ -64,11 +64,11 @@ describe("shouldOpenInNewTab", () => {
     ).toBe(true)
   })
 
-  it("should return undefined (false-ish) for subdomains if treatSubdomainsSameSite is true", () => {
+  it("should return false for subdomains if treatSubdomainsSameSite is true", () => {
     const context = { ...defaultContext, enableTreatSubdomainsSameSite: true }
     expect(
       shouldOpenInNewTab(createAnchor("https://sub.example.com"), context)
-    ).toBeUndefined()
+    ).toBe(false)
   })
 
   describe("Custom Rules", () => {
@@ -105,7 +105,7 @@ describe("shouldOpenInNewTab", () => {
       ).toBe(true)
       expect(
         shouldOpenInNewTab(createAnchor("https://example.com/bar"), context)
-      ).toBeUndefined()
+      ).toBe(false)
     })
 
     it("should handle * wildcard", () => {
