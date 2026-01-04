@@ -31,6 +31,7 @@ const messages = {
   "settings.title": "🔗 Links Helper",
   "settings.information": "After changing the settings, reload the page to take effect",
   "settings.report": "Report and Issue...",
+  "popup.settings": "Settings",
 }
 
 export default messages

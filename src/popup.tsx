@@ -1,3 +1,5 @@
+import { i } from "./messages"
+
 function IndexPopup() {
   const openSettings = () => {
     const api: any = (globalThis as any).chrome ?? (globalThis as any).browser
@@ -28,12 +30,16 @@ function IndexPopup() {
       style={{
         display: "flex",
         flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
         padding: 16,
         width: "300px",
       }}>
-      <h1>🔗 Links Helper</h1>
-      <button onClick={openSettings} style={{ marginTop: 8, marginBottom: 20 }}>
-        设置
+      <h1>{i("settings.title")}</h1>
+      <button
+        onClick={openSettings}
+        style={{ marginTop: 8, marginBottom: 20, width: "100%" }}>
+        {i("popup.settings")}
       </button>
       <footer>
         Made with ❤️ by{" "}
