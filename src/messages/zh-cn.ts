@@ -21,8 +21,10 @@ export const messages = {
 !*</pre>
   </p>`,
   "settings.enableLinkToImgForCurrentSite": "在当前网站启用将图片链接自动转换为图片标签",
-  "settings.enableTextToLinksForCurrentSite": "在当前网站启用将文本链接自动转换为超链接",
+  "settings.enableTextToLinksForCurrentSite": "在当前网站启用将文本链接解析为超链接",
   "settings.enableTreatSubdomainsAsSameSiteForCurrentSite": "在当前网站启用将二级域名视为同一网站",
+  "settings.enableOpenInternalLinksInCurrentTab": "在*所有网站*启用在当前标签页打开站内链接（覆盖网站默认行为）",
+  "settings.enableOpenInternalLinksInCurrentTabForCurrentSite": "在当前网站启用在当前标签页打开站内链接（覆盖网站默认行为）",
   "settings.enableOpenNewTabInBackground": "在*所有网站*启用在后台打开新标签页",
   "settings.enableOpenNewTabInBackgroundForCurrentSite": "在当前网站启用在后台打开新标签页",
   "settings.convertTextToLinks": "将文本链接转换为超链接",

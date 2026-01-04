@@ -23,6 +23,8 @@ const messages = {
   "settings.enableLinkToImgForCurrentSite": "Enable converting image links to image tags for the current site",
   "settings.enableTextToLinksForCurrentSite": "Enable converting text links to hyperlinks for the current site",
   "settings.enableTreatSubdomainsAsSameSiteForCurrentSite": "Treat subdomains as the same site for the current site",
+  "settings.enableOpenInternalLinksInCurrentTab": "Open internal links in current tab for *all sites* (override default)",
+  "settings.enableOpenInternalLinksInCurrentTabForCurrentSite": "Open internal links in current tab for the current site (override default)",
   "settings.enableOpenNewTabInBackground": "Open new tab in background for *all sites*",
   "settings.enableOpenNewTabInBackgroundForCurrentSite": "Open new tab in background for the current site",
   "settings.convertTextToLinks": "Convert text links to hyperlinks",

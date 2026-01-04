@@ -104,6 +104,8 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.11.x
+  - Add setting option to "Open internal links in current tab (override default)".
 - 0.10.x
   - Support handling links inside Shadow DOM.
   - Support traversing nested Shadow DOM.

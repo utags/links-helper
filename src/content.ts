@@ -29,7 +29,10 @@ import { getAvailableLocales, i, resetI18n } from "./messages"
 import { handleLinkClick } from "./modules/click-handler"
 import { getAllAnchors } from "./modules/dom-traversal"
 import { eraseLinks, restoreLinks } from "./modules/erase-links"
-import { setLinkTargetToBlank } from "./modules/link-attributes"
+import {
+  removeLinkTargetBlank,
+  setLinkTargetToBlank,
+} from "./modules/link-attributes"
 import { bindOnError, linkToImg } from "./modules/link-to-img"
 import { shouldOpenInNewTab as shouldOpenInNewTabFn } from "./modules/should-open-in-new-tab"
 import { scanAndConvertChildNodes } from "./modules/text-to-links"
@@ -51,6 +54,7 @@ let enableCustomRules = false
 let customRules = ""
 let enableTreatSubdomainsSameSite = false
 let enableBackground = false
+let enableOpenInternalLinksInCurrentTab = false
 let enableLinkToImg = false
 let enableTextToLinks = false
 let cachedFlag = 0
@@ -111,6 +115,16 @@ const getSettingsTable = (): SettingsTable => {
     },
     [`enableOpenNewTabInBackgroundForCurrentSite_${host}`]: {
       title: i("settings.enableOpenNewTabInBackgroundForCurrentSite"),
+      defaultValue: undefined as any as boolean,
+      group: groupNumber,
+    },
+    [`enableOpenInternalLinksInCurrentTab`]: {
+      title: i("settings.enableOpenInternalLinksInCurrentTab"),
+      defaultValue: false,
+      group: ++groupNumber,
+    },
+    [`enableOpenInternalLinksInCurrentTabForCurrentSite_${host}`]: {
+      title: i("settings.enableOpenInternalLinksInCurrentTabForCurrentSite"),
       defaultValue: undefined as any as boolean,
       group: groupNumber,
     },
@@ -232,6 +246,16 @@ function onSettingsChange() {
     // }
   }
 
+  {
+    const siteSetting = getSettingsValue<boolean | undefined>(
+      `enableOpenInternalLinksInCurrentTabForCurrentSite_${host}`
+    )
+    const globalSetting = getSettingsValue<boolean | undefined>(
+      `enableOpenInternalLinksInCurrentTab`
+    )
+    enableOpenInternalLinksInCurrentTab = Boolean(siteSetting ?? globalSetting)
+  }
+
   enableLinkToImg = Boolean(
     getSettingsValue<boolean | undefined>(
       `enableLinkToImgForCurrentSite_${host}`
@@ -266,6 +290,8 @@ const scanAnchors = () => {
     try {
       if (shouldOpenInNewTab(element)) {
         setLinkTargetToBlank(element)
+      } else if (enableOpenInternalLinksInCurrentTab) {
+        removeLinkTargetBlank(element)
       }
     } catch (error) {
       console.error(error)
@@ -325,6 +351,23 @@ async function main() {
           )
             ? "block"
             : "none"
+        }
+
+        {
+          const siteSetting = getSettingsValue<boolean | undefined>(
+            `enableOpenInternalLinksInCurrentTabForCurrentSite_${host}`
+          )
+          const globalSetting = getSettingsValue<boolean | undefined>(
+            `enableOpenInternalLinksInCurrentTab`
+          )
+          if (globalSetting !== undefined && siteSetting === undefined) {
+            const checkbox = settingsMainView.querySelector(
+              `[data-key="enableOpenInternalLinksInCurrentTabForCurrentSite_${host}"] input[type="checkbox"]`
+            )
+            if (checkbox) {
+              ;(checkbox as HTMLInputElement).checked = globalSetting
+            }
+          }
         }
 
         {
@@ -394,6 +437,7 @@ async function main() {
     (event) => {
       handleLinkClick(event, {
         enableBackground,
+        enableOpenInternalLinksInCurrentTab,
         shouldOpenInNewTab,
       })
     },

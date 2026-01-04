@@ -1,10 +1,11 @@
 import { getAttribute, hasClass } from "browser-extension-utils"
 
 import { openInBackgroundTab } from "../modules/open-in-background-tab"
-import { setLinkTargetToBlank } from "./link-attributes"
+import { removeLinkTargetBlank, setLinkTargetToBlank } from "./link-attributes"
 
 export type ClickHandlerDeps = {
   enableBackground: boolean
+  enableOpenInternalLinksInCurrentTab: boolean
   shouldOpenInNewTab: (el: HTMLAnchorElement) => boolean | undefined
 }
 
@@ -41,7 +42,9 @@ export const handleLinkClick = (
 
     // The target attribute might be from the original webpage source, not set by setLinkTargetToBlank above.
     const isNewTab =
-      shouldOpen || getAttribute(anchorElement, "target") === "_blank"
+      shouldOpen ||
+      (!deps.enableOpenInternalLinksInCurrentTab &&
+        getAttribute(anchorElement, "target") === "_blank")
 
     if (isNewTab) {
       // Stop the event from bubbling up to other handlers.
@@ -54,6 +57,10 @@ export const handleLinkClick = (
         event.preventDefault()
         openInBackgroundTab((anchorElement as HTMLAnchorElement).href)
       }
+    } else if (deps.enableOpenInternalLinksInCurrentTab) {
+      // event.stopImmediatePropagation()
+      // event.stopPropagation()
+      removeLinkTargetBlank(anchorElement as HTMLAnchorElement)
     }
   }
 }

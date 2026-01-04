@@ -3,10 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { openInBackgroundTab } from "../modules/open-in-background-tab"
 import { handleLinkClick, type ClickHandlerDeps } from "./click-handler"
-import { setLinkTargetToBlank } from "./link-attributes"
+import { removeLinkTargetBlank, setLinkTargetToBlank } from "./link-attributes"
 
 vi.mock("./link-attributes", () => ({
   setLinkTargetToBlank: vi.fn(),
+  removeLinkTargetBlank: vi.fn(),
 }))
 
 vi.mock("../modules/open-in-background-tab", () => ({
@@ -21,6 +22,7 @@ vi.mock("browser-extension-utils", () => ({
 describe("handleLinkClick", () => {
   const deps: ClickHandlerDeps = {
     enableBackground: false,
+    enableOpenInternalLinksInCurrentTab: false,
     shouldOpenInNewTab: vi.fn(),
   }
 
@@ -120,5 +122,38 @@ describe("handleLinkClick", () => {
     expect(event.stopImmediatePropagation).toHaveBeenCalled()
     expect(event.preventDefault).toHaveBeenCalled()
     expect(openInBackgroundTab).toHaveBeenCalledWith("https://example.com/")
+  })
+
+  it("should remove target=_blank when enableOpenInternalLinksInCurrentTab is true and not opening in new tab", () => {
+    const depsCurrentTab = {
+      ...deps,
+      enableOpenInternalLinksInCurrentTab: true,
+    }
+    vi.mocked(depsCurrentTab.shouldOpenInNewTab).mockReturnValue(false)
+    vi.mocked(utils.getAttribute).mockReturnValue("_blank")
+    target.href = "https://example.com/internal"
+
+    handleLinkClick(event as unknown as MouseEvent, depsCurrentTab)
+
+    expect(event.stopImmediatePropagation).not.toHaveBeenCalled()
+    expect(event.stopPropagation).not.toHaveBeenCalled()
+    expect(setLinkTargetToBlank).not.toHaveBeenCalled()
+    expect(removeLinkTargetBlank).toHaveBeenCalledWith(target)
+  })
+
+  it("should not remove target when shouldOpenInNewTab is true even if enableOpenInternalLinksInCurrentTab is true", () => {
+    const depsCurrentTab = {
+      ...deps,
+      enableOpenInternalLinksInCurrentTab: true,
+    }
+    vi.mocked(depsCurrentTab.shouldOpenInNewTab).mockReturnValue(true)
+    vi.mocked(utils.getAttribute).mockReturnValue("_blank")
+    target.href = "https://example.com/open"
+
+    handleLinkClick(event as unknown as MouseEvent, depsCurrentTab)
+
+    expect(setLinkTargetToBlank).toHaveBeenCalledWith(target)
+    expect(event.stopImmediatePropagation).toHaveBeenCalled()
+    expect(removeLinkTargetBlank).not.toHaveBeenCalled()
   })
 })

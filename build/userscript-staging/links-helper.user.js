@@ -1611,6 +1611,10 @@
       "Enable converting text links to hyperlinks for the current site",
     "settings.enableTreatSubdomainsAsSameSiteForCurrentSite":
       "Treat subdomains as the same site for the current site",
+    "settings.enableOpenInternalLinksInCurrentTab":
+      "Open internal links in current tab for *all sites* (override default)",
+    "settings.enableOpenInternalLinksInCurrentTabForCurrentSite":
+      "Open internal links in current tab for the current site (override default)",
     "settings.enableOpenNewTabInBackground":
       "Open new tab in background for *all sites*",
     "settings.enableOpenNewTabInBackgroundForCurrentSite":
@@ -1639,9 +1643,13 @@
     "settings.enableLinkToImgForCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5C06\u56FE\u7247\u94FE\u63A5\u81EA\u52A8\u8F6C\u6362\u4E3A\u56FE\u7247\u6807\u7B7E",
     "settings.enableTextToLinksForCurrentSite":
-      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5C06\u6587\u672C\u94FE\u63A5\u81EA\u52A8\u8F6C\u6362\u4E3A\u8D85\u94FE\u63A5",
+      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5C06\u6587\u672C\u94FE\u63A5\u89E3\u6790\u4E3A\u8D85\u94FE\u63A5",
     "settings.enableTreatSubdomainsAsSameSiteForCurrentSite":
       "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5C06\u4E8C\u7EA7\u57DF\u540D\u89C6\u4E3A\u540C\u4E00\u7F51\u7AD9",
+    "settings.enableOpenInternalLinksInCurrentTab":
+      "\u5728*\u6240\u6709\u7F51\u7AD9*\u542F\u7528\u5728\u5F53\u524D\u6807\u7B7E\u9875\u6253\u5F00\u7AD9\u5185\u94FE\u63A5\uFF08\u8986\u76D6\u7F51\u7AD9\u9ED8\u8BA4\u884C\u4E3A\uFF09",
+    "settings.enableOpenInternalLinksInCurrentTabForCurrentSite":
+      "\u5728\u5F53\u524D\u7F51\u7AD9\u542F\u7528\u5728\u5F53\u524D\u6807\u7B7E\u9875\u6253\u5F00\u7AD9\u5185\u94FE\u63A5\uFF08\u8986\u76D6\u7F51\u7AD9\u9ED8\u8BA4\u884C\u4E3A\uFF09",
     "settings.enableOpenNewTabInBackground":
       "\u5728*\u6240\u6709\u7F51\u7AD9*\u542F\u7528\u5728\u540E\u53F0\u6253\u5F00\u65B0\u6807\u7B7E\u9875",
     "settings.enableOpenNewTabInBackgroundForCurrentSite":
@@ -1727,7 +1735,9 @@
         setLinkTargetToBlank(anchorElement)
       }
       const isNewTab =
-        shouldOpen || getAttribute(anchorElement, "target") === "_blank"
+        shouldOpen ||
+        (!deps.enableOpenInternalLinksInCurrentTab &&
+          getAttribute(anchorElement, "target") === "_blank")
       if (isNewTab) {
         event.stopImmediatePropagation()
         event.stopPropagation()
@@ -1735,6 +1745,8 @@
           event.preventDefault()
           openInBackgroundTab(anchorElement.href)
         }
+      } else if (deps.enableOpenInternalLinksInCurrentTab) {
+        removeLinkTargetBlank(anchorElement)
       }
     }
   }
@@ -2329,6 +2341,7 @@
   var customRules = ""
   var enableTreatSubdomainsSameSite = false
   var enableBackground = false
+  var enableOpenInternalLinksInCurrentTab = false
   var enableLinkToImg = false
   var enableTextToLinks = false
   var cachedFlag = 0
@@ -2389,6 +2402,16 @@
       },
       ["enableOpenNewTabInBackgroundForCurrentSite_".concat(host)]: {
         title: i2("settings.enableOpenNewTabInBackgroundForCurrentSite"),
+        defaultValue: void 0,
+        group: groupNumber,
+      },
+      ["enableOpenInternalLinksInCurrentTab"]: {
+        title: i2("settings.enableOpenInternalLinksInCurrentTab"),
+        defaultValue: false,
+        group: ++groupNumber,
+      },
+      ["enableOpenInternalLinksInCurrentTabForCurrentSite_".concat(host)]: {
+        title: i2("settings.enableOpenInternalLinksInCurrentTabForCurrentSite"),
         defaultValue: void 0,
         group: groupNumber,
       },
@@ -2486,6 +2509,17 @@
         siteSetting != null ? siteSetting : globalSetting
       )
     }
+    {
+      const siteSetting = getSettingsValue(
+        "enableOpenInternalLinksInCurrentTabForCurrentSite_".concat(host)
+      )
+      const globalSetting = getSettingsValue(
+        "enableOpenInternalLinksInCurrentTab"
+      )
+      enableOpenInternalLinksInCurrentTab = Boolean(
+        siteSetting != null ? siteSetting : globalSetting
+      )
+    }
     enableLinkToImg = Boolean(
       getSettingsValue("enableLinkToImgForCurrentSite_".concat(host))
     )
@@ -2509,6 +2543,8 @@
       try {
         if (shouldOpenInNewTab2(element)) {
           setLinkTargetToBlank(element)
+        } else if (enableOpenInternalLinksInCurrentTab) {
+          removeLinkTargetBlank(element)
         }
       } catch (error) {
         console.error(error)
@@ -2558,6 +2594,25 @@
             )
               ? "block"
               : "none"
+          }
+          {
+            const siteSetting = getSettingsValue(
+              "enableOpenInternalLinksInCurrentTabForCurrentSite_".concat(host)
+            )
+            const globalSetting = getSettingsValue(
+              "enableOpenInternalLinksInCurrentTab"
+            )
+            if (globalSetting !== void 0 && siteSetting === void 0) {
+              const checkbox = settingsMainView.querySelector(
+                '[data-key="enableOpenInternalLinksInCurrentTabForCurrentSite_'.concat(
+                  host,
+                  '"] input[type="checkbox"]'
+                )
+              )
+              if (checkbox) {
+                checkbox.checked = globalSetting
+              }
+            }
           }
           {
             const siteSetting = getSettingsValue(
@@ -2619,6 +2674,7 @@
       (event) => {
         handleLinkClick(event, {
           enableBackground,
+          enableOpenInternalLinksInCurrentTab,
           shouldOpenInNewTab: shouldOpenInNewTab2,
         })
       },
