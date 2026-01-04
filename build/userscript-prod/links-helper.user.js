@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.10.1
+// @version              0.10.2
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -2267,19 +2267,30 @@
     hasClass(element, "diff") ||
     hasClass(element, "react-code-lines") ||
     hasClass(element, "virtual-blame-wrapper") ||
-    $('[role="code"]', element)
+    Boolean($('[role="code"]', element))
   var scanAndConvertChildNodes = (parentNode) => {
     if (
       !parentNode ||
-      parentNode.nodeType === 8 ||
-      !parentNode.tagName ||
-      ignoredTags.has(parentNode.tagName.toUpperCase()) ||
-      isCodeViewer(parentNode)
+      (parentNode.nodeType !== 1 && parentNode.nodeType !== 11)
     ) {
-      if (parentNode.tagName === "A") {
-        fixAnchorTag(parentNode)
-      }
       return
+    }
+    const isShadowRoot = parentNode.nodeType === 11
+    if (!isShadowRoot) {
+      const element = parentNode
+      if (
+        !element.tagName ||
+        ignoredTags.has(element.tagName.toUpperCase()) ||
+        isCodeViewer(element)
+      ) {
+        if (element.tagName === "A") {
+          fixAnchorTag(element)
+        }
+        return
+      }
+      if (element.shadowRoot) {
+        scanAndConvertChildNodes(element.shadowRoot)
+      }
     }
     let previousText = ""
     for (const child of parentNode.childNodes) {
@@ -2311,6 +2322,7 @@
   var enableTreatSubdomainsSameSite = false
   var enableBackground = false
   var enableLinkToImg = false
+  var enableTextToLinks = false
   if (false) {
     const runtime =
       (_c = (_a = globalThis.chrome) == null ? void 0 : _a.runtime) != null
@@ -2443,6 +2455,9 @@
     enableLinkToImg = Boolean(
       getSettingsValue("enableLinkToImgForCurrentSite_".concat(host))
     )
+    enableTextToLinks = Boolean(
+      getSettingsValue("enableTextToLinksForCurrentSite_".concat(host))
+    )
   }
   async function main() {
     setPolling(true)
@@ -2544,7 +2559,7 @@
       }
     }
     const scanNodes = throttle(() => {
-      if (getSettingsValue("enableTextToLinksForCurrentSite_".concat(host))) {
+      if (enableTextToLinks) {
         scanAndConvertChildNodes(doc.body)
       }
       scanAnchors()
@@ -2564,7 +2579,7 @@
     }
     runWhenBodyExists(() => {
       startObserver()
-      if (getSettingsValue("enableTextToLinksForCurrentSite_".concat(host))) {
+      if (enableTextToLinks) {
         scanAndConvertChildNodes(doc.body)
       }
     })
