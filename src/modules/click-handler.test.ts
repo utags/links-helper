@@ -2,7 +2,11 @@ import * as utils from "browser-extension-utils"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { openInBackgroundTab } from "../modules/open-in-background-tab"
-import { handleLinkClick, type ClickHandlerDeps } from "./click-handler"
+import {
+  handleLinkClick,
+  isBlacklisted,
+  type ClickHandlerDeps,
+} from "./click-handler"
 import { removeLinkTargetBlank, setLinkTargetToBlank } from "./link-attributes"
 
 vi.mock("./link-attributes", () => ({
@@ -16,7 +20,7 @@ vi.mock("../modules/open-in-background-tab", () => ({
 
 vi.mock("browser-extension-utils", () => ({
   getAttribute: vi.fn(),
-  hasClass: vi.fn(),
+  hasClass: vi.fn((el, cls) => el.classList?.contains(cls) as boolean),
 }))
 
 describe("handleLinkClick", () => {
@@ -155,5 +159,54 @@ describe("handleLinkClick", () => {
     expect(setLinkTargetToBlank).toHaveBeenCalledWith(target)
     expect(event.stopImmediatePropagation).toHaveBeenCalled()
     expect(removeLinkTargetBlank).not.toHaveBeenCalled()
+  })
+
+  it("should return early if target is blacklisted in composedPath", () => {
+    // Case 1: The clicked element itself is blacklisted
+    const blacklistedEl = document.createElement("div")
+    blacklistedEl.classList.add("bili-watch-later")
+    event.composedPath = vi.fn().mockReturnValue([blacklistedEl, target])
+
+    handleLinkClick(event as unknown as MouseEvent, deps)
+
+    expect(setLinkTargetToBlank).not.toHaveBeenCalled()
+    expect(deps.shouldOpenInNewTab).not.toHaveBeenCalled()
+  })
+
+  it("should return early if ancestor is blacklisted (traversal)", () => {
+    // Case 2: Traversing up from target, encounter blacklisted element before finding 'A'
+    const blacklistedParent = document.createElement("div")
+    blacklistedParent.classList.add("bili-watch-later")
+    const span = document.createElement("span")
+    blacklistedParent.append(span)
+    // We don't need to append to 'target' (the anchor) for this test if we want to test early exit
+    // effectively: div(blacklisted) -> span(target). No 'A' found yet.
+
+    // However, the loop continues until it finds 'A' or runs out of parents.
+    // If it runs out of parents, handleLinkClick finishes without doing anything anyway.
+    // To prove it exited *because* of blacklist, we should probably ensure that if it continued, it WOULD have found 'A'.
+    target.append(blacklistedParent)
+    // Structure: target(A) -> blacklistedParent -> span
+
+    event.target = span
+    event.composedPath = undefined // Force traversal loop
+
+    handleLinkClick(event as unknown as MouseEvent, deps)
+
+    expect(setLinkTargetToBlank).not.toHaveBeenCalled()
+    expect(deps.shouldOpenInNewTab).not.toHaveBeenCalled()
+  })
+})
+
+describe("isBlacklisted", () => {
+  it("should return true if element has blacklisted class", () => {
+    const el = document.createElement("div")
+    el.classList.add("bili-watch-later")
+    expect(isBlacklisted(el)).toBe(true)
+  })
+
+  it("should return false if element does not have blacklisted class", () => {
+    const el = document.createElement("div")
+    expect(isBlacklisted(el)).toBe(false)
   })
 })

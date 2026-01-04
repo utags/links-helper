@@ -106,6 +106,7 @@ Compatible with the following userscript managers
 
 - 0.11.x
   - Add setting option to "Open internal links in current tab (override default)".
+  - Support blacklist mechanism to skip processing for specific elements (e.g. Bilibili watch later button).
 - 0.10.x
   - Support handling links inside Shadow DOM.
   - Support traversing nested Shadow DOM.

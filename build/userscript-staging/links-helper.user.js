@@ -1712,11 +1712,16 @@
       removeAttribute(element, "target")
     }
   }
+  var BLACKLIST_CLASSES = ["bili-watch-later"]
+  var isBlacklisted = (el) => BLACKLIST_CLASSES.some((cls) => hasClass(el, cls))
   var handleLinkClick = (event, deps) => {
     let anchorElement
     if (event.composedPath) {
       const path = event.composedPath()
       for (const target of path) {
+        if (target instanceof HTMLElement && isBlacklisted(target)) {
+          return
+        }
         if (target.tagName === "A") {
           anchorElement = target
           break
@@ -1726,6 +1731,9 @@
     if (!anchorElement) {
       anchorElement = event.target
       while (anchorElement && anchorElement.tagName !== "A") {
+        if (isBlacklisted(anchorElement)) {
+          return
+        }
         anchorElement = anchorElement.parentNode
       }
     }

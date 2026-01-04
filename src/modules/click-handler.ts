@@ -9,6 +9,11 @@ export type ClickHandlerDeps = {
   shouldOpenInNewTab: (el: HTMLAnchorElement) => boolean | undefined
 }
 
+const BLACKLIST_CLASSES = ["bili-watch-later"]
+
+export const isBlacklisted = (el: HTMLElement) =>
+  BLACKLIST_CLASSES.some((cls) => hasClass(el, cls))
+
 export const handleLinkClick = (
   event: MouseEvent | Event,
   deps: ClickHandlerDeps
@@ -18,6 +23,10 @@ export const handleLinkClick = (
   if (event.composedPath) {
     const path = event.composedPath()
     for (const target of path) {
+      if (target instanceof HTMLElement && isBlacklisted(target)) {
+        return
+      }
+
       if ((target as HTMLElement).tagName === "A") {
         anchorElement = target as HTMLElement
         break
@@ -28,6 +37,10 @@ export const handleLinkClick = (
   if (!anchorElement) {
     anchorElement = event.target as HTMLElement | undefined
     while (anchorElement && anchorElement.tagName !== "A") {
+      if (isBlacklisted(anchorElement)) {
+        return
+      }
+
       anchorElement = anchorElement.parentNode as HTMLElement | undefined
     }
   }
