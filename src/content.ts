@@ -52,6 +52,7 @@ let customRules = ""
 let enableTreatSubdomainsSameSite = false
 let enableBackground = false
 let enableLinkToImg = false
+let enableTextToLinks = false
 
 if (
   // eslint-disable-next-line n/prefer-global/process
@@ -210,6 +211,12 @@ function onSettingsChange() {
       `enableLinkToImgForCurrentSite_${host}`
     )
   )
+
+  enableTextToLinks = Boolean(
+    getSettingsValue<boolean | undefined>(
+      `enableTextToLinksForCurrentSite_${host}`
+    )
+  )
 }
 
 async function main() {
@@ -326,7 +333,7 @@ async function main() {
     //   "mutation - scanAndConvertChildNodes, scanAnchors",
     //   Date.now()
     // )
-    if (getSettingsValue(`enableTextToLinksForCurrentSite_${host}`)) {
+    if (enableTextToLinks) {
       scanAndConvertChildNodes(doc.body)
     }
 
@@ -352,7 +359,7 @@ async function main() {
 
   runWhenBodyExists(() => {
     startObserver()
-    if (getSettingsValue(`enableTextToLinksForCurrentSite_${host}`)) {
+    if (enableTextToLinks) {
       scanAndConvertChildNodes(doc.body)
     }
   })

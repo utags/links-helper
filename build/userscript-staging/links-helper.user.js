@@ -2267,19 +2267,30 @@
     hasClass(element, "diff") ||
     hasClass(element, "react-code-lines") ||
     hasClass(element, "virtual-blame-wrapper") ||
-    $('[role="code"]', element)
+    Boolean($('[role="code"]', element))
   var scanAndConvertChildNodes = (parentNode) => {
     if (
       !parentNode ||
-      parentNode.nodeType === 8 ||
-      !parentNode.tagName ||
-      ignoredTags.has(parentNode.tagName.toUpperCase()) ||
-      isCodeViewer(parentNode)
+      (parentNode.nodeType !== 1 && parentNode.nodeType !== 11)
     ) {
-      if (parentNode.tagName === "A") {
-        fixAnchorTag(parentNode)
-      }
       return
+    }
+    const isShadowRoot = parentNode.nodeType === 11
+    if (!isShadowRoot) {
+      const element = parentNode
+      if (
+        !element.tagName ||
+        ignoredTags.has(element.tagName.toUpperCase()) ||
+        isCodeViewer(element)
+      ) {
+        if (element.tagName === "A") {
+          fixAnchorTag(element)
+        }
+        return
+      }
+      if (element.shadowRoot) {
+        scanAndConvertChildNodes(element.shadowRoot)
+      }
     }
     let previousText = ""
     for (const child of parentNode.childNodes) {
@@ -2311,6 +2322,7 @@
   var enableTreatSubdomainsSameSite = false
   var enableBackground = false
   var enableLinkToImg = false
+  var enableTextToLinks = false
   if (false) {
     const runtime =
       (_c = (_a = globalThis.chrome) == null ? void 0 : _a.runtime) != null
@@ -2443,6 +2455,9 @@
     enableLinkToImg = Boolean(
       getSettingsValue("enableLinkToImgForCurrentSite_".concat(host))
     )
+    enableTextToLinks = Boolean(
+      getSettingsValue("enableTextToLinksForCurrentSite_".concat(host))
+    )
   }
   async function main() {
     setPolling(true)
@@ -2544,7 +2559,7 @@
       }
     }
     const scanNodes = throttle(() => {
-      if (getSettingsValue("enableTextToLinksForCurrentSite_".concat(host))) {
+      if (enableTextToLinks) {
         scanAndConvertChildNodes(doc.body)
       }
       scanAnchors()
@@ -2564,7 +2579,7 @@
     }
     runWhenBodyExists(() => {
       startObserver()
-      if (getSettingsValue("enableTextToLinksForCurrentSite_".concat(host))) {
+      if (enableTextToLinks) {
         scanAndConvertChildNodes(doc.body)
       }
     })

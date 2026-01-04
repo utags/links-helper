@@ -61,11 +61,9 @@ const linkPattern6 = new RegExp(
   "gim"
 )
 
-const replaceMarkdownImgLinks = (text: string) => {
+export const replaceMarkdownImgLinks = (text: string) => {
   if (text.search(linkPattern1) >= 0) {
     text = text.replaceAll(linkPattern1, (m, p1: string, p2: string) =>
-      // console.log(m, p1, p2)
-
       createImgTagString(convertImgUrl(p2) || p2, p1)
     )
   }
@@ -73,7 +71,7 @@ const replaceMarkdownImgLinks = (text: string) => {
   return text
 }
 
-const replaceMarkdownLinks = (text: string) => {
+export const replaceMarkdownLinks = (text: string) => {
   if (text.search(linkPattern2) >= 0) {
     text = text.replaceAll(
       linkPattern2,
@@ -85,7 +83,7 @@ const replaceMarkdownLinks = (text: string) => {
   return text
 }
 
-const replaceTextLinks = (text: string) => {
+export const replaceTextLinks = (text: string) => {
   if (text.search(linkPattern3) >= 0) {
     text = text.replaceAll(
       linkPattern3,
@@ -98,7 +96,7 @@ const replaceTextLinks = (text: string) => {
   return text
 }
 
-const replaceBBCodeImgLinks = (text: string) => {
+export const replaceBBCodeImgLinks = (text: string) => {
   if (text.search(linkPattern4) >= 0) {
     text = text.replaceAll(linkPattern4, (m, p1: string) =>
       createImgTagString(convertImgUrl(p1) || p1, p1)
@@ -108,7 +106,7 @@ const replaceBBCodeImgLinks = (text: string) => {
   return text
 }
 
-const replaceBBCodeLinks = (text: string) => {
+export const replaceBBCodeLinks = (text: string) => {
   if (text.search(linkPattern5) >= 0) {
     text = text.replaceAll(
       linkPattern5,
@@ -126,7 +124,7 @@ const replaceBBCodeLinks = (text: string) => {
   return text
 }
 
-const textToLink = (textNode: HTMLElement, previousText: string) => {
+export const textToLink = (textNode: HTMLElement, previousText: string) => {
   const textContent = textNode.textContent ?? ""
   const parentNode = textNode.parentNode as HTMLElement
   const mergedText = previousText + textContent
@@ -278,7 +276,7 @@ const textToLink = (textNode: HTMLElement, previousText: string) => {
   }
 }
 
-const fixAnchorTag = (anchorElement: HTMLAnchorElement) => {
+export const fixAnchorTag = (anchorElement: HTMLAnchorElement) => {
   const href = anchorElement.href
   const textContent = anchorElement.textContent ?? ""
   const nextSibling = anchorElement.nextSibling
@@ -302,27 +300,45 @@ const fixAnchorTag = (anchorElement: HTMLAnchorElement) => {
   }
 }
 
-const isCodeViewer = (element: HTMLElement) =>
+export const isCodeViewer = (element: HTMLElement) =>
   // https://github.com/utags/links-helper/issues/10
   hasClass(element, "diff-view") ||
   hasClass(element, "diff") ||
   hasClass(element, "react-code-lines") ||
   hasClass(element, "virtual-blame-wrapper") ||
-  $('[role="code"]', element)
+  Boolean($('[role="code"]', element))
 
-export const scanAndConvertChildNodes = (parentNode: HTMLElement) => {
+export const scanAndConvertChildNodes = (
+  parentNode: HTMLElement | ShadowRoot
+) => {
+  /* nodeType 1:  ELEMENT_NODE */
+  /* nodeType 11: DOCUMENT_FRAGMENT_NODE */
   if (
     !parentNode ||
-    parentNode.nodeType === 8 /* COMMENT_NODE */ ||
-    !parentNode.tagName ||
-    ignoredTags.has(parentNode.tagName.toUpperCase()) ||
-    isCodeViewer(parentNode)
+    (parentNode.nodeType !== 1 && parentNode.nodeType !== 11)
   ) {
-    if (parentNode.tagName === "A") {
-      fixAnchorTag(parentNode as HTMLAnchorElement)
+    return
+  }
+
+  const isShadowRoot = parentNode.nodeType === 11 /* DOCUMENT_FRAGMENT_NODE */
+
+  if (!isShadowRoot) {
+    const element = parentNode as HTMLElement
+    if (
+      !element.tagName ||
+      ignoredTags.has(element.tagName.toUpperCase()) ||
+      isCodeViewer(element)
+    ) {
+      if (element.tagName === "A") {
+        fixAnchorTag(element as HTMLAnchorElement)
+      }
+
+      return
     }
 
-    return
+    if (element.shadowRoot) {
+      scanAndConvertChildNodes(element.shadowRoot)
+    }
   }
 
   let previousText = ""
