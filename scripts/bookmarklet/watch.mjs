@@ -1,16 +1,16 @@
-import fs from "node:fs"
+import fs from 'node:fs'
 
-import { getBuildOptions, runDevServer } from "../common.mjs"
+import { getBuildOptions, runDevServer } from '../common.mjs'
 
-const target = "bookmarklet"
-const tag = "dev"
+const target = 'bookmarklet'
+const tag = 'dev'
 
-const config = JSON.parse(fs.readFileSync("package.json", "utf8"))
+const config = JSON.parse(fs.readFileSync('package.json', 'utf8'))
 
 const buildOptions = getBuildOptions(target, tag)
 buildOptions.alias = {
   ...buildOptions.alias,
-  "browser-extension-storage": "browser-extension-storage/local-storage",
+  'browser-extension-storage': 'browser-extension-storage/local-storage',
 }
 
 const { port } = await runDevServer(buildOptions, target, tag)
@@ -24,13 +24,13 @@ const bookmarklet = `(function () {
   script.defer = true;
   document.body.append(script);
 })();`
-  .replaceAll(/^\s*/gm, "")
-  .replaceAll(/\n/gm, "")
+  .replaceAll(/^\s*/gm, '')
+  .replaceAll(/\n/gm, '')
 
-let linkProd = ""
+let linkProd = ''
 const fileProd = `build/${target}-prod/${config.name}.bookmarklet.link`
 if (fs.existsSync(fileProd)) {
-  const bookmarkletProd = fs.readFileSync(fileProd, "utf8")
+  const bookmarkletProd = fs.readFileSync(fileProd, 'utf8')
   linkProd = `<br />  Production version: <a href="${bookmarkletProd}">Drag me</a> to the bookmark bar`
 }
 

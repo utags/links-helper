@@ -1,20 +1,20 @@
-import fs from "node:fs"
+import fs from 'node:fs'
 
-import { getBuildOptions, runDevServer } from "../common.mjs"
+import { getBuildOptions, runDevServer } from '../common.mjs'
 
-const target = "userscript"
-const tag = "dev"
+const target = 'userscript'
+const tag = 'dev'
 
 const buildOptions = getBuildOptions(target, tag)
 buildOptions.alias = {
   ...buildOptions.alias,
-  "browser-extension-storage": "browser-extension-storage/userscript-string",
-  "browser-extension-utils": "browser-extension-utils/userscript",
+  'browser-extension-storage': 'browser-extension-storage/userscript-string',
+  'browser-extension-utils': 'browser-extension-utils/userscript',
 }
 
 const { port } = await runDevServer(buildOptions, target, tag)
 
-const text = fs.readFileSync(`build/${target}-${tag}/content.js`, "utf8")
+const text = fs.readFileSync(`build/${target}-${tag}/content.js`, 'utf8')
 // Get all userscript GM_* and GM.* functions
 const matched = new Set()
 text.replaceAll(/(GM[_.]\w+)/gm, (match) => {
@@ -22,15 +22,15 @@ text.replaceAll(/(GM[_.]\w+)/gm, (match) => {
 })
 
 const grants = [...matched]
-  .map((v) => `// @grant${" ".repeat(8)}${v}`)
-  .join("\n")
+  .map((v) => `// @grant${' '.repeat(8)}${v}`)
+  .join('\n')
 
-matched.add("GM")
+matched.add('GM')
 
 const apiExports = [...matched]
-  .filter((v) => !v.includes("GM."))
+  .filter((v) => !v.includes('GM.'))
   .map((v) => `    "${v}": typeof ${v} === "undefined" ? undefined : ${v},`)
-  .join("\n")
+  .join('\n')
 
 const code = `// ==UserScript==
 // @name         localhost:${port}

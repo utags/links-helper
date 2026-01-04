@@ -36,8 +36,8 @@
     const contents = []
     let index = 0
     let failed = false
-    for (const element of $$("li")) {
-      const content = element.innerHTML.replaceAll(/\s+/gim, " ").trim()
+    for (const element of $$('li')) {
+      const content = element.innerHTML.replaceAll(/\s+/gim, ' ').trim()
       const expected = expectedList[index++]
       contents.push(content)
       if (expected !== content) {
@@ -51,9 +51,9 @@
 
     if (failed) {
       // console.log(JSON.stringify(contents, null, 2))
-      console.error("Failed")
+      console.error('Failed')
     } else {
-      console.log("Passed all tests!")
+      console.log('Passed all tests!')
     }
   }
 

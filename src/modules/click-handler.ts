@@ -1,7 +1,7 @@
-import { getAttribute, hasClass } from "browser-extension-utils"
+import { getAttribute, hasClass } from 'browser-extension-utils'
 
-import { openInBackgroundTab } from "../modules/open-in-background-tab"
-import { removeLinkTargetBlank, setLinkTargetToBlank } from "./link-attributes"
+import { openInBackgroundTab } from '../modules/open-in-background-tab'
+import { removeLinkTargetBlank, setLinkTargetToBlank } from './link-attributes'
 
 export type ClickHandlerDeps = {
   enableBackground: boolean
@@ -10,8 +10,8 @@ export type ClickHandlerDeps = {
   shouldOpenInNewTab: (el: HTMLAnchorElement) => boolean | undefined
 }
 
-const STOP_PROPAGATION_SITES = [".zhihu.com"]
-const BLACKLIST_CLASSES = ["bili-watch-later"]
+const STOP_PROPAGATION_SITES = ['.zhihu.com']
+const BLACKLIST_CLASSES = ['bili-watch-later']
 
 export const isBlacklisted = (el: HTMLElement) =>
   BLACKLIST_CLASSES.some((cls) => hasClass(el, cls))
@@ -36,7 +36,7 @@ export const handleLinkClick = (
         return
       }
 
-      if ((target as HTMLElement).tagName === "A") {
+      if ((target as HTMLElement).tagName === 'A') {
         anchorElement = target as HTMLElement
         break
       }
@@ -45,7 +45,7 @@ export const handleLinkClick = (
 
   if (!anchorElement) {
     anchorElement = event.target as HTMLElement | undefined
-    while (anchorElement && anchorElement.tagName !== "A") {
+    while (anchorElement && anchorElement.tagName !== 'A') {
       if (isBlacklisted(anchorElement)) {
         return
       }
@@ -66,7 +66,7 @@ export const handleLinkClick = (
     const isNewTab =
       shouldOpen ||
       (!deps.enableOpenInternalLinksInCurrentTab &&
-        getAttribute(anchorElement, "target") === "_blank")
+        getAttribute(anchorElement, 'target') === '_blank')
 
     if (isNewTab) {
       // Stop the event from bubbling up to other handlers.

@@ -1,33 +1,33 @@
-import * as utils from "browser-extension-utils"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import * as utils from 'browser-extension-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { openInBackgroundTab } from "../modules/open-in-background-tab"
+import { openInBackgroundTab } from '../modules/open-in-background-tab'
 import {
   handleLinkClick,
   isBlacklisted,
   type ClickHandlerDeps,
-} from "./click-handler"
-import { removeLinkTargetBlank, setLinkTargetToBlank } from "./link-attributes"
+} from './click-handler'
+import { removeLinkTargetBlank, setLinkTargetToBlank } from './link-attributes'
 
-vi.mock("./link-attributes", () => ({
+vi.mock('./link-attributes', () => ({
   setLinkTargetToBlank: vi.fn(),
   removeLinkTargetBlank: vi.fn(),
 }))
 
-vi.mock("../modules/open-in-background-tab", () => ({
+vi.mock('../modules/open-in-background-tab', () => ({
   openInBackgroundTab: vi.fn(),
 }))
 
-vi.mock("browser-extension-utils", () => ({
+vi.mock('browser-extension-utils', () => ({
   getAttribute: vi.fn(),
   hasClass: vi.fn((el, cls) => el.classList?.contains(cls) as boolean),
 }))
 
-describe("handleLinkClick", () => {
+describe('handleLinkClick', () => {
   const deps: ClickHandlerDeps = {
     enableBackground: false,
     enableOpenInternalLinksInCurrentTab: false,
-    hostname: "www.example.com",
+    hostname: 'www.example.com',
     shouldOpenInNewTab: vi.fn(),
   }
 
@@ -36,7 +36,7 @@ describe("handleLinkClick", () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    target = document.createElement("a")
+    target = document.createElement('a')
     event = {
       target,
       preventDefault: vi.fn(),
@@ -47,11 +47,11 @@ describe("handleLinkClick", () => {
     target.closest = vi.fn().mockReturnValue(null)
   })
 
-  it("should handle clicks in shadow DOM using composedPath", () => {
-    const shadowHost = document.createElement("div")
-    const shadowRoot = shadowHost.attachShadow({ mode: "open" })
-    const shadowLink = document.createElement("a")
-    shadowLink.href = "https://shadow.com"
+  it('should handle clicks in shadow DOM using composedPath', () => {
+    const shadowHost = document.createElement('div')
+    const shadowRoot = shadowHost.attachShadow({ mode: 'open' })
+    const shadowLink = document.createElement('a')
+    shadowLink.href = 'https://shadow.com'
     shadowRoot.append(shadowLink)
     document.body.append(shadowHost)
 
@@ -67,24 +67,24 @@ describe("handleLinkClick", () => {
       ])
     event.target = shadowHost // The target usually appears as the host for outside listeners
 
-    vi.mocked(utils.getAttribute).mockReturnValue("_self")
+    vi.mocked(utils.getAttribute).mockReturnValue('_self')
     const depsWithBg = { ...deps, enableBackground: true }
     vi.mocked(depsWithBg.shouldOpenInNewTab).mockReturnValue(true)
 
     handleLinkClick(event as unknown as MouseEvent, depsWithBg)
 
     expect(setLinkTargetToBlank).toHaveBeenCalledWith(shadowLink)
-    expect(openInBackgroundTab).toHaveBeenCalledWith("https://shadow.com/")
+    expect(openInBackgroundTab).toHaveBeenCalledWith('https://shadow.com/')
   })
 
-  it("should do nothing if target is null", () => {
+  it('should do nothing if target is null', () => {
     event.target = null
     handleLinkClick(event as unknown as MouseEvent, deps)
     expect(setLinkTargetToBlank).not.toHaveBeenCalled()
   })
 
-  it("should find anchor element if clicked on child", () => {
-    const span = document.createElement("span")
+  it('should find anchor element if clicked on child', () => {
+    const span = document.createElement('span')
     target.append(span)
     event.target = span
     // Real DOM traversal works in jsdom
@@ -94,49 +94,49 @@ describe("handleLinkClick", () => {
     expect(setLinkTargetToBlank).toHaveBeenCalledWith(target)
   })
 
-  it("should call setLinkTargetToBlank", () => {
+  it('should call setLinkTargetToBlank', () => {
     vi.mocked(deps.shouldOpenInNewTab).mockReturnValue(true)
     handleLinkClick(event as unknown as MouseEvent, deps)
     expect(setLinkTargetToBlank).toHaveBeenCalledWith(target)
   })
 
-  it("should not stop propagation if not opening in new tab", () => {
-    vi.mocked(utils.getAttribute).mockReturnValue("_self")
+  it('should not stop propagation if not opening in new tab', () => {
+    vi.mocked(utils.getAttribute).mockReturnValue('_self')
     vi.mocked(deps.shouldOpenInNewTab).mockReturnValue(false)
 
     handleLinkClick(event as unknown as MouseEvent, deps)
     expect(event.stopImmediatePropagation).not.toHaveBeenCalled()
   })
 
-  it("should stop propagation if target is _blank", () => {
-    vi.mocked(utils.getAttribute).mockReturnValue("_blank")
+  it('should stop propagation if target is _blank', () => {
+    vi.mocked(utils.getAttribute).mockReturnValue('_blank')
 
     handleLinkClick(event as unknown as MouseEvent, deps)
     expect(event.stopImmediatePropagation).toHaveBeenCalled()
     expect(event.stopPropagation).toHaveBeenCalled()
   })
 
-  it("should open in background if enabled and shouldOpenInNewTab is true", () => {
+  it('should open in background if enabled and shouldOpenInNewTab is true', () => {
     const depsWithBg = { ...deps, enableBackground: true }
     vi.mocked(depsWithBg.shouldOpenInNewTab).mockReturnValue(true)
-    vi.mocked(utils.getAttribute).mockReturnValue("_self")
-    target.href = "https://example.com"
+    vi.mocked(utils.getAttribute).mockReturnValue('_self')
+    target.href = 'https://example.com'
 
     handleLinkClick(event as unknown as MouseEvent, depsWithBg)
 
     expect(event.stopImmediatePropagation).toHaveBeenCalled()
     expect(event.preventDefault).toHaveBeenCalled()
-    expect(openInBackgroundTab).toHaveBeenCalledWith("https://example.com/")
+    expect(openInBackgroundTab).toHaveBeenCalledWith('https://example.com/')
   })
 
-  it("should remove target=_blank when enableOpenInternalLinksInCurrentTab is true and not opening in new tab", () => {
+  it('should remove target=_blank when enableOpenInternalLinksInCurrentTab is true and not opening in new tab', () => {
     const depsCurrentTab = {
       ...deps,
       enableOpenInternalLinksInCurrentTab: true,
     }
     vi.mocked(depsCurrentTab.shouldOpenInNewTab).mockReturnValue(false)
-    vi.mocked(utils.getAttribute).mockReturnValue("_blank")
-    target.href = "https://example.com/internal"
+    vi.mocked(utils.getAttribute).mockReturnValue('_blank')
+    target.href = 'https://example.com/internal'
 
     handleLinkClick(event as unknown as MouseEvent, depsCurrentTab)
 
@@ -146,14 +146,14 @@ describe("handleLinkClick", () => {
     expect(removeLinkTargetBlank).toHaveBeenCalledWith(target)
   })
 
-  it("should not remove target when shouldOpenInNewTab is true even if enableOpenInternalLinksInCurrentTab is true", () => {
+  it('should not remove target when shouldOpenInNewTab is true even if enableOpenInternalLinksInCurrentTab is true', () => {
     const depsCurrentTab = {
       ...deps,
       enableOpenInternalLinksInCurrentTab: true,
     }
     vi.mocked(depsCurrentTab.shouldOpenInNewTab).mockReturnValue(true)
-    vi.mocked(utils.getAttribute).mockReturnValue("_blank")
-    target.href = "https://example.com/open"
+    vi.mocked(utils.getAttribute).mockReturnValue('_blank')
+    target.href = 'https://example.com/open'
 
     handleLinkClick(event as unknown as MouseEvent, depsCurrentTab)
 
@@ -162,10 +162,10 @@ describe("handleLinkClick", () => {
     expect(removeLinkTargetBlank).not.toHaveBeenCalled()
   })
 
-  it("should return early if target is blacklisted in composedPath", () => {
+  it('should return early if target is blacklisted in composedPath', () => {
     // Case 1: The clicked element itself is blacklisted
-    const blacklistedEl = document.createElement("div")
-    blacklistedEl.classList.add("bili-watch-later")
+    const blacklistedEl = document.createElement('div')
+    blacklistedEl.classList.add('bili-watch-later')
     event.composedPath = vi.fn().mockReturnValue([blacklistedEl, target])
 
     handleLinkClick(event as unknown as MouseEvent, deps)
@@ -174,11 +174,11 @@ describe("handleLinkClick", () => {
     expect(deps.shouldOpenInNewTab).not.toHaveBeenCalled()
   })
 
-  it("should return early if ancestor is blacklisted (traversal)", () => {
+  it('should return early if ancestor is blacklisted (traversal)', () => {
     // Case 2: Traversing up from target, encounter blacklisted element before finding 'A'
-    const blacklistedParent = document.createElement("div")
-    blacklistedParent.classList.add("bili-watch-later")
-    const span = document.createElement("span")
+    const blacklistedParent = document.createElement('div')
+    blacklistedParent.classList.add('bili-watch-later')
+    const span = document.createElement('span')
     blacklistedParent.append(span)
     // We don't need to append to 'target' (the anchor) for this test if we want to test early exit
     // effectively: div(blacklisted) -> span(target). No 'A' found yet.
@@ -198,8 +198,8 @@ describe("handleLinkClick", () => {
     expect(deps.shouldOpenInNewTab).not.toHaveBeenCalled()
   })
 
-  it("should return early if modifier keys are pressed", () => {
-    const modifiers = ["metaKey", "ctrlKey", "shiftKey", "altKey"]
+  it('should return early if modifier keys are pressed', () => {
+    const modifiers = ['metaKey', 'ctrlKey', 'shiftKey', 'altKey']
     for (const key of modifiers) {
       const modifierEvent = {
         ...event,
@@ -210,7 +210,7 @@ describe("handleLinkClick", () => {
       // However, creating a real MouseEvent with read-only properties is tricky in some environments.
       // But in JSDOM (Vitest), we can pass options to MouseEvent constructor.
 
-      const realEvent = new MouseEvent("click", {
+      const realEvent = new MouseEvent('click', {
         [key]: true,
         bubbles: true,
         cancelable: true,
@@ -227,15 +227,15 @@ describe("handleLinkClick", () => {
     }
   })
 
-  it("should stop propagation on specific sites when opening in current tab", () => {
+  it('should stop propagation on specific sites when opening in current tab', () => {
     const depsZhihu = {
       ...deps,
       enableOpenInternalLinksInCurrentTab: true,
-      hostname: "www.zhihu.com",
+      hostname: 'www.zhihu.com',
     }
     vi.mocked(depsZhihu.shouldOpenInNewTab).mockReturnValue(false)
-    vi.mocked(utils.getAttribute).mockReturnValue("_blank")
-    target.href = "https://www.zhihu.com/question/123"
+    vi.mocked(utils.getAttribute).mockReturnValue('_blank')
+    target.href = 'https://www.zhihu.com/question/123'
 
     handleLinkClick(event as unknown as MouseEvent, depsZhihu)
 
@@ -243,15 +243,15 @@ describe("handleLinkClick", () => {
     expect(removeLinkTargetBlank).toHaveBeenCalledWith(target)
   })
 
-  it("should not stop propagation on other sites when opening in current tab", () => {
+  it('should not stop propagation on other sites when opening in current tab', () => {
     const depsOther = {
       ...deps,
       enableOpenInternalLinksInCurrentTab: true,
-      hostname: "www.example.com",
+      hostname: 'www.example.com',
     }
     vi.mocked(depsOther.shouldOpenInNewTab).mockReturnValue(false)
-    vi.mocked(utils.getAttribute).mockReturnValue("_blank")
-    target.href = "https://www.example.com/page"
+    vi.mocked(utils.getAttribute).mockReturnValue('_blank')
+    target.href = 'https://www.example.com/page'
 
     handleLinkClick(event as unknown as MouseEvent, depsOther)
 
@@ -260,15 +260,15 @@ describe("handleLinkClick", () => {
   })
 })
 
-describe("isBlacklisted", () => {
-  it("should return true if element has blacklisted class", () => {
-    const el = document.createElement("div")
-    el.classList.add("bili-watch-later")
+describe('isBlacklisted', () => {
+  it('should return true if element has blacklisted class', () => {
+    const el = document.createElement('div')
+    el.classList.add('bili-watch-later')
     expect(isBlacklisted(el)).toBe(true)
   })
 
-  it("should return false if element does not have blacklisted class", () => {
-    const el = document.createElement("div")
+  it('should return false if element does not have blacklisted class', () => {
+    const el = document.createElement('div')
     expect(isBlacklisted(el)).toBe(false)
   })
 })

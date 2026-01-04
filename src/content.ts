@@ -1,12 +1,12 @@
-import { getPrefferedLocale } from "browser-extension-i18n"
+import { getPrefferedLocale } from 'browser-extension-i18n'
 import {
   getSettingsValue,
   hideSettings,
   initSettings,
   showSettings,
   type SettingsTable,
-} from "browser-extension-settings"
-import { setPolling } from "browser-extension-storage"
+} from 'browser-extension-settings'
+import { setPolling } from 'browser-extension-storage'
 import {
   $,
   $$,
@@ -21,22 +21,22 @@ import {
   runWhenHeadExists,
   setAttribute,
   throttle,
-} from "browser-extension-utils"
-import styleText from "data-text:./content.scss"
-import type { PlasmoCSConfig } from "plasmo"
+} from 'browser-extension-utils'
+import styleText from 'data-text:./content.scss'
+import type { PlasmoCSConfig } from 'plasmo'
 
-import { getAvailableLocales, i, resetI18n } from "./messages"
-import { handleLinkClick } from "./modules/click-handler"
-import { getAllAnchors } from "./modules/dom-traversal"
-import { eraseLinks, restoreLinks } from "./modules/erase-links"
+import { getAvailableLocales, i, resetI18n } from './messages'
+import { handleLinkClick } from './modules/click-handler'
+import { getAllAnchors } from './modules/dom-traversal'
+import { eraseLinks, restoreLinks } from './modules/erase-links'
 import {
   removeLinkTargetBlank,
   setLinkTargetToBlank,
-} from "./modules/link-attributes"
-import { bindOnError, linkToImg } from "./modules/link-to-img"
-import { shouldOpenInNewTab as shouldOpenInNewTabFn } from "./modules/should-open-in-new-tab"
-import { scanAndConvertChildNodes } from "./modules/text-to-links"
-import { extractCanonicalId, getBaseDomain } from "./utils/index"
+} from './modules/link-attributes'
+import { bindOnError, linkToImg } from './modules/link-to-img'
+import { shouldOpenInNewTab as shouldOpenInNewTabFn } from './modules/should-open-in-new-tab'
+import { scanAndConvertChildNodes } from './modules/text-to-links'
+import { extractCanonicalId, getBaseDomain } from './utils/index'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -51,7 +51,7 @@ const hostname = location.hostname
 let currentUrl: string | undefined
 let currentCanonicalId: string | undefined
 let enableCustomRules = false
-let customRules = ""
+let customRules = ''
 let enableTreatSubdomainsSameSite = false
 let enableBackground = false
 let enableOpenInternalLinksInCurrentTab = false
@@ -61,15 +61,15 @@ let cachedFlag = 0
 
 if (
   // eslint-disable-next-line n/prefer-global/process
-  process.env.PLASMO_TARGET === "chrome-mv3" ||
+  process.env.PLASMO_TARGET === 'chrome-mv3' ||
   // eslint-disable-next-line n/prefer-global/process
-  process.env.PLASMO_TARGET === "firefox-mv3"
+  process.env.PLASMO_TARGET === 'firefox-mv3'
 ) {
   // Receive popup trigger to show settings in the content context
   const runtime =
     (globalThis as any).chrome?.runtime ?? (globalThis as any).browser?.runtime
   runtime?.onMessage?.addListener((message: any) => {
-    if (message?.type === "links-helper:show-settings") {
+    if (message?.type === 'links-helper:show-settings') {
       void showSettings()
     }
   })
@@ -77,77 +77,77 @@ if (
 
 export const config: PlasmoCSConfig = {
   all_frames: true,
-  run_at: "document_start",
+  run_at: 'document_start',
 }
 
 const getSettingsTable = (): SettingsTable => {
   let groupNumber = 1
   return {
     enable: {
-      title: i("settings.enable"),
+      title: i('settings.enable'),
       defaultValue: true,
     },
     [`enableCurrentSite_${host}`]: {
-      title: i("settings.enableCurrentSite"),
+      title: i('settings.enableCurrentSite'),
       defaultValue: true,
     },
     [`enableCustomRulesForCurrentSite_${host}`]: {
-      title: i("settings.enableCustomRulesForTheCurrentSite"),
+      title: i('settings.enableCustomRulesForTheCurrentSite'),
       defaultValue: false,
     },
     [`customRulesForCurrentSite_${host}`]: {
-      title: i("settings.enableCustomRulesForTheCurrentSite"),
-      defaultValue: "",
-      placeholder: i("settings.customRulesPlaceholder"),
-      type: "textarea",
+      title: i('settings.enableCustomRulesForTheCurrentSite'),
+      defaultValue: '',
+      placeholder: i('settings.customRulesPlaceholder'),
+      type: 'textarea',
       group: ++groupNumber,
     },
     customRulesTip: {
-      title: i("settings.customRulesTipTitle"),
-      type: "tip",
-      tipContent: i("settings.customRulesTipContent"),
+      title: i('settings.customRulesTipTitle'),
+      type: 'tip',
+      tipContent: i('settings.customRulesTipContent'),
       group: groupNumber,
     },
     [`enableOpenNewTabInBackground`]: {
-      title: i("settings.enableOpenNewTabInBackground"),
+      title: i('settings.enableOpenNewTabInBackground'),
       defaultValue: false,
       group: ++groupNumber,
     },
     [`enableOpenNewTabInBackgroundForCurrentSite_${host}`]: {
-      title: i("settings.enableOpenNewTabInBackgroundForCurrentSite"),
+      title: i('settings.enableOpenNewTabInBackgroundForCurrentSite'),
       defaultValue: undefined as any as boolean,
       group: groupNumber,
     },
     [`enableOpenInternalLinksInCurrentTab`]: {
-      title: i("settings.enableOpenInternalLinksInCurrentTab"),
+      title: i('settings.enableOpenInternalLinksInCurrentTab'),
       defaultValue: false,
       group: ++groupNumber,
     },
     [`enableOpenInternalLinksInCurrentTabForCurrentSite_${host}`]: {
-      title: i("settings.enableOpenInternalLinksInCurrentTabForCurrentSite"),
+      title: i('settings.enableOpenInternalLinksInCurrentTabForCurrentSite'),
       defaultValue: undefined as any as boolean,
       group: groupNumber,
     },
     [`enableTreatSubdomainsAsSameSiteForCurrentSite_${host}`]: {
-      title: i("settings.enableTreatSubdomainsAsSameSiteForCurrentSite"),
+      title: i('settings.enableTreatSubdomainsAsSameSiteForCurrentSite'),
       defaultValue: false,
       group: ++groupNumber,
     },
     [`enableTextToLinksForCurrentSite_${host}`]: {
-      title: i("settings.enableTextToLinksForCurrentSite"),
+      title: i('settings.enableTextToLinksForCurrentSite'),
       // Default false; only v2ex.com and localhost support
       defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
       group: ++groupNumber,
     },
     [`enableLinkToImgForCurrentSite_${host}`]: {
-      title: i("settings.enableLinkToImgForCurrentSite"),
+      title: i('settings.enableLinkToImgForCurrentSite'),
       // Default false; only v2ex.com and localhost support
       defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
       group: groupNumber,
     },
     convertTextToLinks: {
-      title: i("settings.convertTextToLinks"),
-      type: "action",
+      title: i('settings.convertTextToLinks'),
+      type: 'action',
       async onclick() {
         hideSettings()
         scanAndConvertChildNodes(doc.body)
@@ -155,8 +155,8 @@ const getSettingsTable = (): SettingsTable => {
       group: ++groupNumber,
     },
     convertLinksToImages: {
-      title: i("settings.convertLinksToImages"),
-      type: "action",
+      title: i('settings.convertLinksToImages'),
+      type: 'action',
       async onclick() {
         hideSettings()
         for (const element of getAllAnchors()) {
@@ -170,8 +170,8 @@ const getSettingsTable = (): SettingsTable => {
       group: groupNumber,
     },
     eraseLinks: {
-      title: i("settings.eraseLinks"),
-      type: "action",
+      title: i('settings.eraseLinks'),
+      type: 'action',
       async onclick() {
         hideSettings()
         eraseLinks()
@@ -179,8 +179,8 @@ const getSettingsTable = (): SettingsTable => {
       group: groupNumber,
     },
     restoreLinks: {
-      title: i("settings.restoreLinks"),
-      type: "action",
+      title: i('settings.restoreLinks'),
+      type: 'action',
       async onclick() {
         hideSettings()
         restoreLinks()
@@ -207,7 +207,7 @@ const shouldOpenInNewTab = (element: HTMLAnchorElement): boolean =>
 function onSettingsChange() {
   cachedFlag++
   const locale =
-    getSettingsValue<string | undefined>("locale") || getPrefferedLocale()
+    getSettingsValue<string | undefined>('locale') || getPrefferedLocale()
   resetI18n(locale)
 
   enableCustomRules = Boolean(
@@ -218,7 +218,7 @@ function onSettingsChange() {
 
   customRules =
     getSettingsValue<string | undefined>(`customRulesForCurrentSite_${host}`) ||
-    ""
+    ''
 
   enableTreatSubdomainsSameSite = Boolean(
     getSettingsValue<boolean | undefined>(
@@ -326,13 +326,13 @@ async function main() {
   await initSettings(() => {
     const settingsTable = getSettingsTable()
     return {
-      id: "links-helper",
-      title: i("settings.title"),
+      id: 'links-helper',
+      title: i('settings.title'),
       footer: `
-    <p>${i("settings.information")}</p>
+    <p>${i('settings.information')}</p>
     <p>
     <a href="https://github.com/utags/links-helper/issues" target="_blank">
-    ${i("settings.report")}
+    ${i('settings.report')}
     </a></p>
     <p>Made with ❤️ by
     <a href="https://www.pipecraft.net/" target="_blank">
@@ -349,8 +349,8 @@ async function main() {
           group2.style.display = getSettingsValue(
             `enableCustomRulesForCurrentSite_${host}`
           )
-            ? "block"
-            : "none"
+            ? 'block'
+            : 'none'
         }
 
         {
@@ -396,8 +396,8 @@ async function main() {
           )
           if (element) {
             ;(element as HTMLElement).style.display = enableTextToLinks
-              ? "none"
-              : "block"
+              ? 'none'
+              : 'block'
           }
         }
 
@@ -410,8 +410,8 @@ async function main() {
           )
           if (element) {
             ;(element as HTMLElement).style.display = enableLinkToImg
-              ? "none"
-              : "block"
+              ? 'none'
+              : 'block'
           }
         }
       },
@@ -419,7 +419,7 @@ async function main() {
   })
 
   if (
-    !getSettingsValue("enable") ||
+    !getSettingsValue('enable') ||
     !getSettingsValue(`enableCurrentSite_${host}`)
   ) {
     return
@@ -433,7 +433,7 @@ async function main() {
 
   addEventListener(
     doc,
-    "click",
+    'click',
     (event) => {
       handleLinkClick(event, {
         enableBackground,
@@ -468,7 +468,7 @@ async function main() {
 
 runWhenHeadExists(async () => {
   if (doc.documentElement.dataset.linksHelper === undefined) {
-    doc.documentElement.dataset.linksHelper = ""
+    doc.documentElement.dataset.linksHelper = ''
     await main()
   }
 })

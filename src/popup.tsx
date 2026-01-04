@@ -1,4 +1,4 @@
-import { i } from "./messages"
+import { i } from './messages'
 
 function IndexPopup() {
   const openSettings = () => {
@@ -8,7 +8,7 @@ function IndexPopup() {
         api.tabs.query({ active: true, currentWindow: true }, (tabs: any[]) => {
           const tabId = tabs?.[0]?.id
           if (tabId) {
-            api.tabs.sendMessage(tabId, { type: "links-helper:show-settings" })
+            api.tabs.sendMessage(tabId, { type: 'links-helper:show-settings' })
             try {
               window.close()
             } catch {}
@@ -28,21 +28,21 @@ function IndexPopup() {
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
         padding: 16,
-        width: "300px",
+        width: '300px',
       }}>
-      <h1>{i("settings.title")}</h1>
+      <h1>{i('settings.title')}</h1>
       <button
         onClick={openSettings}
-        style={{ marginTop: 8, marginBottom: 20, width: "100%" }}>
-        {i("popup.settings")}
+        style={{ marginTop: 8, marginBottom: 20, width: '100%' }}>
+        {i('popup.settings')}
       </button>
       <footer>
-        Made with ❤️ by{" "}
+        Made with ❤️ by{' '}
         <a href="https://www.pipecraft.net/" target="_blank">
           Pipecraft
         </a>

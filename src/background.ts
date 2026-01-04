@@ -1,7 +1,7 @@
 // background.ts - Background script to handle opening tabs in the background
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "open_background_tab") {
+  if (message.type === 'open_background_tab') {
     const senderTabId = sender.tab?.id
     if (senderTabId === undefined) {
       // Fallback if no sender tab

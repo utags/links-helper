@@ -1,7 +1,7 @@
-import fs from "node:fs"
+import fs from 'node:fs'
 
-const filePath = "build/firefox-mv3-prod/manifest.json"
-const manifest = JSON.parse(fs.readFileSync(filePath, "utf8"))
+const filePath = 'build/firefox-mv3-prod/manifest.json'
+const manifest = JSON.parse(fs.readFileSync(filePath, 'utf8'))
 
 delete manifest.web_accessible_resources
 

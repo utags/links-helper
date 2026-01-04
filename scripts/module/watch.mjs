@@ -1,14 +1,14 @@
-import fs from "node:fs"
+import fs from 'node:fs'
 
-import { getBuildOptions, runDevServer } from "../common.mjs"
+import { getBuildOptions, runDevServer } from '../common.mjs'
 
-const target = "module"
-const tag = "dev"
+const target = 'module'
+const tag = 'dev'
 
 const buildOptions = getBuildOptions(target, tag)
 buildOptions.alias = {
   ...buildOptions.alias,
-  "browser-extension-storage": "browser-extension-storage/local-storage",
+  'browser-extension-storage': 'browser-extension-storage/local-storage',
 }
 
 const { port } = await runDevServer(buildOptions, target, tag)

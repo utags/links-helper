@@ -5,60 +5,60 @@ import {
   createHTML,
   doc,
   hasClass,
-} from "browser-extension-utils"
+} from 'browser-extension-utils'
 
-import { convertImgUrl, createImgTagString } from "./link-to-img"
+import { convertImgUrl, createImgTagString } from './link-to-img'
 
 const ignoredTags = new Set([
-  "A",
-  "BUTTON",
-  "SVG",
-  "PATH",
-  "G",
-  "SCRIPT",
-  "STYLE",
-  "TEXTAREA",
-  "CODE",
-  "PRE",
-  "TEMPLATE",
-  "FILE-ATTACHMENT",
-  "NOSCRIPT",
-  "TITLE",
+  'A',
+  'BUTTON',
+  'SVG',
+  'PATH',
+  'G',
+  'SCRIPT',
+  'STYLE',
+  'TEXTAREA',
+  'CODE',
+  'PRE',
+  'TEMPLATE',
+  'FILE-ATTACHMENT',
+  'NOSCRIPT',
+  'TITLE',
 ])
 
 const urlPattern =
   // eslint-disable-next-line unicorn/prefer-string-raw
-  "\\b((?:https?:\\/\\/(?:[\\w-.]+\\.[a-z]{2,15}|localhost|(?:\\d{1,3}\\.){3}\\d{1,3}))(?::\\d+)?(?:\\/[\\w-/%.~+:;!@=&?#]*)?)"
+  '\\b((?:https?:\\/\\/(?:[\\w-.]+\\.[a-z]{2,15}|localhost|(?:\\d{1,3}\\.){3}\\d{1,3}))(?::\\d+)?(?:\\/[\\w-/%.~+:;!@=&?#]*)?)'
 
 // ![img](url)
 const linkPattern1 = new RegExp(
   `!\\[([^\\[\\]]*)\\]\\((?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\)`,
-  "gim"
+  'gim'
 )
 // [text](url)
 const linkPattern2 = new RegExp(
   `\\[([^\\[\\]]*)\\]\\((?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\)`,
-  "gim"
+  'gim'
 )
 // url
-const linkPattern3 = new RegExp(urlPattern, "gim")
+const linkPattern3 = new RegExp(urlPattern, 'gim')
 
 // [img]{url}[/img]
 const linkPattern4 = new RegExp(
   `\\[img\\](?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\[/img\\]`,
-  "gim"
+  'gim'
 )
 
 // [url]{url}[/url]
 const linkPattern5 = new RegExp(
   `\\[url\\](?:\\s|<br/?>)*${urlPattern}(?:\\s|<br/?>)*\\[/url\\]`,
-  "gim"
+  'gim'
 )
 
 // [url={url}]{text}[/url]
 const linkPattern6 = new RegExp(
   `\\[url=${urlPattern}\\]([^\\[\\]]+)\\[/url\\]`,
-  "gim"
+  'gim'
 )
 
 export const replaceMarkdownImgLinks = (text: string) => {
@@ -76,7 +76,7 @@ export const replaceMarkdownLinks = (text: string) => {
     text = text.replaceAll(
       linkPattern2,
       (m, p1: string, p2: string) =>
-        `<a href="${p2}">${p1.replaceAll(/<br>$/gi, "")}</a>`
+        `<a href="${p2}">${p1.replaceAll(/<br>$/gi, '')}</a>`
     )
   }
 
@@ -125,19 +125,19 @@ export const replaceBBCodeLinks = (text: string) => {
 }
 
 export const textToLink = (textNode: HTMLElement, previousText: string) => {
-  const textContent = textNode.textContent ?? ""
+  const textContent = textNode.textContent ?? ''
   const parentNode = textNode.parentNode as HTMLElement
   const mergedText = previousText + textContent
   if (
     !parentNode ||
-    textNode.nodeName !== "#text" ||
+    textNode.nodeName !== '#text' ||
     textContent.trim().length === 0 ||
     mergedText.trim().length < 3
   ) {
     return
   }
 
-  if (textContent.includes("://")) {
+  if (textContent.includes('://')) {
     const original = textContent
     let newContent = original
     if (/\[.*]\(/ms.test(original)) {
@@ -161,7 +161,7 @@ export const textToLink = (textNode: HTMLElement, previousText: string) => {
     }
 
     if (newContent !== original) {
-      const span = createElement("span")
+      const span = createElement('span')
       span.innerHTML = createHTML(newContent)
       textNode.after(span)
       textNode.remove()
@@ -169,7 +169,7 @@ export const textToLink = (textNode: HTMLElement, previousText: string) => {
     }
   }
 
-  const parentTextContent = parentNode.textContent ?? ""
+  const parentTextContent = parentNode.textContent ?? ''
 
   // markdown style + parsed <a> tags (eg: v2ex comment)
   // [](<a href=xxx>xxx</a>) or ![](<a href=xxx>xxx</a>)
@@ -177,7 +177,7 @@ export const textToLink = (textNode: HTMLElement, previousText: string) => {
   if (
     /\[.*]\(/ms.test(mergedText) &&
     (parentTextContent.search(linkPattern2) >= 0 ||
-      $$("img", parentNode).length > 0)
+      $$('img', parentNode).length > 0)
   ) {
     const original = parentNode.innerHTML
     // console.log("Markdown", textContent, "=========", original)
@@ -186,22 +186,22 @@ export const textToLink = (textNode: HTMLElement, previousText: string) => {
         m
           .replaceAll(
             /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
-            "$1"
+            '$1'
           )
           .replaceAll(
             /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
-            "($1)"
+            '($1)'
           )
       )
       .replaceAll(/\[!\[.*]\([^()]+\)]\([^[\]()]+?\)/gims, (m) =>
         m
           .replaceAll(
             /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
-            "$1"
+            '$1'
           )
           .replaceAll(
             /\((?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\)/gim,
-            "($1)"
+            '($1)'
           )
       )
 
@@ -224,7 +224,7 @@ export const textToLink = (textNode: HTMLElement, previousText: string) => {
   ) {
     const original = parentNode.innerHTML
     // console.log("BBCode", textContent, " ========= ", original)
-    let before = ""
+    let before = ''
     let after: string = original
     let count = 0
     while (before !== after && count < 5) {
@@ -237,26 +237,26 @@ export const textToLink = (textNode: HTMLElement, previousText: string) => {
           // console.error("m", m)
           let tagsRemoved: string
           let converted: string
-          if (p1 === "img") {
+          if (p1 === 'img') {
             tagsRemoved = m
               .replaceAll(
                 /<img[^<>]*\ssrc=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>/gim,
-                "$1"
+                '$1'
               )
               .replaceAll(
                 /\[img](?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\[\/img]/gim,
-                "[img]$1[/img]"
+                '[img]$1[/img]'
               )
             converted = replaceBBCodeImgLinks(tagsRemoved)
           } else {
             tagsRemoved = m
               .replaceAll(
                 /\[url](?:\s|<br\/?>)*<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>(?:\s|<br\/?>)*\[\/url]/gim,
-                "[url]$1[/url]"
+                '[url]$1[/url]'
               )
               .replaceAll(
                 /\[url=<a[^<>]*\shref=['"]?(http[^'"]+)['"]?(\s[^<>]*)?>\1<\/a>]/gim,
-                "[url=$1]"
+                '[url=$1]'
               )
             converted = replaceBBCodeLinks(tagsRemoved)
           }
@@ -278,19 +278,19 @@ export const textToLink = (textNode: HTMLElement, previousText: string) => {
 
 export const fixAnchorTag = (anchorElement: HTMLAnchorElement) => {
   const href = anchorElement.href
-  const textContent = anchorElement.textContent ?? ""
+  const textContent = anchorElement.textContent ?? ''
   const nextSibling = anchorElement.nextSibling
   if (
     anchorElement.childElementCount === 0 &&
-    href.includes(")") &&
-    textContent.includes(")")
+    href.includes(')') &&
+    textContent.includes(')')
   ) {
-    const index = textContent.indexOf(")")
+    const index = textContent.indexOf(')')
     const removed = textContent.slice(Math.max(0, index))
     anchorElement.textContent = textContent.slice(0, Math.max(0, index))
     anchorElement.href = anchorElement.href.slice(
       0,
-      Math.max(0, href.indexOf(")"))
+      Math.max(0, href.indexOf(')'))
     )
     if (nextSibling && nextSibling.nodeType === 3 /* TEXT_NODE */) {
       nextSibling.textContent = removed + nextSibling.textContent
@@ -302,10 +302,10 @@ export const fixAnchorTag = (anchorElement: HTMLAnchorElement) => {
 
 export const isCodeViewer = (element: HTMLElement) =>
   // https://github.com/utags/links-helper/issues/10
-  hasClass(element, "diff-view") ||
-  hasClass(element, "diff") ||
-  hasClass(element, "react-code-lines") ||
-  hasClass(element, "virtual-blame-wrapper") ||
+  hasClass(element, 'diff-view') ||
+  hasClass(element, 'diff') ||
+  hasClass(element, 'react-code-lines') ||
+  hasClass(element, 'virtual-blame-wrapper') ||
   Boolean($('[role="code"]', element))
 
 export const scanAndConvertChildNodes = (
@@ -329,7 +329,7 @@ export const scanAndConvertChildNodes = (
       ignoredTags.has(element.tagName.toUpperCase()) ||
       isCodeViewer(element)
     ) {
-      if (element.tagName === "A") {
+      if (element.tagName === 'A') {
         fixAnchorTag(element as HTMLAnchorElement)
       }
 
@@ -341,10 +341,10 @@ export const scanAndConvertChildNodes = (
     }
   }
 
-  let previousText = ""
+  let previousText = ''
   for (const child of parentNode.childNodes) {
     try {
-      if (child.nodeName === "#text") {
+      if (child.nodeName === '#text') {
         if (textToLink(child as HTMLElement, previousText)) {
           // children has changed, re-scan parent node
           scanAndConvertChildNodes(parentNode)
@@ -352,10 +352,10 @@ export const scanAndConvertChildNodes = (
         }
 
         previousText += child.textContent
-      } else if (child.nodeName === "BR") {
-        previousText += "\n"
+      } else if (child.nodeName === 'BR') {
+        previousText += '\n'
       } else {
-        previousText = ""
+        previousText = ''
         scanAndConvertChildNodes(child as HTMLElement)
       }
     } catch (error) {

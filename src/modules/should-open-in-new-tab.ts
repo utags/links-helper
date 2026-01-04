@@ -1,5 +1,5 @@
-import { extractCanonicalId, getBaseDomain } from "../utils/index"
-import { removeLinkTargetBlank } from "./link-attributes"
+import { extractCanonicalId, getBaseDomain } from '../utils/index'
+import { removeLinkTargetBlank } from './link-attributes'
 
 export type LinkHelperContext = {
   currentUrl?: string
@@ -12,7 +12,7 @@ export type LinkHelperContext = {
   customRules: string
 }
 
-const getWithoutOrigin = (url: string) => url.replace(/(^https?:\/\/[^/]+)/, "")
+const getWithoutOrigin = (url: string) => url.replace(/(^https?:\/\/[^/]+)/, '')
 
 export const shouldOpenInNewTab = (
   element: HTMLAnchorElement,
@@ -34,7 +34,7 @@ export const shouldOpenInNewTab = (
   if (
     !url ||
     !/^https?:\/\//.test(url) ||
-    element.getAttribute("href")?.startsWith("#") ||
+    element.getAttribute('href')?.startsWith('#') ||
     url === currentUrl
   ) {
     return false
@@ -54,7 +54,7 @@ export const shouldOpenInNewTab = (
     }
   }
 
-  const rules = (customRules || "").split("\n")
+  const rules = (customRules || '').split('\n')
 
   // Open matched internal links in a new tab
   if (enableCustomRules && rules.length > 0) {
@@ -74,13 +74,13 @@ export const shouldOpenInNewTab = (
         continue
       }
 
-      const isExclude = rule.startsWith("!")
+      const isExclude = rule.startsWith('!')
       const pattern = isExclude ? rule.slice(1).trim() : rule
       if (pattern.length === 0) {
         continue
       }
 
-      if (pattern === "*") {
+      if (pattern === '*') {
         return !isExclude
       }
 

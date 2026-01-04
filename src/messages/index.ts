@@ -1,16 +1,16 @@
-import { getPrefferedLocale, initAvailableLocales, initI18n } from "browser-extension-i18n"
+import { getPrefferedLocale, initAvailableLocales, initI18n } from 'browser-extension-i18n'
 
-import messagesEn from "./en"
-import messagesZh from "./zh-cn"
+import messagesEn from './en'
+import messagesZh from './zh-cn'
 
-export const availableLocales = /** @type {const} */ ["en", "zh"]
+export const availableLocales = /** @type {const} */ ['en', 'zh']
 
 initAvailableLocales(availableLocales)
 
 // console.log("[links-helper] prefferedLocale:", getPrefferedLocale())
 export const localeMap = {
   zh: messagesZh,
-  "zh-cn": messagesZh,
+  'zh-cn': messagesZh,
   en: messagesEn,
 }
 

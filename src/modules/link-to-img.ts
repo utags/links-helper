@@ -7,9 +7,9 @@ import {
   setAttribute,
   setAttributes,
   setStyle,
-} from "browser-extension-utils"
+} from 'browser-extension-utils'
 
-import rules from "../rules/image-url.json"
+import rules from '../rules/image-url.json'
 
 const cachedRules = {}
 
@@ -25,12 +25,12 @@ const processRule = (rule: string, href: string) => {
       pattern = cachedRule.pattern
       replacement = cachedRule.replacement
     } else {
-      const result = rule.replace(/ #.*/, "").split("->")
+      const result = rule.replace(/ #.*/, '').split('->')
       const patternString = result[0].trim()
 
       pattern = new RegExp(
-        patternString.startsWith("http") ? "^" + patternString : patternString,
-        "i"
+        patternString.startsWith('http') ? '^' + patternString : patternString,
+        'i'
       )
       replacement = result[1]?.trim()
       cachedRules[rule] = { pattern, replacement }
@@ -62,24 +62,24 @@ export const convertImgUrl = (href: string | undefined) => {
 }
 
 export const createImgTagString = (src: string, text: string | undefined) =>
-  `<img src="${src}" title="${text || "image"}" alt="${
-    text || "image"
+  `<img src="${src}" title="${text || 'image'}" alt="${
+    text || 'image'
   }" role="img" style="max-width: 100% !important; vertical-align: bottom;" loading="lazy" referrerpolicy="no-referrer" rel="noreferrer" data-lh-status="1"/>`
 
 export const bindOnError = () => {
   for (const element of $$('img[data-lh-status="1"]')) {
-    setAttribute(element, "data-lh-status", "2")
-    addEventListener(element, "error", (event) => {
+    setAttribute(element, 'data-lh-status', '2')
+    addEventListener(element, 'error', (event) => {
       const img = event.target as HTMLElement
       const anchor = img.parentElement
-      const imgSrc = getAttribute(img, "src")
+      const imgSrc = getAttribute(img, 'src')
       if (imgSrc) {
         img.outerHTML = createHTML(imgSrc)
       }
 
-      if (anchor?.tagName === "A") {
-        setStyle(anchor, "opacity: 50%;")
-        setAttribute(anchor, "data-message", "failed to load image")
+      if (anchor?.tagName === 'A') {
+        setStyle(anchor, 'opacity: 50%;')
+        setAttribute(anchor, 'data-message', 'failed to load image')
       }
     })
   }
@@ -91,9 +91,9 @@ const anchorElementToImgElement = (
   text: string | undefined
 ) => {
   anchor.innerHTML = createHTML(createImgTagString(href, text))
-  setAttribute(anchor, "target", "_blank")
-  addAttribute(anchor, "rel", "noopener")
-  addAttribute(anchor, "rel", "noreferrer")
+  setAttribute(anchor, 'target', '_blank')
+  addAttribute(anchor, 'rel', 'noopener')
+  addAttribute(anchor, 'rel', 'noreferrer')
 }
 
 export const linkToImg = (anchor: HTMLAnchorElement) => {
@@ -103,7 +103,7 @@ export const linkToImg = (anchor: HTMLAnchorElement) => {
     (anchor.childNodes[0] &&
       anchor.childNodes[0].nodeType !== 3) /* TEXT_NODE */ ||
     anchor.closest(
-      "td h1,td h2,td h3,td h4,td h5"
+      'td h1,td h2,td h3,td h4,td h5'
     ) /* file directory like github */
   ) {
     return
