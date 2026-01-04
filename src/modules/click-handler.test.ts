@@ -3,6 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { openInBackgroundTab } from "../modules/open-in-background-tab"
 import { handleLinkClick, type ClickHandlerDeps } from "./click-handler"
+import { setLinkTargetToBlank } from "./link-attributes"
+
+vi.mock("./link-attributes", () => ({
+  setLinkTargetToBlank: vi.fn(),
+}))
 
 vi.mock("../modules/open-in-background-tab", () => ({
   openInBackgroundTab: vi.fn(),
@@ -17,7 +22,6 @@ describe("handleLinkClick", () => {
   const deps: ClickHandlerDeps = {
     enableBackground: false,
     shouldOpenInNewTab: vi.fn(),
-    setAttributeAsOpenInNewTab: vi.fn(),
   }
 
   let event: any
@@ -36,18 +40,40 @@ describe("handleLinkClick", () => {
     target.closest = vi.fn().mockReturnValue(null)
   })
 
+  it("should handle clicks in shadow DOM using composedPath", () => {
+    const shadowHost = document.createElement("div")
+    const shadowRoot = shadowHost.attachShadow({ mode: "open" })
+    const shadowLink = document.createElement("a")
+    shadowLink.href = "https://shadow.com"
+    shadowRoot.append(shadowLink)
+    document.body.append(shadowHost)
+
+    event.composedPath = vi
+      .fn()
+      .mockReturnValue([
+        shadowLink,
+        shadowRoot,
+        shadowHost,
+        document.body,
+        document,
+        globalThis,
+      ])
+    event.target = shadowHost // The target usually appears as the host for outside listeners
+
+    vi.mocked(utils.getAttribute).mockReturnValue("_self")
+    const depsWithBg = { ...deps, enableBackground: true }
+    vi.mocked(depsWithBg.shouldOpenInNewTab).mockReturnValue(true)
+
+    handleLinkClick(event as unknown as MouseEvent, depsWithBg)
+
+    expect(setLinkTargetToBlank).toHaveBeenCalledWith(shadowLink)
+    expect(openInBackgroundTab).toHaveBeenCalledWith("https://shadow.com/")
+  })
+
   it("should do nothing if target is null", () => {
     event.target = null
     handleLinkClick(event as unknown as MouseEvent, deps)
-    expect(deps.setAttributeAsOpenInNewTab).not.toHaveBeenCalled()
-  })
-
-  it("should prevent default for utags captain tags", () => {
-    target.closest.mockReturnValue(true) // Just truthy
-    vi.mocked(utils.hasClass).mockReturnValue(true)
-
-    handleLinkClick(event as unknown as MouseEvent, deps)
-    expect(event.preventDefault).toHaveBeenCalled()
+    expect(setLinkTargetToBlank).not.toHaveBeenCalled()
   })
 
   it("should find anchor element if clicked on child", () => {
@@ -55,14 +81,16 @@ describe("handleLinkClick", () => {
     target.append(span)
     event.target = span
     // Real DOM traversal works in jsdom
+    vi.mocked(deps.shouldOpenInNewTab).mockReturnValue(true)
 
     handleLinkClick(event as unknown as MouseEvent, deps)
-    expect(deps.setAttributeAsOpenInNewTab).toHaveBeenCalledWith(target)
+    expect(setLinkTargetToBlank).toHaveBeenCalledWith(target)
   })
 
-  it("should call setAttributeAsOpenInNewTab", () => {
+  it("should call setLinkTargetToBlank", () => {
+    vi.mocked(deps.shouldOpenInNewTab).mockReturnValue(true)
     handleLinkClick(event as unknown as MouseEvent, deps)
-    expect(deps.setAttributeAsOpenInNewTab).toHaveBeenCalledWith(target)
+    expect(setLinkTargetToBlank).toHaveBeenCalledWith(target)
   })
 
   it("should not stop propagation if not opening in new tab", () => {

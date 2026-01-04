@@ -1,4 +1,5 @@
 import { extractCanonicalId, getBaseDomain } from "../utils/index"
+import { removeLinkTargetBlank } from "./link-attributes"
 
 export type LinkHelperContext = {
   currentUrl?: string
@@ -9,7 +10,6 @@ export type LinkHelperContext = {
   enableTreatSubdomainsSameSite: boolean
   enableCustomRules: boolean
   customRules: string
-  removeAttributeAsOpenInNewTab: (el: HTMLAnchorElement) => void
 }
 
 const getWithoutOrigin = (url: string) => url.replace(/(^https?:\/\/[^/]+)/, "")
@@ -28,7 +28,6 @@ export const shouldOpenInNewTab = (
     enableTreatSubdomainsSameSite,
     enableCustomRules,
     customRules,
-    removeAttributeAsOpenInNewTab,
   } = context
 
   const url = element.href as string | undefined
@@ -63,7 +62,7 @@ export const shouldOpenInNewTab = (
       const canonicalId = extractCanonicalId(url)
 
       if (canonicalId && canonicalId === currentCanonicalId) {
-        removeAttributeAsOpenInNewTab(element)
+        removeLinkTargetBlank(element)
         return false
       }
     }

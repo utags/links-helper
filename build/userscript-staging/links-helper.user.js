@@ -38,6 +38,13 @@
   var __getOwnPropSymbols = Object.getOwnPropertySymbols
   var __hasOwnProp = Object.prototype.hasOwnProperty
   var __propIsEnum = Object.prototype.propertyIsEnumerable
+  var __knownSymbol = (name, symbol) =>
+    (symbol = Symbol[name])
+      ? symbol
+      : /* @__PURE__ */ Symbol.for("Symbol." + name)
+  var __typeError = (msg) => {
+    throw TypeError(msg)
+  }
   var __defNormalProp = (obj, key, value) =>
     key in obj
       ? __defProp(obj, key, {
@@ -55,6 +62,53 @@
         if (__propIsEnum.call(b, prop)) __defNormalProp(a, prop, b[prop])
       }
     return a
+  }
+  var __await = function (promise, isYieldStar) {
+    this[0] = promise
+    this[1] = isYieldStar
+  }
+  var __yieldStar = (value) => {
+    var obj = value[__knownSymbol("asyncIterator")],
+      isAwait = false,
+      method,
+      it = {}
+    if (obj == null) {
+      obj = value[__knownSymbol("iterator")]()
+      method = (k) => (it[k] = (x) => obj[k](x))
+    } else {
+      obj = obj.call(value)
+      method = (k) =>
+        (it[k] = (v) => {
+          if (isAwait) {
+            isAwait = false
+            if (k === "throw") throw v
+            return v
+          }
+          isAwait = true
+          return {
+            done: false,
+            value: new __await(
+              new Promise((resolve) => {
+                var x = obj[k](v)
+                if (!(x instanceof Object)) __typeError("Object expected")
+                resolve(x)
+              }),
+              1
+            ),
+          }
+        })
+    }
+    return (
+      (it[__knownSymbol("iterator")] = () => it),
+      method("next"),
+      "throw" in obj
+        ? method("throw")
+        : (it.throw = (x) => {
+            throw x
+          }),
+      "return" in obj && method("return"),
+      it
+    )
   }
   var availableLocales = ["en"]
   var regexCache = /* @__PURE__ */ new Map()
@@ -1631,35 +1685,58 @@
     globalThis.open(url, "_blank")
     globalThis.focus()
   }
+  var setLinkTargetToBlank = (element) => {
+    setAttribute(element, "target", "_blank")
+    addAttribute(element, "rel", "noopener")
+  }
+  var removeLinkTargetBlank = (element) => {
+    if (getAttribute(element, "target") === "_blank") {
+      removeAttribute(element, "target")
+    }
+  }
   var handleLinkClick = (event, deps) => {
-    let anchorElement = event.target
-    if (!anchorElement) {
-      return
-    }
-    if (anchorElement.closest(".utags_ul")) {
-      if (
-        hasClass(anchorElement, "utags_captain_tag") ||
-        hasClass(anchorElement, "utags_captain_tag2")
-      ) {
-        event.preventDefault()
+    let anchorElement
+    if (event.composedPath) {
+      const path = event.composedPath()
+      for (const target of path) {
+        if (target.tagName === "A") {
+          anchorElement = target
+          break
+        }
       }
-      return
     }
-    while (anchorElement && anchorElement.tagName !== "A") {
-      anchorElement = anchorElement.parentNode
+    if (!anchorElement) {
+      anchorElement = event.target
+      while (anchorElement && anchorElement.tagName !== "A") {
+        anchorElement = anchorElement.parentNode
+      }
     }
     if (anchorElement) {
-      deps.setAttributeAsOpenInNewTab(anchorElement)
-      const isNewTab = getAttribute(anchorElement, "target") === "_blank"
-      const shouldOpenBackground =
-        deps.enableBackground && deps.shouldOpenInNewTab(anchorElement)
-      if (isNewTab || shouldOpenBackground) {
+      const shouldOpen = deps.shouldOpenInNewTab(anchorElement)
+      if (shouldOpen) {
+        setLinkTargetToBlank(anchorElement)
+      }
+      const isNewTab =
+        shouldOpen || getAttribute(anchorElement, "target") === "_blank"
+      if (isNewTab) {
         event.stopImmediatePropagation()
         event.stopPropagation()
-        if (shouldOpenBackground) {
+        if (deps.enableBackground) {
           event.preventDefault()
           openInBackgroundTab(anchorElement.href)
         }
+      }
+    }
+  }
+  function* getAllAnchors(root = document) {
+    const elements = root.querySelectorAll("a")
+    for (const element of elements) {
+      yield element
+    }
+    const allElements = root.querySelectorAll("*")
+    for (const element of allElements) {
+      if (element.shadowRoot) {
+        yield* __yieldStar(getAllAnchors(element.shadowRoot))
       }
     }
   }
@@ -1874,7 +1951,6 @@
       enableTreatSubdomainsSameSite: enableTreatSubdomainsSameSite2,
       enableCustomRules: enableCustomRules2,
       customRules: customRules2,
-      removeAttributeAsOpenInNewTab: removeAttributeAsOpenInNewTab2,
     } = context
     const url = element.href
     if (
@@ -1902,7 +1978,7 @@
       if (currentCanonicalId2) {
         const canonicalId = extractCanonicalId(url)
         if (canonicalId && canonicalId === currentCanonicalId2) {
-          removeAttributeAsOpenInNewTab2(element)
+          removeLinkTargetBlank(element)
           return false
         }
       }
@@ -2339,18 +2415,7 @@
       enableTreatSubdomainsSameSite,
       enableCustomRules,
       customRules,
-      removeAttributeAsOpenInNewTab,
     })
-  var setAttributeAsOpenInNewTab = (element) => {
-    if (!enableBackground && shouldOpenInNewTab2(element)) {
-      setAttribute(element, "target", "_blank")
-      addAttribute(element, "rel", "noopener")
-    }
-  }
-  var removeAttributeAsOpenInNewTab = (element) => {
-    removeAttribute(element, "target")
-    removeAttribute(element, "rel")
-  }
   function onSettingsChange() {
     const locale = getSettingsValue("locale") || getPrefferedLocale()
     resetI18n2(locale)
@@ -2446,7 +2511,6 @@
         handleLinkClick(event, {
           enableBackground,
           shouldOpenInNewTab: shouldOpenInNewTab2,
-          setAttributeAsOpenInNewTab,
         })
       },
       true
@@ -2456,16 +2520,15 @@
         currentUrl = location.href
         currentCanonicalId = extractCanonicalId(currentUrl)
       }
-      if (!enableLinkToImg && enableBackground) {
-        return
-      }
-      for (const element of $$("a")) {
+      for (const element of getAllAnchors()) {
         if (element.__links_helper_scaned) {
           continue
         }
         element.__links_helper_scaned = 1
         try {
-          setAttributeAsOpenInNewTab(element)
+          if (shouldOpenInNewTab2(element)) {
+            setLinkTargetToBlank(element)
+          }
         } catch (error) {
           console.error(error)
         }
@@ -2483,7 +2546,9 @@
         scanAndConvertChildNodes(doc.body)
       }
       scanAnchors()
-      bindOnError()
+      if (enableLinkToImg) {
+        bindOnError()
+      }
     }, 500)
     const observer = new MutationObserver((mutationsList) => {
       scanNodes()

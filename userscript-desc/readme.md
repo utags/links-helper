@@ -104,6 +104,8 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.10.x
+  - Support handling links inside Shadow DOM.
 - 0.9.x
   - Optimize GM.\* API fallback logic.
   - Improve compatibility with script managers such as Greasymonkey, quoid-userscripts, Stay, etc.

@@ -1,9 +1,14 @@
 import { describe, expect, it, vi } from "vitest"
 
+import { removeLinkTargetBlank } from "./link-attributes"
 import {
   shouldOpenInNewTab,
   type LinkHelperContext,
 } from "./should-open-in-new-tab"
+
+vi.mock("./link-attributes", () => ({
+  removeLinkTargetBlank: vi.fn(),
+}))
 
 describe("shouldOpenInNewTab", () => {
   const defaultContext: LinkHelperContext = {
@@ -14,7 +19,6 @@ describe("shouldOpenInNewTab", () => {
     enableTreatSubdomainsSameSite: false,
     enableCustomRules: false,
     customRules: "",
-    removeAttributeAsOpenInNewTab: vi.fn(),
   }
 
   const createAnchor = (href: string) => {
@@ -124,6 +128,18 @@ describe("shouldOpenInNewTab", () => {
       expect(
         shouldOpenInNewTab(createAnchor("https://example.com/any"), context)
       ).toBe(false)
+    })
+
+    it("should remove target blank and return false if canonical ID matches", () => {
+      const context = {
+        ...defaultContext,
+        enableCustomRules: true,
+        customRules: "*",
+        currentCanonicalId: "/t/123",
+      }
+      const anchor = createAnchor("https://example.com/t/123/reply")
+      expect(shouldOpenInNewTab(anchor, context)).toBe(false)
+      expect(removeLinkTargetBlank).toHaveBeenCalledWith(anchor)
     })
   })
 })

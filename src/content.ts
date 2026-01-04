@@ -27,7 +27,9 @@ import type { PlasmoCSConfig } from "plasmo"
 
 import { getAvailableLocales, i, resetI18n } from "./messages"
 import { handleLinkClick } from "./modules/click-handler"
+import { getAllAnchors } from "./modules/dom-traversal"
 import { eraseLinks, restoreLinks } from "./modules/erase-links"
+import { setLinkTargetToBlank } from "./modules/link-attributes"
 import { bindOnError, linkToImg } from "./modules/link-to-img"
 import { shouldOpenInNewTab as shouldOpenInNewTabFn } from "./modules/should-open-in-new-tab"
 import { scanAndConvertChildNodes } from "./modules/text-to-links"
@@ -160,20 +162,7 @@ const shouldOpenInNewTab = (element: HTMLAnchorElement) =>
     enableTreatSubdomainsSameSite,
     enableCustomRules,
     customRules,
-    removeAttributeAsOpenInNewTab,
   })
-
-const setAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
-  if (!enableBackground && shouldOpenInNewTab(element)) {
-    setAttribute(element, "target", "_blank")
-    addAttribute(element, "rel", "noopener")
-  }
-}
-
-const removeAttributeAsOpenInNewTab = (element: HTMLAnchorElement) => {
-  removeAttribute(element, "target")
-  removeAttribute(element, "rel")
-}
 
 function onSettingsChange() {
   const locale =
@@ -296,7 +285,6 @@ async function main() {
       handleLinkClick(event, {
         enableBackground,
         shouldOpenInNewTab,
-        setAttributeAsOpenInNewTab,
       })
     },
     true
@@ -309,25 +297,23 @@ async function main() {
       currentCanonicalId = extractCanonicalId(currentUrl)
     }
 
-    if (!enableLinkToImg && enableBackground) {
-      return
-    }
-
-    for (const element of $$("a")) {
+    for (const element of getAllAnchors()) {
       if (element.__links_helper_scaned) {
         continue
       }
 
       element.__links_helper_scaned = 1
       try {
-        setAttributeAsOpenInNewTab(element as HTMLAnchorElement)
+        if (shouldOpenInNewTab(element)) {
+          setLinkTargetToBlank(element)
+        }
       } catch (error) {
         console.error(error)
       }
 
       if (enableLinkToImg) {
         try {
-          linkToImg(element as HTMLAnchorElement)
+          linkToImg(element)
         } catch (error) {
           console.error(error)
         }
@@ -345,7 +331,9 @@ async function main() {
     }
 
     scanAnchors()
-    bindOnError()
+    if (enableLinkToImg) {
+      bindOnError()
+    }
   }, 500)
 
   const observer = new MutationObserver((mutationsList) => {

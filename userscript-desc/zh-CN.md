@@ -120,6 +120,8 @@
 
 ## Release Notes
 
+- 0.10.x
+  - 支持处理 Shadow DOM 内的链接
 - 0.9.x
   - 优化 GM.\* API fallback 逻辑
   - 提升 Greasymonkey, quoid-userscripts, Stay 等脚本管理器的兼容性
