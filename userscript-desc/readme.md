@@ -107,6 +107,7 @@ Compatible with the following userscript managers
 - 0.10.x
   - Support handling links inside Shadow DOM.
   - Support traversing nested Shadow DOM.
+  - Add manual trigger actions in settings menu: "Convert text to hyperlinks" and "Convert image links to image tags".
 - 0.9.x
   - Optimize GM.\* API fallback logic.
   - Improve compatibility with script managers such as Greasymonkey, quoid-userscripts, Stay, etc.

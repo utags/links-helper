@@ -53,6 +53,7 @@ let enableTreatSubdomainsSameSite = false
 let enableBackground = false
 let enableLinkToImg = false
 let enableTextToLinks = false
+let cachedFlag = 0
 
 if (
   // eslint-disable-next-line n/prefer-global/process
@@ -130,6 +131,30 @@ const getSettingsTable = (): SettingsTable => {
       defaultValue: Boolean(/v2ex\.com|localhost/.test(host)),
       group: groupNumber,
     },
+    convertTextToLinks: {
+      title: i("settings.convertTextToLinks"),
+      type: "action",
+      async onclick() {
+        hideSettings()
+        scanAndConvertChildNodes(doc.body)
+      },
+      group: ++groupNumber,
+    },
+    convertLinksToImages: {
+      title: i("settings.convertLinksToImages"),
+      type: "action",
+      async onclick() {
+        hideSettings()
+        for (const element of getAllAnchors()) {
+          try {
+            linkToImg(element)
+          } catch (error) {
+            console.error(error)
+          }
+        }
+      },
+      group: groupNumber,
+    },
     eraseLinks: {
       title: i("settings.eraseLinks"),
       type: "action",
@@ -137,7 +162,7 @@ const getSettingsTable = (): SettingsTable => {
         hideSettings()
         eraseLinks()
       },
-      group: ++groupNumber,
+      group: groupNumber,
     },
     restoreLinks: {
       title: i("settings.restoreLinks"),
@@ -166,6 +191,7 @@ const shouldOpenInNewTab = (element: HTMLAnchorElement) =>
   })
 
 function onSettingsChange() {
+  cachedFlag++
   const locale =
     getSettingsValue<string | undefined>("locale") || getPrefferedLocale()
   resetI18n(locale)
@@ -217,7 +243,56 @@ function onSettingsChange() {
       `enableTextToLinksForCurrentSite_${host}`
     )
   )
+
+  scanNodes()
 }
+
+const scanAnchors = () => {
+  // Update url if it has changed
+  if (currentUrl !== location.href) {
+    currentUrl = location.href
+    currentCanonicalId = extractCanonicalId(currentUrl)
+  }
+
+  let elementCount = 0
+  for (const element of getAllAnchors()) {
+    if (element.__links_helper_scaned === cachedFlag) {
+      continue
+    }
+
+    elementCount++
+
+    element.__links_helper_scaned = cachedFlag
+    try {
+      if (shouldOpenInNewTab(element)) {
+        setLinkTargetToBlank(element)
+      }
+    } catch (error) {
+      console.error(error)
+    }
+
+    if (enableLinkToImg) {
+      try {
+        linkToImg(element)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  }
+}
+
+const scanNodes = throttle(() => {
+  // console.error(
+  //   "mutation - scanAndConvertChildNodes, scanAnchors",
+  //   Date.now()
+  // )
+  if (enableTextToLinks) {
+    scanAndConvertChildNodes(doc.body)
+  }
+
+  scanAnchors()
+  bindOnError()
+}, 500)
 
 async function main() {
   setPolling(true)
@@ -268,6 +343,34 @@ async function main() {
             }
           }
         }
+
+        {
+          const enableTextToLinks = getSettingsValue<boolean>(
+            `enableTextToLinksForCurrentSite_${host}`
+          )
+          const element = settingsMainView.querySelector(
+            `[data-key="convertTextToLinks"]`
+          )
+          if (element) {
+            ;(element as HTMLElement).style.display = enableTextToLinks
+              ? "none"
+              : "block"
+          }
+        }
+
+        {
+          const enableLinkToImg = getSettingsValue<boolean>(
+            `enableLinkToImgForCurrentSite_${host}`
+          )
+          const element = settingsMainView.querySelector(
+            `[data-key="convertLinksToImages"]`
+          )
+          if (element) {
+            ;(element as HTMLElement).style.display = enableLinkToImg
+              ? "none"
+              : "block"
+          }
+        }
       },
     }
   })
@@ -297,52 +400,6 @@ async function main() {
     true
   )
 
-  const scanAnchors = () => {
-    // Update url if it has changed
-    if (currentUrl !== location.href) {
-      currentUrl = location.href
-      currentCanonicalId = extractCanonicalId(currentUrl)
-    }
-
-    for (const element of getAllAnchors()) {
-      if (element.__links_helper_scaned) {
-        continue
-      }
-
-      element.__links_helper_scaned = 1
-      try {
-        if (shouldOpenInNewTab(element)) {
-          setLinkTargetToBlank(element)
-        }
-      } catch (error) {
-        console.error(error)
-      }
-
-      if (enableLinkToImg) {
-        try {
-          linkToImg(element)
-        } catch (error) {
-          console.error(error)
-        }
-      }
-    }
-  }
-
-  const scanNodes = throttle(() => {
-    // console.error(
-    //   "mutation - scanAndConvertChildNodes, scanAnchors",
-    //   Date.now()
-    // )
-    if (enableTextToLinks) {
-      scanAndConvertChildNodes(doc.body)
-    }
-
-    scanAnchors()
-    if (enableLinkToImg) {
-      bindOnError()
-    }
-  }, 500)
-
   const observer = new MutationObserver((mutationsList) => {
     // console.error("mutation", Date.now(), mutationsList)
     scanNodes()
@@ -359,12 +416,9 @@ async function main() {
 
   runWhenBodyExists(() => {
     startObserver()
-    if (enableTextToLinks) {
-      scanAndConvertChildNodes(doc.body)
-    }
   })
 
-  scanAnchors()
+  scanNodes()
 }
 
 runWhenHeadExists(async () => {

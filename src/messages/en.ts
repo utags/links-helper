@@ -25,6 +25,8 @@ const messages = {
   "settings.enableTreatSubdomainsAsSameSiteForCurrentSite": "Treat subdomains as the same site for the current site",
   "settings.enableOpenNewTabInBackground": "Open new tab in background for *all sites*",
   "settings.enableOpenNewTabInBackgroundForCurrentSite": "Open new tab in background for the current site",
+  "settings.convertTextToLinks": "Convert text links to hyperlinks",
+  "settings.convertLinksToImages": "Convert image links to image tags",
   "settings.eraseLinks": "Erase Links",
   "settings.restoreLinks": "Restore Links",
 

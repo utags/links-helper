@@ -123,6 +123,7 @@
 - 0.10.x
   - 支持处理 Shadow DOM 内的链接
   - 支持遍历嵌套的 Shadow DOM
+  - 在设置菜单中添加手动触发操作：“将文本链接转换为超链接”和“将图片链接转换为图片标签”
 - 0.9.x
   - 优化 GM.\* API fallback 逻辑
   - 提升 Greasymonkey, quoid-userscripts, Stay 等脚本管理器的兼容性
