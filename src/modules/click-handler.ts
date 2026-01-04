@@ -19,7 +19,14 @@ export const isBlacklisted = (el: HTMLElement) =>
 export const handleLinkClick = (
   event: MouseEvent | Event,
   deps: ClickHandlerDeps
-) => {
+): void => {
+  if (
+    event instanceof MouseEvent &&
+    (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+  ) {
+    return
+  }
+
   let anchorElement: HTMLElement | undefined
 
   if (event.composedPath) {

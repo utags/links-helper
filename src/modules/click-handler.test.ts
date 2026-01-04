@@ -197,6 +197,67 @@ describe("handleLinkClick", () => {
     expect(setLinkTargetToBlank).not.toHaveBeenCalled()
     expect(deps.shouldOpenInNewTab).not.toHaveBeenCalled()
   })
+
+  it("should return early if modifier keys are pressed", () => {
+    const modifiers = ["metaKey", "ctrlKey", "shiftKey", "altKey"]
+    for (const key of modifiers) {
+      const modifierEvent = {
+        ...event,
+        [key]: true,
+      }
+      // Simulate instanceof check (since we are passing a plain object, we need to trick it or use a real MouseEvent)
+      // Since handleLinkClick checks `event instanceof MouseEvent`, we should use a real MouseEvent or mock the prototype if possible.
+      // However, creating a real MouseEvent with read-only properties is tricky in some environments.
+      // But in JSDOM (Vitest), we can pass options to MouseEvent constructor.
+
+      const realEvent = new MouseEvent("click", {
+        [key]: true,
+        bubbles: true,
+        cancelable: true,
+      })
+      // We need to attach properties that our test setup expects, like composedPath if we rely on it,
+      // but here we want to fail EARLY.
+      // The early return happens at the very beginning.
+
+      handleLinkClick(realEvent, deps)
+
+      // We can't easily spy on the return value of handleLinkClick because it returns void.
+      // But we can check that NO side effects happened.
+      expect(deps.shouldOpenInNewTab).not.toHaveBeenCalled()
+    }
+  })
+
+  it("should stop propagation on specific sites when opening in current tab", () => {
+    const depsZhihu = {
+      ...deps,
+      enableOpenInternalLinksInCurrentTab: true,
+      hostname: "www.zhihu.com",
+    }
+    vi.mocked(depsZhihu.shouldOpenInNewTab).mockReturnValue(false)
+    vi.mocked(utils.getAttribute).mockReturnValue("_blank")
+    target.href = "https://www.zhihu.com/question/123"
+
+    handleLinkClick(event as unknown as MouseEvent, depsZhihu)
+
+    expect(event.stopImmediatePropagation).toHaveBeenCalled()
+    expect(removeLinkTargetBlank).toHaveBeenCalledWith(target)
+  })
+
+  it("should not stop propagation on other sites when opening in current tab", () => {
+    const depsOther = {
+      ...deps,
+      enableOpenInternalLinksInCurrentTab: true,
+      hostname: "www.example.com",
+    }
+    vi.mocked(depsOther.shouldOpenInNewTab).mockReturnValue(false)
+    vi.mocked(utils.getAttribute).mockReturnValue("_blank")
+    target.href = "https://www.example.com/page"
+
+    handleLinkClick(event as unknown as MouseEvent, depsOther)
+
+    expect(event.stopImmediatePropagation).not.toHaveBeenCalled()
+    expect(removeLinkTargetBlank).toHaveBeenCalledWith(target)
+  })
 })
 
 describe("isBlacklisted", () => {
