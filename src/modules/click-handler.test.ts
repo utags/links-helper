@@ -267,7 +267,54 @@ describe('isBlacklisted', () => {
     expect(isBlacklisted(el)).toBe(true)
   })
 
-  it('should return false if element does not have blacklisted class', () => {
+  it('should return true if element text matches blacklist keywords and has required class', () => {
+    const keywords = [
+      '稍后再看',
+      '已添加',
+      'Save to Watch later',
+      'Added',
+      '稍後觀看',
+      '已新增',
+      '陣間至睇',
+    ]
+
+    for (const text of keywords) {
+      const el = document.createElement('div')
+      el.textContent = text
+      el.classList.add('b-tooltip-wrapper')
+      expect(isBlacklisted(el)).toBe(true)
+    }
+  })
+
+  it('should return false if element text matches blacklist keywords but missing required class', () => {
+    const el = document.createElement('div')
+    el.textContent = '稍后再看'
+    expect(isBlacklisted(el)).toBe(false)
+  })
+
+  it('should return true if element text contains blacklist keywords and is short enough and has required class', () => {
+    const el = document.createElement('div')
+    el.textContent = '  Save to Watch later  '
+    el.classList.add('b-tooltip-wrapper')
+    expect(isBlacklisted(el)).toBe(true)
+  })
+
+  it('should return false if element text matches but is too long', () => {
+    const el = document.createElement('div')
+    // 50 chars limit. Construct a string > 50 chars containing the keyword.
+    const longText = 'Save to Watch later'.padEnd(51, '.')
+    el.textContent = longText
+    el.classList.add('b-tooltip-wrapper')
+    expect(isBlacklisted(el)).toBe(false)
+  })
+
+  it('should return false if element does not have blacklisted class or text', () => {
+    const el = document.createElement('div')
+    el.textContent = 'Some random text'
+    expect(isBlacklisted(el)).toBe(false)
+  })
+
+  it('should return false if element has no text content', () => {
     const el = document.createElement('div')
     expect(isBlacklisted(el)).toBe(false)
   })

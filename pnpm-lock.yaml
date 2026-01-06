@@ -76,14 +76,14 @@ importers:
         specifier: ^3.7.4
         version: 3.7.4
       sass:
-        specifier: ^1.97.1
-        version: 1.97.1
+        specifier: ^1.97.2
+        version: 1.97.2
       typescript:
         specifier: ^5.2.2
         version: 5.9.3
       vitest:
         specifier: ^4.0.16
-        version: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jsdom@27.4.0)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.1)(terser@5.44.1)(yaml@2.8.1)
+        version: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jsdom@27.4.0)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.2)(terser@5.44.1)(yaml@2.8.1)
       xo:
         specifier: ^1.2.3
         version: 1.2.3(@types/eslint@9.6.1)(@typescript-eslint/utils@8.50.1(eslint@9.39.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(typescript@5.9.3)(webpack@5.102.1(@swc/core@1.15.0(@swc/helpers@0.5.17))(esbuild@0.27.2))
@@ -5133,8 +5133,8 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
-  sass@1.97.1:
-    resolution: {integrity: sha512-uf6HoO8fy6ClsrShvMgaKUn14f2EHQLQRtpsZZLeU/Mv0Q1K5P0+x2uvH6Cub39TVVbWNSrraUhDAoFph6vh0A==}
+  sass@1.97.2:
+    resolution: {integrity: sha512-y5LWb0IlbO4e97Zr7c3mlpabcbBtS+ieiZ9iwDooShpFKWXf62zz5pEPdwrLYm+Bxn1fnbwFGzHuCLSA9tBmrw==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -7235,7 +7235,7 @@ snapshots:
     dependencies:
       '@parcel/plugin': 2.9.3(@parcel/core@2.9.3)
       '@parcel/source-map': 2.1.1
-      sass: 1.97.1
+      sass: 1.97.2
     transitivePeerDependencies:
       - '@parcel/core'
 
@@ -8248,7 +8248,7 @@ snapshots:
       obug: 2.1.1
       std-env: 3.10.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jsdom@27.4.0)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.1)(terser@5.44.1)(yaml@2.8.1)
+      vitest: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jsdom@27.4.0)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.2)(terser@5.44.1)(yaml@2.8.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -8261,13 +8261,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.0.3
 
-  '@vitest/mocker@4.0.16(vite@7.3.0(@types/node@25.0.3)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.1)(terser@5.44.1)(yaml@2.8.1))':
+  '@vitest/mocker@4.0.16(vite@7.3.0(@types/node@25.0.3)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.2)(terser@5.44.1)(yaml@2.8.1))':
     dependencies:
       '@vitest/spy': 4.0.16
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.3.0(@types/node@25.0.3)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.1)(terser@5.44.1)(yaml@2.8.1)
+      vite: 7.3.0(@types/node@25.0.3)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.2)(terser@5.44.1)(yaml@2.8.1)
 
   '@vitest/pretty-format@4.0.16':
     dependencies:
@@ -8295,7 +8295,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vitest: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jsdom@27.4.0)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.1)(terser@5.44.1)(yaml@2.8.1)
+      vitest: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jsdom@27.4.0)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.2)(terser@5.44.1)(yaml@2.8.1)
 
   '@vitest/utils@4.0.16':
     dependencies:
@@ -11621,7 +11621,7 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  sass@1.97.1:
+  sass@1.97.2:
     dependencies:
       chokidar: 4.0.3
       immutable: 5.1.4
@@ -12258,7 +12258,7 @@ snapshots:
       spdx-correct: 3.2.0
       spdx-expression-parse: 3.0.1
 
-  vite@7.3.0(@types/node@25.0.3)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.1)(terser@5.44.1)(yaml@2.8.1):
+  vite@7.3.0(@types/node@25.0.3)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.2)(terser@5.44.1)(yaml@2.8.1):
     dependencies:
       esbuild: 0.27.2
       fdir: 6.5.0(picomatch@4.0.3)
@@ -12271,14 +12271,14 @@ snapshots:
       fsevents: 2.3.3
       less: 4.4.2
       lightningcss: 1.30.2
-      sass: 1.97.1
+      sass: 1.97.2
       terser: 5.44.1
       yaml: 2.8.1
 
-  vitest@4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jsdom@27.4.0)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.1)(terser@5.44.1)(yaml@2.8.1):
+  vitest@4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jsdom@27.4.0)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.2)(terser@5.44.1)(yaml@2.8.1):
     dependencies:
       '@vitest/expect': 4.0.16
-      '@vitest/mocker': 4.0.16(vite@7.3.0(@types/node@25.0.3)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.1)(terser@5.44.1)(yaml@2.8.1))
+      '@vitest/mocker': 4.0.16(vite@7.3.0(@types/node@25.0.3)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.2)(terser@5.44.1)(yaml@2.8.1))
       '@vitest/pretty-format': 4.0.16
       '@vitest/runner': 4.0.16
       '@vitest/snapshot': 4.0.16
@@ -12295,7 +12295,7 @@ snapshots:
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vite: 7.3.0(@types/node@25.0.3)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.1)(terser@5.44.1)(yaml@2.8.1)
+      vite: 7.3.0(@types/node@25.0.3)(less@4.4.2)(lightningcss@1.30.2)(sass@1.97.2)(terser@5.44.1)(yaml@2.8.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 25.0.3

@@ -12,9 +12,26 @@ export type ClickHandlerDeps = {
 
 const STOP_PROPAGATION_SITES = ['.zhihu.com']
 const BLACKLIST_CLASSES = ['bili-watch-later']
+const BLACKLIST_TEXT_REGEX =
+  /稍后再看|已添加|Save to Watch later|Added|稍後觀看|已新增|陣間至睇/
 
-export const isBlacklisted = (el: HTMLElement) =>
-  BLACKLIST_CLASSES.some((cls) => hasClass(el, cls))
+export const isBlacklisted = (el: HTMLElement) => {
+  if (BLACKLIST_CLASSES.some((cls) => hasClass(el, cls))) {
+    return true
+  }
+
+  const text = el.textContent
+  if (
+    text &&
+    text.length < 50 &&
+    hasClass(el, 'b-tooltip-wrapper') &&
+    BLACKLIST_TEXT_REGEX.test(text)
+  ) {
+    return true
+  }
+
+  return false
+}
 
 export const handleLinkClick = (
   event: MouseEvent | Event,
