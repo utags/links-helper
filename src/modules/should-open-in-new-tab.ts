@@ -14,6 +14,8 @@ export type LinkHelperContext = {
 
 const getWithoutOrigin = (url: string) => url.replace(/(^https?:\/\/[^/]+)/, '')
 
+const getCanonicalHost = (host: string) => host.replace(/^www\./, '')
+
 export const shouldOpenInNewTab = (
   element: HTMLAnchorElement,
   context: LinkHelperContext
@@ -41,7 +43,7 @@ export const shouldOpenInNewTab = (
   }
 
   // Open external links in a new tab
-  if (element.origin !== origin) {
+  if (getCanonicalHost(element.host) !== getCanonicalHost(host)) {
     // If enabled, treat subdomains as the same site and continue
     if (
       enableTreatSubdomainsSameSite &&

@@ -108,6 +108,7 @@ Compatible with the following userscript managers
   - Add setting option to "Open internal links in current tab (override default)".
   - Support blacklist mechanism to skip processing for specific elements (e.g. Bilibili watch later button).
   - Add BewlyBewly "Watch later" button to blacklist.
+  - Treat http/https and www/non-www as the same site when checking internal/external links.
 - 0.10.x
   - Support handling links inside Shadow DOM.
   - Support traversing nested Shadow DOM.

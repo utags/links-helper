@@ -49,6 +49,35 @@ describe('shouldOpenInNewTab', () => {
     ).toBe(false)
   })
 
+  it('should return false for same site with different protocol (http vs https)', () => {
+    expect(
+      shouldOpenInNewTab(
+        createAnchor('http://example.com/page'),
+        defaultContext
+      )
+    ).toBe(false)
+  })
+
+  it('should return false for same site with www prefix difference', () => {
+    // Current is example.com, target is www.example.com
+    expect(
+      shouldOpenInNewTab(
+        createAnchor('https://www.example.com/page'),
+        defaultContext
+      )
+    ).toBe(false)
+
+    // Current is www.example.com, target is example.com
+    const wwwContext = {
+      ...defaultContext,
+      host: 'www.example.com',
+      origin: 'https://www.example.com',
+    }
+    expect(
+      shouldOpenInNewTab(createAnchor('https://example.com/page'), wwwContext)
+    ).toBe(false)
+  })
+
   it('should return true for external links', () => {
     expect(
       shouldOpenInNewTab(createAnchor('https://google.com'), defaultContext)
