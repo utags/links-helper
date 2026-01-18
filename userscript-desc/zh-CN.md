@@ -8,6 +8,7 @@
 - 每个站点可以单独设置开关此脚本 ✅
 - 设置规则功能，在新标签页中打开符合指定规则的链接 ✅
 - 解析文本链接为超链接，微信公众号文本转可点击的超链接 ✅
+- 图片代理功能，解决因网络限制无法加载图片的问题 ✅
 - 自动识别图片链接，转成图片标签 ✅
 - 解析 Markdown 格式链接与图片标签 ✅
 - 解析 BBCode 格式链接与图片标签 ✅
@@ -59,7 +60,7 @@
 - Chrome: [Chrome Web Store](https://chromewebstore.google.com/detail/links-helper/lkgnmfiahabppglkjkggllokkiidikij)
 - Edge: [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/links-helper/ehoanikfmmcknoiofnnfnnloaclakpcj)
 - Firefox: [Firefox Addon Store](https://addons.mozilla.org/firefox/addon/links-helper/)
-- Userscript: [Greasy Fork](https://greasyfork.org/scripts/464541-links-helper), [ScriptCat](https://scriptcat.org/script-show-page/4486), [GitHub](https://github.com/utags/links-helper/raw/refs/heads/main/build/userscript-prod/links-helper.user.js)
+- Userscript: [Greasy Fork](https://greasyfork.org/zh-CN/scripts/464541-links-helper) · [ScriptCat](https://scriptcat.org/zh-CN/script-show-page/4486) · [GitHub](https://github.com/utags/links-helper/raw/refs/heads/main/build/userscript-prod/links-helper.user.js)
 
 ## About
 
@@ -70,7 +71,7 @@
 
 ### 🏷️ UTags - 为链接添加用户标签
 
-- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/460718-utags-add-usertags-to-links)
+- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/460718-utags-add-usertags-to-links) · [ScriptCat](https://scriptcat.org/zh-CN/script-show-page/2784) · [GitHub](https://github.com/utags/utags/raw/main/packages/extension/build/userscript-prod/utags.user.js)
 - **功能**：为用户、帖子、视频和其他链接添加自定义标签和备注
 - **亮点**：支持特殊标签过滤（如垃圾、屏蔽、标题党等），数据导出/导入，自动标记已查看帖子
 - **支持网站**：V2EX、X(Twitter)、Reddit、GitHub、哔哩哔哩、知乎、Linux.do、Youtube 等 50+ 网站
@@ -78,7 +79,7 @@
 
 ### 🧰 UTags Advanced Filter
 
-- **链接**：[Greasy Fork](https://greasyfork.org/scripts/556095-utags-advanced-filter) · [ScriptCat](https://scriptcat.org/en/script-show-page/4653) · [GitHub](https://github.com/utags/utags-advanced-filter/raw/refs/heads/main/build/userscript-prod/utags-advanced-filter.user.js)
+- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/556095-utags-advanced-filter) · [ScriptCat](https://scriptcat.org/zh-CN/script-show-page/4653) · [GitHub](https://github.com/utags/utags-advanced-filter/raw/refs/heads/main/build/userscript-prod/utags-advanced-filter.user.js)
 - **功能**：支持在 GreasyFork 实时过滤与隐藏脚本
 - **亮点**：同时提供用户脚本与浏览器扩展两个版本
 - **支持网站**：Greasy Fork
@@ -92,29 +93,21 @@
 - **支持网站**：所有网站
 - **描述**：一款功能强大的用户脚本，提供便捷的快捷导航面板，帮助你高效管理常用链接与自动化脚本，提升浏览体验
 
-### 🔗 链接助手
-
-- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/464541-links-helper)
-- **功能**：在新标签页中打开第三方网站链接，将文本链接解析为超链接
-- **亮点**：支持自定义规则，解析 Markdown 和 BBCode 格式，将图片链接转换为图片标签
-- **支持网站**：适用于所有网站，包括谷歌、YouTube、GitHub、V2EX 等
-- **描述**：增强链接浏览体验，自动处理各种链接格式，使网页浏览更加便捷
-
 ### 🔍 查找适用于当前网站的脚本
 
-- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/550659-find-scripts-for-this-site)
+- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/550659-find-scripts-for-this-site) · [ScriptCat](https://scriptcat.org/zh-CN/script-show-page/4276) · [GitHub](https://github.com/utags/userscripts/raw/main/find-scripts-for-this-site/find-scripts-for-this-site.user.js)
 - **功能**：快速查找当前网站的用户脚本
 - **亮点**：支持多个流行的脚本仓库，轻松发现有用的脚本
 - **支持网站**：适用于任何网站，查找相关用户脚本
 - **描述**：一个方便的工具，用于发现和安装专为您访问的网站设计的用户脚本
 
-### 🔄 Discourse 话题快捷切换器
+### 🖼️ 通用图片上传助手 (Universal Image Uploader)
 
-- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/550982-discourse-topic-quick-switcher)
-- **功能**：在 Discourse 论坛中快速导航切换主题
-- **亮点**：键盘快捷键、导航按钮、带语言选项的设置对话框
-- **支持网站**：所有基于 Discourse 的论坛，包括 Discourse Meta、LINUX.DO 等
-- **描述**：通过便捷的主题切换和可自定义设置，增强 Discourse 论坛中的导航体验
+- **链接**：[Greasy Fork](https://greasyfork.org/zh-CN/scripts/553341-universal-image-uploader) · [ScriptCat](https://scriptcat.org/zh-CN/script-show-page/4467) · [GitHub](https://github.com/utags/userscripts/raw/main/universal-image-uploader/universal-image-uploader.user.js)
+- **功能**：粘贴/拖拽/选择图片批量上传到 Imgur/Tikolu/MJJ.Today/Appinn
+- **亮点**：自动复制为 Markdown/HTML/BBCode/链接，支持站点按钮与本地历史，兼容单页应用 (SPA)
+- **支持网站**：所有网站
+- **描述**：在任意网站上粘贴、拖拽或选择图片，批量上传到图床，并按需自动复制为多种格式，支持本地历史记录以便快速复用
 
 ## 其他类似脚本
 
@@ -127,6 +120,10 @@
 
 ## Release Notes
 
+- 0.12.0
+  - 新增图片代理功能，支持全局与按站点单独开关。
+  - 支持将现有 `<img>` 标签的图片地址转换为代理 URL，并可选择输出 WebP。
+  - 图片代理域名列表支持通配符 `*` 与排除规则 `!domain`。
 - 0.11.x
   - 添加设置项：“在当前标签页打开站内链接（覆盖网站默认行为）”。
   - 支持黑名单机制，跳过特定元素的处理（如 Bilibili 稍后再看按钮）。
@@ -198,7 +195,7 @@
 
 ## License
 
-Copyright (c) 2023 [Pipecraft](https://www.pipecraft.net). Licensed under the [MIT License](https://github.com/utags/links-helper/blob/main/LICENSE).
+Copyright (c) 2023-2026 [Pipecraft](https://www.pipecraft.net). Licensed under the [MIT License](https://github.com/utags/links-helper/blob/main/LICENSE).
 
 ## >\_
 

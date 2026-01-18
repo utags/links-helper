@@ -27,6 +27,22 @@ const messages = {
   'settings.enableOpenInternalLinksInCurrentTabForCurrentSite': 'Open internal links in current tab for the current site (override default)',
   'settings.enableOpenNewTabInBackground': 'Open new tab in background for *all sites*',
   'settings.enableOpenNewTabInBackgroundForCurrentSite': 'Open new tab in background for the current site',
+  'settings.enableImageProxyForAllSites': 'Enable image proxy for *all sites*',
+  'settings.enableImageProxyForCurrentSite': 'Enable image proxy for the current site',
+  'settings.imageProxyDomains': 'Image proxy domains',
+  'settings.imageProxyDomainsPlaceholder': '/* One domain per line, use \"!\" to exclude, \"*\" for all domains */',
+  'settings.imageProxyDomainsTipTitle': 'Image proxy domain examples',
+  'settings.imageProxyDomainsTipContent': `<p>Image proxy domain list</p>
+  <p>
+  - One domain per line (without http/https)<br>
+  - '*' matches all domains<br>
+  - Exclusion rules: prefix '!' to exclude specific domains<br>
+  <pre>i.imgur.com
+imgur.com
+!abc.com
+*</pre>
+  </p>`,
+  'settings.enableImageProxyWebp': 'Convert proxied images to WebP when possible',
   'settings.convertTextToLinks': 'Convert text links to hyperlinks',
   'settings.convertLinksToImages': 'Convert image links to image tags',
   'settings.eraseLinks': 'Erase Links',

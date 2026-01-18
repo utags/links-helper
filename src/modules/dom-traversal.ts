@@ -13,3 +13,19 @@ export function* getAllAnchors(
     }
   }
 }
+
+export function* getAllImages(
+  root: Document | ShadowRoot | Element = document
+): Generator<HTMLImageElement> {
+  const elements = root.querySelectorAll('img')
+  for (const element of elements) {
+    yield element
+  }
+
+  const allElements = root.querySelectorAll('*')
+  for (const element of allElements) {
+    if (element.shadowRoot) {
+      yield* getAllImages(element.shadowRoot)
+    }
+  }
+}

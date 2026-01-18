@@ -10,10 +10,83 @@ import {
 } from 'browser-extension-utils'
 
 import rules from '../rules/image-url.json'
+import { getAllImages } from './dom-traversal'
 
 const cachedRules = {}
 
+type ImageProxyOptions = {
+  enableProxy: boolean
+  domains: string[]
+  enableWebp: boolean
+}
+
+let imageProxyOptions: ImageProxyOptions = {
+  enableProxy: false,
+  domains: [],
+  enableWebp: false,
+}
+
+export const setImageProxyOptions = (options: Partial<ImageProxyOptions>) => {
+  imageProxyOptions = { ...imageProxyOptions, ...options }
+}
+
 const getHostname = (url: string) => (/https?:\/\/([^/]+)/.exec(url) || [])[1]
+
+const shouldProxyUrl = (url: string) => {
+  if (
+    !imageProxyOptions.enableProxy ||
+    imageProxyOptions.domains.length === 0
+  ) {
+    return false
+  }
+
+  const hostname = getHostname(url)
+  if (
+    !hostname ||
+    hostname === 'wsrv.nl' ||
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1'
+  ) {
+    return false
+  }
+
+  for (let domain of imageProxyOptions.domains) {
+    domain = domain.trim()
+    if (!domain) {
+      continue
+    }
+
+    const isExclude = domain.startsWith('!')
+    const pattern = isExclude ? domain.slice(1).trim() : domain
+    if (!pattern) {
+      continue
+    }
+
+    if (pattern === '*') {
+      return !isExclude
+    }
+
+    if (hostname === pattern || hostname.endsWith(`.${pattern}`)) {
+      return !isExclude
+    }
+  }
+
+  return false
+}
+
+const toProxyUrlIfNeeded = (url: string) => {
+  if (!shouldProxyUrl(url)) {
+    return undefined
+  }
+
+  const isGif = /\.gif($|\?)/i.test(url)
+  const urlEncoded = encodeURIComponent(url)
+  const ddgUrl = `https://external-content.duckduckgo.com/iu/?u=${urlEncoded}`
+  const qp = `${isGif ? '&n=-1' : ''}${
+    imageProxyOptions.enableWebp ? '&output=webp' : ''
+  }&default=${urlEncoded}`
+  return `https://wsrv.nl/?url=${encodeURIComponent(ddgUrl)}${qp}`
+}
 
 const processRule = (rule: string, href: string) => {
   let pattern: RegExp
@@ -112,12 +185,45 @@ export const linkToImg = (anchor: HTMLAnchorElement) => {
   const href = anchor.href
 
   const text = (anchor.textContent as string | undefined) || href
-  const newHref = convertImgUrl(href)
-  if (newHref) {
-    anchorElementToImgElement(anchor, newHref, text)
+  const convertedHref = convertImgUrl(href)
+
+  if (convertedHref) {
+    const finalHref = toProxyUrlIfNeeded(convertedHref) || convertedHref
+    anchorElementToImgElement(anchor, finalHref, text)
   } else if (
     /^https:[^?]+\.(?:jpg|jpeg|jpe|bmp|png|gif|webp|ico|svg)/i.test(href)
   ) {
-    anchorElementToImgElement(anchor, href, text)
+    const finalHref = toProxyUrlIfNeeded(href) || href
+    anchorElementToImgElement(anchor, finalHref, text)
+  }
+}
+
+export const proxyExistingImages = (flag: number) => {
+  for (const img of getAllImages()) {
+    const src = getAttribute(img, 'src')
+    if (!src) {
+      continue
+    }
+
+    if (img.__links_helper_scaned === flag) {
+      continue
+    }
+
+    const proxied = toProxyUrlIfNeeded(src)
+    if (proxied && proxied !== src) {
+      img.removeAttribute('src')
+      setAttribute(img, 'loading', 'lazy')
+      setAttribute(img, 'referrerpolicy', 'no-referrer')
+      setAttribute(img, 'src', proxied)
+      const parent = img.parentElement
+      if (parent && parent.tagName === 'A') {
+        const href = getAttribute(parent, 'href')
+        if (href && href === src) {
+          setAttribute(parent, 'href', proxied)
+        }
+      }
+    }
+
+    img.__links_helper_scaned = flag
   }
 }

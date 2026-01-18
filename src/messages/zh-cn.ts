@@ -27,6 +27,22 @@ export const messages = {
   'settings.enableOpenInternalLinksInCurrentTabForCurrentSite': '在当前网站启用在当前标签页打开站内链接（覆盖网站默认行为）',
   'settings.enableOpenNewTabInBackground': '在*所有网站*启用在后台打开新标签页',
   'settings.enableOpenNewTabInBackgroundForCurrentSite': '在当前网站启用在后台打开新标签页',
+  'settings.enableImageProxyForAllSites': '在*所有网站*启用将图片链接转为代理链接',
+  'settings.enableImageProxyForCurrentSite': '在当前网站启用将图片链接转为代理链接',
+  'settings.imageProxyDomains': '要通过代理加载的图片域名',
+  'settings.imageProxyDomainsPlaceholder': '/* 每行一个域名，支持使用 \"!\" 排除，\"*\" 代表全部域名 */',
+  'settings.imageProxyDomainsTipTitle': '图片代理域名示例',
+  'settings.imageProxyDomainsTipContent': `<p>图片代理域名列表</p>
+  <p>
+  - 每行一个域名（不需要 http/https）<br>
+  - '*' 代表匹配所有域名<br>
+  - 排除规则：以 '!' 开头表示排除对应域名<br>
+  <pre>i.imgur.com
+imgur.com
+!abc.com
+*</pre>
+  </p>`,
+  'settings.enableImageProxyWebp': '将代理图片尽量转换为 WebP 格式',
   'settings.convertTextToLinks': '将文本链接转换为超链接',
   'settings.convertLinksToImages': '将图片链接转换为图片标签',
   'settings.eraseLinks': '去除指定区域的链接',

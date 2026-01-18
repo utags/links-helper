@@ -33,7 +33,12 @@ import {
   removeLinkTargetBlank,
   setLinkTargetToBlank,
 } from './modules/link-attributes'
-import { bindOnError, linkToImg } from './modules/link-to-img'
+import {
+  bindOnError,
+  linkToImg,
+  proxyExistingImages,
+  setImageProxyOptions,
+} from './modules/link-to-img'
 import { shouldOpenInNewTab as shouldOpenInNewTabFn } from './modules/should-open-in-new-tab'
 import { scanAndConvertChildNodes } from './modules/text-to-links'
 import { extractCanonicalId, getBaseDomain } from './utils/index'
@@ -57,6 +62,9 @@ let enableBackground = false
 let enableOpenInternalLinksInCurrentTab = false
 let enableLinkToImg = false
 let enableTextToLinks = false
+let enableImageProxy = false
+let enableImageProxyWebp = false
+let imageProxyDomains: string[] = []
 let cachedFlag = 0
 
 if (
@@ -132,6 +140,34 @@ const getSettingsTable = (): SettingsTable => {
       title: i('settings.enableTreatSubdomainsAsSameSiteForCurrentSite'),
       defaultValue: false,
       group: ++groupNumber,
+    },
+    enableImageProxyForAllSites: {
+      title: i('settings.enableImageProxyForAllSites'),
+      defaultValue: false,
+      group: ++groupNumber,
+    },
+    [`enableImageProxyForCurrentSite_${host}`]: {
+      title: i('settings.enableImageProxyForCurrentSite'),
+      defaultValue: undefined as any as boolean,
+      group: groupNumber,
+    },
+    imageProxyDomains: {
+      title: i('settings.imageProxyDomains'),
+      defaultValue: 'i.imgur.com',
+      placeholder: i('settings.imageProxyDomainsPlaceholder'),
+      type: 'textarea',
+      group: groupNumber,
+    },
+    imageProxyDomainsTip: {
+      title: i('settings.imageProxyDomainsTipTitle'),
+      type: 'tip',
+      tipContent: i('settings.imageProxyDomainsTipContent'),
+      group: groupNumber,
+    },
+    enableImageProxyWebp: {
+      title: i('settings.enableImageProxyWebp'),
+      defaultValue: false,
+      group: groupNumber,
     },
     [`enableTextToLinksForCurrentSite_${host}`]: {
       title: i('settings.enableTextToLinksForCurrentSite'),
@@ -228,6 +264,35 @@ function onSettingsChange() {
 
   {
     const siteSetting = getSettingsValue<boolean | undefined>(
+      `enableImageProxyForCurrentSite_${host}`
+    )
+    const globalSetting = getSettingsValue<boolean | undefined>(
+      'enableImageProxyForAllSites'
+    )
+    enableImageProxy = Boolean(siteSetting ?? globalSetting)
+  }
+
+  {
+    const domainsValue =
+      getSettingsValue<string | undefined>('imageProxyDomains') || 'i.imgur.com'
+    imageProxyDomains = domainsValue
+      .split(/[\s,]+/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+
+  enableImageProxyWebp = Boolean(
+    getSettingsValue<boolean | undefined>('enableImageProxyWebp')
+  )
+
+  setImageProxyOptions({
+    enableProxy: enableImageProxy,
+    domains: imageProxyDomains,
+    enableWebp: enableImageProxyWebp,
+  })
+
+  {
+    const siteSetting = getSettingsValue<boolean | undefined>(
       `enableOpenNewTabInBackgroundForCurrentSite_${host}`
     )
     const globalSetting = getSettingsValue<boolean | undefined>(
@@ -317,6 +382,11 @@ const scanNodes = throttle(() => {
   }
 
   scanAnchors()
+
+  if (enableImageProxy && imageProxyDomains.length > 0) {
+    proxyExistingImages(cachedFlag)
+  }
+
   bindOnError()
 }, 500)
 
@@ -380,6 +450,23 @@ async function main() {
           if (globalSetting !== undefined && siteSetting === undefined) {
             const checkbox = settingsMainView.querySelector(
               `[data-key="enableOpenNewTabInBackgroundForCurrentSite_${host}"] input[type="checkbox"]`
+            )
+            if (checkbox) {
+              ;(checkbox as HTMLInputElement).checked = globalSetting
+            }
+          }
+        }
+
+        {
+          const siteSetting = getSettingsValue<boolean | undefined>(
+            `enableImageProxyForCurrentSite_${host}`
+          )
+          const globalSetting = getSettingsValue<boolean | undefined>(
+            `enableImageProxyForAllSites`
+          )
+          if (globalSetting !== undefined && siteSetting === undefined) {
+            const checkbox = settingsMainView.querySelector(
+              `[data-key="enableImageProxyForCurrentSite_${host}"] input[type="checkbox"]`
             )
             if (checkbox) {
               ;(checkbox as HTMLInputElement).checked = globalSetting
