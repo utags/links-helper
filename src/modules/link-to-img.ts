@@ -29,6 +29,16 @@ let imageProxyOptions: ImageProxyOptions = {
   enableConvertSvgToPng: false,
 }
 
+const DDG_BLACK_LIST = [
+  // Youtube
+  'i.ytimg.com',
+]
+
+const isDdgBlacklisted = (hostname: string) =>
+  DDG_BLACK_LIST.some(
+    (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
+  )
+
 export const setImageProxyOptions = (options: Partial<ImageProxyOptions>) => {
   imageProxyOptions = { ...imageProxyOptions, ...options }
 }
@@ -99,13 +109,29 @@ const toProxyUrlIfNeeded = (url: string) => {
 
   const isGif = lastSegment.endsWith('.gif')
   const isSvg = lastSegment.endsWith('.svg') || lastSegment === 'svg'
+  const enableWebp = imageProxyOptions.enableWebp
+  const hostname = getHostname(url)
   const urlEncoded = encodeURIComponent(url)
+
+  const buildWsrvProxyUrl = (urlEncoded: string, defaultUrlEncoded: string) => {
+    const qp = `${isGif ? '&n=-1' : ''}${
+      enableWebp ? '&output=webp' : ''
+    }&default=${defaultUrlEncoded}`
+    return `https://wsrv.nl/?url=${urlEncoded}${qp}`
+  }
+
+  const level1 = buildWsrvProxyUrl(urlEncoded, urlEncoded)
+  if (isSvg || isDdgBlacklisted(hostname)) {
+    return level1
+  }
+
   const ddgUrl = `https://external-content.duckduckgo.com/iu/?u=${urlEncoded}`
-  const urlToUse = isSvg ? urlEncoded : encodeURIComponent(ddgUrl)
-  const qp = `${isGif ? '&n=-1' : ''}${
-    imageProxyOptions.enableWebp ? '&output=webp' : ''
-  }&default=${urlEncoded}`
-  return `https://wsrv.nl/?url=${urlToUse}${qp}`
+
+  const level2 = buildWsrvProxyUrl(
+    encodeURIComponent(ddgUrl),
+    encodeURIComponent(level1)
+  )
+  return level2
 }
 
 const proxySrcset = (srcset: string) => {

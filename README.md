@@ -5,8 +5,9 @@ Open external links in a new tab, open internal links matching the specified rul
 Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 
 - Open external links in a new tab ✅
-- Enable/Disable userscript per site ✅
+- Enable/Disable per site ✅
 - Setting for url rules, open links matching the specified rules in a new tab ✅
+- Open new tabs in background ✅
 - Convert text to hyperlinks ✅
 - Image proxy feature, fixes broken images due to network restrictions ✅
 - Convert image links to image tags ✅

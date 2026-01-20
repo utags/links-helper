@@ -275,7 +275,10 @@ describe('linkToImg with image proxy', () => {
     base.remove()
 
     expect(imgSrc.startsWith('https://wsrv.nl/?url=')).toBe(true)
-    expect(imgSrc).toContain(encodeURIComponent(absolutePath))
+    // Because of double proxying (wsrv -> ddg -> original), the original URL is double encoded
+    expect(imgSrc).toContain(
+      encodeURIComponent(encodeURIComponent(absolutePath))
+    )
     expect(anchorHref).toBe(imgSrc)
     expect(dataLhSrc).toBe(relativePath)
     // Note: anchor.href (property) is absolute, but getAttribute('href') is relative
@@ -304,6 +307,66 @@ describe('linkToImg with image proxy', () => {
     expect(src).not.toContain('duckduckgo.com')
     // Should contain original URL encoded
     expect(src).toContain(encodeURIComponent(href))
+  })
+
+  it('should not use DuckDuckGo proxy for blacklisted domains (e.g. i.ytimg.com)', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['*'],
+      enableWebp: false,
+    })
+
+    const href = 'https://i.ytimg.com/vi/test/hqdefault.jpg'
+    const anchor = createAnchor(href)
+
+    linkToImg(anchor)
+
+    const img = anchor.querySelector('img')
+    expect(img).not.toBeNull()
+    const src = img?.getAttribute('src') || ''
+
+    // Should use wsrv.nl directly without nested DDG url
+    expect(src.startsWith('https://wsrv.nl/?url=')).toBe(true)
+    expect(src).not.toContain('duckduckgo.com')
+    // Should contain original URL encoded
+    expect(src).toContain(encodeURIComponent(href))
+  })
+
+  it('should use double proxy chain (wsrv -> ddg -> wsrv -> original) for normal images', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['example.com'],
+      enableWebp: false,
+    })
+
+    const href = 'https://example.com/image.jpg'
+    const anchor = createAnchor(href)
+
+    linkToImg(anchor)
+
+    const img = anchor.querySelector('img')
+    expect(img).not.toBeNull()
+    const src = img?.getAttribute('src') || ''
+
+    // 1. Primary: wsrv.nl
+    expect(src.startsWith('https://wsrv.nl/?url=')).toBe(true)
+
+    // 2. Secondary: DuckDuckGo (encoded in url param)
+    const urlParam = new URL(src).searchParams.get('url')
+    expect(urlParam).toContain('duckduckgo.com')
+    expect(urlParam).toContain(encodeURIComponent(href))
+
+    // 3. Fallback: Level 1 (wsrv -> original)
+    const defaultParam = new URL(src).searchParams.get('default')
+    expect(defaultParam).toContain('wsrv.nl')
+    expect(defaultParam).toContain(encodeURIComponent(href))
+
+    // 4. Fallback of Fallback: Original
+    // The default param of the Level 1 URL should be the original URL
+    const level1Url = decodeURIComponent(defaultParam || '')
+    const level1Default = new URL(level1Url).searchParams.get('default')
+    // searchParams.get() decodes the value, so we expect the original href, not the encoded one
+    expect(level1Default).toBe(href)
   })
 
   it('should proxy srcset attributes with descriptors', () => {
@@ -366,7 +429,7 @@ describe('linkToImg with image proxy', () => {
     expect(newSrcset).toContain('1x')
     expect(newSrcset).toContain('2x')
     expect(newSrcset).toContain(
-      encodeURIComponent('https://example.com/image-1x.jpg')
+      encodeURIComponent(encodeURIComponent('https://example.com/image-1x.jpg'))
     )
     expect(dataLhSrcset).toBe(srcset)
 

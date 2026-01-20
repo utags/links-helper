@@ -70,18 +70,15 @@ let cachedFlag = 0
 
 const IMAGE_PROXY_BLACKLIST = [
   'github.com',
-  'developer.mozilla.org',
+  'mozilla.org',
+  'google.com',
+  'tiktok.com',
   'twitter.com',
   'x.com',
   'facebook.com',
   'instagram.com',
-  'linkedin.com',
   'whatsapp.com',
-  'telegram.org',
   'discord.com',
-  'reddit.com',
-  'youtube.com',
-  'google.com',
 ]
 
 const STORAGE_KEY_CSP_RESTRICTED = 'links-helper:csp-restricted'

@@ -5,8 +5,9 @@ Open external links in a new tab, open internal links matching the specified rul
 Support all sites includes Google search, Youtube, GitHub, Greasy Fork etc.
 
 - Open external links in a new tab ✅
-- Enable/Disable userscript per site ✅
+- Enable/Disable per site ✅
 - Setting for url rules, open links matching the specified rules in a new tab ✅
+- Open new tabs in background ✅
 - Convert text to hyperlinks ✅
 - Image proxy feature, fixes broken images due to network restrictions ✅
 - Convert image links to image tags ✅
@@ -126,8 +127,11 @@ Compatible with the following userscript managers
   - Support observing changes inside Shadow DOM for dynamic content updates.
   - Optimize mutation observer to handle Shadow DOM attachments automatically.
   - Fix: remove redundant `output=png` parameter for SVG proxying.
-  - Disable image proxy on sites with strict CSP (Content Security Policy), e.g., GitHub, Twitter.
+  - Add website blacklist for image proxy (e.g. for CSP restricted sites, such as GitHub, Twitter).
   - Auto-detect CSP restrictions and restore original images if proxying fails.
+  - Optimize image proxy chain (using DuckDuckGo proxy for better privacy/availability, with fallback).
+  - Fix: Skip DuckDuckGo proxy for specific domains (e.g. `i.ytimg.com`) to prevent loading failures.
+  - Improvement: Enhanced proxy reliability with double-layer fallback (wsrv -> ddg -> wsrv -> original).
 - 0.12.x
   - Do not use duckduckgo proxy for SVG images.
   - Support proxying `srcset` attribute for responsive images.
