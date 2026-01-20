@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.13.2
+// @version              0.13.3
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -2141,6 +2141,32 @@
       img.__links_helper_scaned = flag
     }
   }
+  var restoreProxiedImages = () => {
+    for (const img of getAllImages()) {
+      const rawSrc = getAttribute(img, "data-lh-src")
+      if (rawSrc) {
+        setAttribute(img, "src", rawSrc)
+        removeAttribute(img, "data-lh-src")
+        removeAttribute(img, "loading")
+        removeAttribute(img, "referrerpolicy")
+        const parent = img.parentElement
+        if (parent && parent.tagName === "A") {
+          const parentAnchor = parent
+          const rawHref = getAttribute(parentAnchor, "data-lh-href")
+          if (rawHref) {
+            setAttribute(parentAnchor, "href", rawHref)
+            removeAttribute(parentAnchor, "data-lh-href")
+          }
+        }
+      }
+      const rawSrcset = getAttribute(img, "data-lh-srcset")
+      if (rawSrcset) {
+        setAttribute(img, "srcset", rawSrcset)
+        removeAttribute(img, "data-lh-srcset")
+      }
+      delete img.__links_helper_scaned
+    }
+  }
   var base = location.origin
   var extractCanonicalId = (href) => {
     try {
@@ -2587,9 +2613,33 @@
     "youtube.com",
     "google.com",
   ]
-  var isImageProxyBlacklisted = IMAGE_PROXY_BLACKLIST.some(
-    (domain) => hostname === domain || hostname.endsWith(".".concat(domain))
-  )
+  var STORAGE_KEY_CSP_RESTRICTED = "links-helper:csp-restricted"
+  var isImageProxyBlacklisted = () =>
+    IMAGE_PROXY_BLACKLIST.some(
+      (domain) => hostname === domain || hostname.endsWith(".".concat(domain))
+    ) || Boolean(localStorage.getItem(STORAGE_KEY_CSP_RESTRICTED))
+  var handleCspDetected = () => {
+    if (localStorage.getItem(STORAGE_KEY_CSP_RESTRICTED)) {
+      return
+    }
+    localStorage.setItem(STORAGE_KEY_CSP_RESTRICTED, "true")
+    enableImageProxy = false
+    restoreProxiedImages()
+  }
+  var detectCsp = () => {
+    if (isImageProxyBlacklisted()) {
+      return
+    }
+    doc.addEventListener("securitypolicyviolation", (e) => {
+      if (
+        e.blockedURI &&
+        (e.blockedURI.includes("wsrv.nl") ||
+          e.blockedURI.includes("external-content.duckduckgo.com"))
+      ) {
+        handleCspDetected()
+      }
+    })
+  }
   if (false) {
     const runtime =
       (_c = (_a = globalThis.chrome) == null ? void 0 : _a.runtime) != null
@@ -2783,7 +2833,7 @@
         "enableImageProxyForCurrentSite_".concat(host)
       )
       const globalSetting = getSettingsValue("enableImageProxyForAllSites")
-      enableImageProxy = isImageProxyBlacklisted
+      enableImageProxy = isImageProxyBlacklisted()
         ? false
         : Boolean(siteSetting != null ? siteSetting : globalSetting)
     }
@@ -2874,6 +2924,7 @@
     bindOnError()
   }, 500)
   async function main() {
+    detectCsp()
     setPolling(true)
     await initSettings(() => {
       const settingsTable2 = getSettingsTable()
@@ -2948,7 +2999,7 @@
             const globalSetting = getSettingsValue(
               "enableImageProxyForAllSites"
             )
-            if (isImageProxyBlacklisted) {
+            if (isImageProxyBlacklisted()) {
               const checkbox = settingsMainView.querySelector(
                 '[data-key="enableImageProxyForCurrentSite_'.concat(
                   host,

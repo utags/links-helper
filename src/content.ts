@@ -37,6 +37,7 @@ import {
   bindOnError,
   linkToImg,
   proxyExistingImages,
+  restoreProxiedImages,
   setImageProxyOptions,
 } from './modules/link-to-img'
 import { shouldOpenInNewTab as shouldOpenInNewTabFn } from './modules/should-open-in-new-tab'
@@ -83,9 +84,60 @@ const IMAGE_PROXY_BLACKLIST = [
   'google.com',
 ]
 
-const isImageProxyBlacklisted = IMAGE_PROXY_BLACKLIST.some(
-  (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
-)
+const STORAGE_KEY_CSP_RESTRICTED = 'links-helper:csp-restricted'
+
+const isImageProxyBlacklisted = () =>
+  IMAGE_PROXY_BLACKLIST.some(
+    (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
+  ) || Boolean(localStorage.getItem(STORAGE_KEY_CSP_RESTRICTED))
+
+const handleCspDetected = () => {
+  if (localStorage.getItem(STORAGE_KEY_CSP_RESTRICTED)) {
+    return
+  }
+
+  // console.warn(
+  //   '[Links Helper] CSP restriction detected for wsrv.nl. Disabling image proxy.'
+  // )
+  localStorage.setItem(STORAGE_KEY_CSP_RESTRICTED, 'true')
+
+  // Update state
+  enableImageProxy = false
+
+  // Restore images
+  restoreProxiedImages()
+}
+
+const detectCsp = () => {
+  if (isImageProxyBlacklisted()) {
+    return
+  }
+
+  // Listen for CSP violations
+  doc.addEventListener('securitypolicyviolation', (e) => {
+    if (
+      e.blockedURI &&
+      (e.blockedURI.includes('wsrv.nl') ||
+        e.blockedURI.includes('external-content.duckduckgo.com'))
+    ) {
+      handleCspDetected()
+    }
+  })
+
+  // setTimeout(() => {
+  //   // Probe
+  //   const img = doc.createElement('img')
+  //   ;(doc.body || doc.head || doc.documentElement).appendChild(img)
+  //   img.src = `https://wsrv.nl/?url=wsrv.nl/lichtenstein.jpg&w=1&h=1?t=${Date.now()}`
+  //   // img.style.display = 'none'
+  //   // img.onload = () => {
+  //   //   img.remove()
+  //   // }
+  //   // img.onerror = () => {
+  //   //   img.remove()
+  //   // }
+  // }, 1000)
+}
 
 if (
   // eslint-disable-next-line n/prefer-global/process
@@ -294,7 +346,7 @@ function onSettingsChange() {
     const globalSetting = getSettingsValue<boolean | undefined>(
       'enableImageProxyForAllSites'
     )
-    enableImageProxy = isImageProxyBlacklisted
+    enableImageProxy = isImageProxyBlacklisted()
       ? false
       : Boolean(siteSetting ?? globalSetting)
   }
@@ -422,6 +474,7 @@ const scanNodes = throttle(() => {
 }, 500)
 
 async function main() {
+  detectCsp()
   setPolling(true)
 
   await initSettings(() => {
@@ -496,7 +549,7 @@ async function main() {
             `enableImageProxyForAllSites`
           )
 
-          if (isImageProxyBlacklisted) {
+          if (isImageProxyBlacklisted()) {
             const checkbox = settingsMainView.querySelector(
               `[data-key="enableImageProxyForCurrentSite_${host}"] input[type="checkbox"]`
             )

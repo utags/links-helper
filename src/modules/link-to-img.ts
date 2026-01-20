@@ -4,6 +4,7 @@ import {
   addEventListener,
   createHTML,
   getAttribute,
+  removeAttribute,
   setAttribute,
   setAttributes,
   setStyle,
@@ -290,5 +291,36 @@ export const proxyExistingImages = (flag: number) => {
     }
 
     img.__links_helper_scaned = flag
+  }
+}
+
+export const restoreProxiedImages = () => {
+  for (const img of getAllImages()) {
+    const rawSrc = getAttribute(img, 'data-lh-src')
+    if (rawSrc) {
+      setAttribute(img, 'src', rawSrc)
+      removeAttribute(img, 'data-lh-src')
+      removeAttribute(img, 'loading')
+      removeAttribute(img, 'referrerpolicy')
+
+      const parent = img.parentElement
+      if (parent && parent.tagName === 'A') {
+        const parentAnchor = parent as HTMLAnchorElement
+        const rawHref = getAttribute(parentAnchor, 'data-lh-href')
+        if (rawHref) {
+          setAttribute(parentAnchor, 'href', rawHref)
+          removeAttribute(parentAnchor, 'data-lh-href')
+        }
+      }
+    }
+
+    const rawSrcset = getAttribute(img, 'data-lh-srcset')
+    if (rawSrcset) {
+      setAttribute(img, 'srcset', rawSrcset)
+      removeAttribute(img, 'data-lh-srcset')
+    }
+
+    // Reset scan flag so it can be re-processed if needed (though we likely disabled proxy)
+    delete img.__links_helper_scaned
   }
 }

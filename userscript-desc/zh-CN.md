@@ -127,6 +127,7 @@
   - 优化 MutationObserver 以自动处理 Shadow DOM 的挂载。
   - 修复：移除 SVG 代理时多余的 `output=png` 参数（默认即为 PNG）。
   - 在具有严格 CSP (内容安全策略) 的网站上禁用图片代理功能，例如 GitHub, Twitter 等。
+  - 自动检测 CSP 限制并还原被拦截的图片。
 - 0.12.x
   - SVG 图片不走 duckduckgo 代理。
   - 支持代理响应式图片 `srcset` 属性。

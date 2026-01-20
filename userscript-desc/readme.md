@@ -127,6 +127,7 @@ Compatible with the following userscript managers
   - Optimize mutation observer to handle Shadow DOM attachments automatically.
   - Fix: remove redundant `output=png` parameter for SVG proxying.
   - Disable image proxy on sites with strict CSP (Content Security Policy), e.g., GitHub, Twitter.
+  - Auto-detect CSP restrictions and restore original images if proxying fails.
 - 0.12.x
   - Do not use duckduckgo proxy for SVG images.
   - Support proxying `srcset` attribute for responsive images.

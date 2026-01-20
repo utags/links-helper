@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   linkToImg,
   proxyExistingImages,
+  restoreProxiedImages,
   setImageProxyOptions,
 } from './link-to-img'
 
@@ -506,5 +507,44 @@ describe('linkToImg with image proxy', () => {
     expect(img.src).not.toContain('output=png')
 
     container.remove()
+  })
+
+  it('should restore proxied images to original state', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['i.imgur.com'],
+      enableWebp: false,
+    })
+
+    const href = 'https://i.imgur.com/restore.jpg'
+    const anchor = document.createElement('a')
+    anchor.href = href
+
+    const img = document.createElement('img')
+    img.src = href
+    anchor.append(img)
+
+    document.body.append(anchor)
+
+    // Proxy first
+    proxyExistingImages(100)
+
+    const proxiedSrc = img.getAttribute('src') || ''
+    expect(proxiedSrc.startsWith('https://wsrv.nl/?url=')).toBe(true)
+    expect(img.dataset.lhSrc).toBe(href)
+
+    // Restore
+    restoreProxiedImages()
+
+    expect(img.getAttribute('src')).toBe(href)
+    expect(img.dataset.lhSrc).toBeUndefined()
+    expect(anchor.getAttribute('href')).toBe(href)
+    expect(anchor.dataset.lhHref).toBeUndefined()
+
+    // Check loading and referrerpolicy attributes are removed if they were added
+    expect(img.hasAttribute('loading')).toBe(false)
+    expect(img.hasAttribute('referrerpolicy')).toBe(false)
+
+    anchor.remove()
   })
 })
