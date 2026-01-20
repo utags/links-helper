@@ -30,7 +30,7 @@ export const messages = {
   'settings.enableImageProxyForAllSites': '在*所有网站*启用将图片链接转为代理链接',
   'settings.enableImageProxyForCurrentSite': '在当前网站启用将图片链接转为代理链接',
   'settings.imageProxyDomains': '要通过代理加载的图片域名',
-  'settings.imageProxyDomainsPlaceholder': '/* 每行一个域名，支持使用 \"!\" 排除，\"*\" 代表全部域名 */',
+  'settings.imageProxyDomainsPlaceholder': '/* 每行一个域名，支持使用 "!" 排除，"*" 代表全部域名 */',
   'settings.imageProxyDomainsTipTitle': '图片代理域名示例',
   'settings.imageProxyDomainsTipContent': `<p>图片代理域名列表</p>
   <p>

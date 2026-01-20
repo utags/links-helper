@@ -30,7 +30,7 @@ const messages = {
   'settings.enableImageProxyForAllSites': 'Enable image proxy for *all sites*',
   'settings.enableImageProxyForCurrentSite': 'Enable image proxy for the current site',
   'settings.imageProxyDomains': 'Image proxy domains',
-  'settings.imageProxyDomainsPlaceholder': '/* One domain per line, use \"!\" to exclude, \"*\" for all domains */',
+  'settings.imageProxyDomainsPlaceholder': '/* One domain per line, use "!" to exclude, "*" for all domains */',
   'settings.imageProxyDomainsTipTitle': 'Image proxy domain examples',
   'settings.imageProxyDomainsTipContent': `<p>Image proxy domain list</p>
   <p>

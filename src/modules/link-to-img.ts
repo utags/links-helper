@@ -211,6 +211,7 @@ export const proxyExistingImages = (flag: number) => {
 
     const proxied = toProxyUrlIfNeeded(src)
     if (proxied && proxied !== src) {
+      setAttribute(img, 'data-lh-src', src)
       img.removeAttribute('src')
       setAttribute(img, 'loading', 'lazy')
       setAttribute(img, 'referrerpolicy', 'no-referrer')
@@ -219,6 +220,7 @@ export const proxyExistingImages = (flag: number) => {
       if (parent && parent.tagName === 'A') {
         const href = getAttribute(parent, 'href')
         if (href && href === src) {
+          setAttribute(parent, 'data-lh-href', href)
           setAttribute(parent, 'href', proxied)
         }
       }

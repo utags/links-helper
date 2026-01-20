@@ -208,4 +208,34 @@ describe('linkToImg with image proxy', () => {
     expect(spy).toHaveBeenCalledWith('src')
     expect(img.getAttribute('src')).toContain('wsrv.nl')
   })
+
+  it('should save original src and href to data-lh-* attributes', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['i.imgur.com'],
+      enableWebp: false,
+    })
+
+    const href = 'https://i.imgur.com/data-attr.jpg'
+    const anchor = document.createElement('a')
+    anchor.href = href
+
+    const img = document.createElement('img')
+    img.src = href
+    anchor.append(img)
+
+    document.body.append(anchor)
+
+    proxyExistingImages(5)
+
+    const imgSrc = img.getAttribute('src') || ''
+    const anchorHref = anchor.getAttribute('href') || ''
+    const dataLhSrc = img.dataset.lhSrc || ''
+    const dataLhHref = anchor.dataset.lhHref || ''
+
+    expect(imgSrc.startsWith('https://wsrv.nl/?url=')).toBe(true)
+    expect(anchorHref).toBe(imgSrc)
+    expect(dataLhSrc).toBe(href)
+    expect(dataLhHref).toBe(href)
+  })
 })
