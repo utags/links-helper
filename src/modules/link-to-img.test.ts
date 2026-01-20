@@ -238,4 +238,136 @@ describe('linkToImg with image proxy', () => {
     expect(dataLhSrc).toBe(href)
     expect(dataLhHref).toBe(href)
   })
+
+  it('should proxy relative image URLs by resolving them to absolute URLs', () => {
+    // Set up base tag to resolve relative paths to a non-localhost domain
+    const base = document.createElement('base')
+    base.href = 'https://example.com/'
+    document.head.append(base)
+
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['example.com'],
+      enableWebp: false,
+    })
+
+    const relativePath = 'relative.jpg'
+    const absolutePath = 'https://example.com/relative.jpg'
+
+    const anchor = document.createElement('a')
+    anchor.href = relativePath // Should resolve to https://example.com/relative.jpg
+
+    const img = document.createElement('img')
+    img.src = relativePath // Should resolve to https://example.com/relative.jpg
+    anchor.append(img)
+
+    document.body.append(anchor)
+
+    proxyExistingImages(6)
+
+    const imgSrc = img.getAttribute('src') || ''
+    const anchorHref = anchor.getAttribute('href') || ''
+    const dataLhSrc = img.dataset.lhSrc || ''
+    const dataLhHref = anchor.dataset.lhHref || ''
+
+    // Cleanup
+    base.remove()
+
+    expect(imgSrc.startsWith('https://wsrv.nl/?url=')).toBe(true)
+    expect(imgSrc).toContain(encodeURIComponent(absolutePath))
+    expect(anchorHref).toBe(imgSrc)
+    expect(dataLhSrc).toBe(relativePath)
+    // Note: anchor.href (property) is absolute, but getAttribute('href') is relative
+    expect(dataLhHref).toBe(relativePath)
+  })
+
+  it('should not use DuckDuckGo proxy for SVG images', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['*'],
+      enableWebp: false,
+    })
+
+    const href = 'https://example.com/image.svg'
+    const anchor = createAnchor(href)
+
+    linkToImg(anchor)
+
+    const img = anchor.querySelector('img')
+    expect(img).not.toBeNull()
+    const src = img?.getAttribute('src') || ''
+
+    // Should use wsrv.nl directly without nested DDG url
+    expect(src.startsWith('https://wsrv.nl/?url=')).toBe(true)
+    expect(src).not.toContain('duckduckgo.com')
+    // Should contain original URL encoded
+    expect(src).toContain(encodeURIComponent(href))
+  })
+
+  it('should proxy srcset attributes with descriptors', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['example.com'],
+      enableWebp: false,
+    })
+
+    const img = document.createElement('img')
+    const src = 'https://example.com/image.jpg'
+    const srcset =
+      'https://example.com/image-320w.jpg 320w, https://example.com/image-480w.jpg 480w'
+    img.src = src
+    img.srcset = srcset
+    document.body.append(img)
+
+    proxyExistingImages(7)
+
+    const newSrc = img.getAttribute('src') || ''
+    const newSrcset = img.getAttribute('srcset') || ''
+    const dataLhSrcset = img.dataset.lhSrcset || ''
+
+    expect(newSrc).toContain('wsrv.nl')
+    expect(newSrcset).toContain('wsrv.nl')
+    expect(newSrcset).toContain('320w')
+    expect(newSrcset).toContain('480w')
+
+    // Verify structure of first part of srcset
+    const firstPart = newSrcset.split(',')[0].trim()
+    expect(firstPart).toMatch(/^https:\/\/wsrv\.nl\/\?url=.* 320w$/)
+
+    expect(dataLhSrcset).toBe(srcset)
+  })
+
+  it('should proxy relative URLs in srcset', () => {
+    const base = document.createElement('base')
+    base.href = 'https://example.com/'
+    document.head.append(base)
+
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['example.com'],
+      enableWebp: false,
+    })
+
+    const img = document.createElement('img')
+    const src = 'image.jpg'
+    const srcset = 'image-1x.jpg 1x, image-2x.jpg 2x'
+    img.src = src
+    img.srcset = srcset
+    document.body.append(img)
+
+    proxyExistingImages(8)
+
+    const newSrcset = img.getAttribute('srcset') || ''
+    const dataLhSrcset = img.dataset.lhSrcset || ''
+
+    expect(newSrcset).toContain('wsrv.nl')
+    expect(newSrcset).toContain('1x')
+    expect(newSrcset).toContain('2x')
+    expect(newSrcset).toContain(
+      encodeURIComponent('https://example.com/image-1x.jpg')
+    )
+    expect(dataLhSrcset).toBe(srcset)
+
+    base.remove()
+  })
 })

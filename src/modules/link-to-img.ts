@@ -80,12 +80,42 @@ const toProxyUrlIfNeeded = (url: string) => {
   }
 
   const isGif = /\.gif($|\?)/i.test(url)
+  const isSvg = /\.svg($|\?)/i.test(url)
   const urlEncoded = encodeURIComponent(url)
   const ddgUrl = `https://external-content.duckduckgo.com/iu/?u=${urlEncoded}`
+  const urlToUse = isSvg ? urlEncoded : encodeURIComponent(ddgUrl)
   const qp = `${isGif ? '&n=-1' : ''}${
     imageProxyOptions.enableWebp ? '&output=webp' : ''
   }&default=${urlEncoded}`
-  return `https://wsrv.nl/?url=${encodeURIComponent(ddgUrl)}${qp}`
+  return `https://wsrv.nl/?url=${urlToUse}${qp}`
+}
+
+const proxySrcset = (srcset: string) => {
+  const parts = srcset.split(',')
+  const newParts = parts.map((part) => {
+    const trimmed = part.trim()
+    const match = /^(\S+)(?:\s+(.+))?$/.exec(trimmed)
+    if (!match) {
+      return part
+    }
+
+    const [, url, descriptor] = match
+    let absoluteUrl = url
+    try {
+      absoluteUrl = new URL(url, document.baseURI).href
+    } catch {
+      return part
+    }
+
+    const proxied = toProxyUrlIfNeeded(absoluteUrl)
+    if (proxied) {
+      return descriptor ? `${proxied} ${descriptor}` : proxied
+    }
+
+    return part
+  })
+
+  return newParts.join(', ')
 }
 
 const processRule = (rule: string, href: string) => {
@@ -200,8 +230,8 @@ export const linkToImg = (anchor: HTMLAnchorElement) => {
 
 export const proxyExistingImages = (flag: number) => {
   for (const img of getAllImages()) {
-    const src = getAttribute(img, 'src')
-    if (!src) {
+    const rawSrc = getAttribute(img, 'src')
+    if (!rawSrc) {
       continue
     }
 
@@ -209,20 +239,36 @@ export const proxyExistingImages = (flag: number) => {
       continue
     }
 
+    const src = img.src || rawSrc
     const proxied = toProxyUrlIfNeeded(src)
     if (proxied && proxied !== src) {
-      setAttribute(img, 'data-lh-src', src)
+      setAttribute(img, 'data-lh-src', rawSrc)
       img.removeAttribute('src')
       setAttribute(img, 'loading', 'lazy')
       setAttribute(img, 'referrerpolicy', 'no-referrer')
       setAttribute(img, 'src', proxied)
       const parent = img.parentElement
       if (parent && parent.tagName === 'A') {
-        const href = getAttribute(parent, 'href')
-        if (href && href === src) {
-          setAttribute(parent, 'data-lh-href', href)
-          setAttribute(parent, 'href', proxied)
+        const parentAnchor = parent as HTMLAnchorElement
+        if (parentAnchor.href === src) {
+          const rawHref = getAttribute(parentAnchor, 'href')
+          if (rawHref) {
+            setAttribute(parentAnchor, 'data-lh-href', rawHref)
+          }
+
+          setAttribute(parentAnchor, 'href', proxied)
         }
+      }
+    }
+
+    const rawSrcset = getAttribute(img, 'srcset')
+    if (rawSrcset) {
+      const proxiedSrcset = proxySrcset(rawSrcset)
+      if (proxiedSrcset && proxiedSrcset !== rawSrcset) {
+        setAttribute(img, 'data-lh-srcset', rawSrcset)
+        setAttribute(img, 'loading', 'lazy')
+        setAttribute(img, 'referrerpolicy', 'no-referrer')
+        setAttribute(img, 'srcset', proxiedSrcset)
       }
     }
 

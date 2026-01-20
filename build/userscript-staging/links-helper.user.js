@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.12.1
+// @version              0.12.2
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -1951,15 +1951,40 @@
       return void 0
     }
     const isGif = /\.gif($|\?)/i.test(url)
+    const isSvg = /\.svg($|\?)/i.test(url)
     const urlEncoded = encodeURIComponent(url)
     const ddgUrl = "https://external-content.duckduckgo.com/iu/?u=".concat(
       urlEncoded
     )
+    const urlToUse = isSvg ? urlEncoded : encodeURIComponent(ddgUrl)
     const qp = ""
       .concat(isGif ? "&n=-1" : "")
       .concat(imageProxyOptions.enableWebp ? "&output=webp" : "", "&default=")
       .concat(urlEncoded)
-    return "https://wsrv.nl/?url=".concat(encodeURIComponent(ddgUrl)).concat(qp)
+    return "https://wsrv.nl/?url=".concat(urlToUse).concat(qp)
+  }
+  var proxySrcset = (srcset) => {
+    const parts = srcset.split(",")
+    const newParts = parts.map((part) => {
+      const trimmed = part.trim()
+      const match = /^(\S+)(?:\s+(.+))?$/.exec(trimmed)
+      if (!match) {
+        return part
+      }
+      const [, url, descriptor] = match
+      let absoluteUrl = url
+      try {
+        absoluteUrl = new URL(url, document.baseURI).href
+      } catch (e) {
+        return part
+      }
+      const proxied = toProxyUrlIfNeeded(absoluteUrl)
+      if (proxied) {
+        return descriptor ? "".concat(proxied, " ").concat(descriptor) : proxied
+      }
+      return part
+    })
+    return newParts.join(", ")
   }
   var processRule = (rule, href) => {
     var _a
@@ -2058,27 +2083,41 @@
   }
   var proxyExistingImages = (flag) => {
     for (const img of getAllImages()) {
-      const src = getAttribute(img, "src")
-      if (!src) {
+      const rawSrc = getAttribute(img, "src")
+      if (!rawSrc) {
         continue
       }
       if (img.__links_helper_scaned === flag) {
         continue
       }
+      const src = img.src || rawSrc
       const proxied = toProxyUrlIfNeeded(src)
       if (proxied && proxied !== src) {
-        setAttribute(img, "data-lh-src", src)
+        setAttribute(img, "data-lh-src", rawSrc)
         img.removeAttribute("src")
         setAttribute(img, "loading", "lazy")
         setAttribute(img, "referrerpolicy", "no-referrer")
         setAttribute(img, "src", proxied)
         const parent = img.parentElement
         if (parent && parent.tagName === "A") {
-          const href = getAttribute(parent, "href")
-          if (href && href === src) {
-            setAttribute(parent, "data-lh-href", href)
-            setAttribute(parent, "href", proxied)
+          const parentAnchor = parent
+          if (parentAnchor.href === src) {
+            const rawHref = getAttribute(parentAnchor, "href")
+            if (rawHref) {
+              setAttribute(parentAnchor, "data-lh-href", rawHref)
+            }
+            setAttribute(parentAnchor, "href", proxied)
           }
+        }
+      }
+      const rawSrcset = getAttribute(img, "srcset")
+      if (rawSrcset) {
+        const proxiedSrcset = proxySrcset(rawSrcset)
+        if (proxiedSrcset && proxiedSrcset !== rawSrcset) {
+          setAttribute(img, "data-lh-srcset", rawSrcset)
+          setAttribute(img, "loading", "lazy")
+          setAttribute(img, "referrerpolicy", "no-referrer")
+          setAttribute(img, "srcset", proxiedSrcset)
         }
       }
       img.__links_helper_scaned = flag
