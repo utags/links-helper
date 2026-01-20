@@ -88,12 +88,16 @@ const toProxyUrlIfNeeded = (url: string) => {
     return undefined
   }
 
+  if (lastSegment === 'svg' && !imageProxyOptions.enableConvertSvgToPng) {
+    return undefined
+  }
+
   if (!shouldProxyUrl(url)) {
     return undefined
   }
 
-  const isGif = /\.gif($|\?)/i.test(url)
-  const isSvg = /\.svg($|\?)/i.test(url)
+  const isGif = lastSegment.endsWith('.gif')
+  const isSvg = lastSegment.endsWith('.svg') || lastSegment === 'svg'
   const urlEncoded = encodeURIComponent(url)
   const ddgUrl = `https://external-content.duckduckgo.com/iu/?u=${urlEncoded}`
   const urlToUse = isSvg ? urlEncoded : encodeURIComponent(ddgUrl)

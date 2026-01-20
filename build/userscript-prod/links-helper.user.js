@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.13.0
+// @version              0.13.1
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -1962,11 +1962,14 @@
     if (lastSegment.includes(".") && !allowedExtensions.test(lastSegment)) {
       return void 0
     }
+    if (lastSegment === "svg" && !imageProxyOptions.enableConvertSvgToPng) {
+      return void 0
+    }
     if (!shouldProxyUrl(url)) {
       return void 0
     }
-    const isGif = /\.gif($|\?)/i.test(url)
-    const isSvg = /\.svg($|\?)/i.test(url)
+    const isGif = lastSegment.endsWith(".gif")
+    const isSvg = lastSegment.endsWith(".svg") || lastSegment === "svg"
     const urlEncoded = encodeURIComponent(url)
     const ddgUrl = "https://external-content.duckduckgo.com/iu/?u=".concat(
       urlEncoded

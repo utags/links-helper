@@ -447,14 +447,14 @@ describe('linkToImg with image proxy', () => {
     proxyExistingImages(10)
     expect(img.src).toBe('https://example.com/image.svg')
 
-    // 2. Enabled -> Proxied and output=png
+    // 2. Enabled -> Proxied (default output is png)
     img.src = 'https://example.com/image.svg'
     setImageProxyOptions({
       enableConvertSvgToPng: true,
     })
     proxyExistingImages(11)
     expect(img.src).toContain('wsrv.nl')
-    // expect(img.src).toContain('output=png')
+    expect(img.src).not.toContain('output=png')
 
     // 3. WebP enabled but ConvertSvgToPng disabled -> Not proxied
     img.src = 'https://example.com/image.svg'
@@ -465,15 +465,45 @@ describe('linkToImg with image proxy', () => {
     proxyExistingImages(12)
     expect(img.src).toBe('https://example.com/image.svg')
 
-    // 4. Both enabled -> output=png (priority)
+    // 4. Both enabled -> output=webp
     img.src = 'https://example.com/image.svg'
     setImageProxyOptions({
       enableWebp: true,
       enableConvertSvgToPng: true,
     })
     proxyExistingImages(13)
-    // expect(img.src).toContain('output=png')
+    expect(img.src).not.toContain('output=png')
     expect(img.src).toContain('output=webp')
+
+    container.remove()
+  })
+
+  it('should handle URLs ending with /svg path segment', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['example.com'],
+      enableWebp: false,
+      enableConvertSvgToPng: false,
+    })
+
+    const container = document.createElement('div')
+    const img = document.createElement('img')
+    img.src = 'https://example.com/badge/svg'
+    container.append(img)
+    document.body.append(container)
+
+    // 1. Default (disabled) -> Not proxied
+    proxyExistingImages(14)
+    expect(img.src).toBe('https://example.com/badge/svg')
+
+    // 2. Enabled -> Proxied (default output is png)
+    img.src = 'https://example.com/badge/svg'
+    setImageProxyOptions({
+      enableConvertSvgToPng: true,
+    })
+    proxyExistingImages(15)
+    expect(img.src).toContain('wsrv.nl')
+    expect(img.src).not.toContain('output=png')
 
     container.remove()
   })
