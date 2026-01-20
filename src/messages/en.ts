@@ -43,6 +43,7 @@ imgur.com
 *</pre>
   </p>`,
   'settings.enableImageProxyWebp': 'Convert proxied images to WebP when possible',
+  'settings.enableImageProxyConvertSvgToPng': 'Proxy SVG images (convert to PNG)',
   'settings.convertTextToLinks': 'Convert text links to hyperlinks',
   'settings.convertLinksToImages': 'Convert image links to image tags',
   'settings.eraseLinks': 'Erase Links',

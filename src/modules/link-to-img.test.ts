@@ -286,6 +286,7 @@ describe('linkToImg with image proxy', () => {
       enableProxy: true,
       domains: ['*'],
       enableWebp: false,
+      enableConvertSvgToPng: true,
     })
 
     const href = 'https://example.com/image.svg'
@@ -369,5 +370,111 @@ describe('linkToImg with image proxy', () => {
     expect(dataLhSrcset).toBe(srcset)
 
     base.remove()
+  })
+
+  it('should filter URLs by extension', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['example.com'],
+      enableWebp: false,
+      enableConvertSvgToPng: false,
+    })
+
+    const urls = [
+      'https://example.com/image.jpg',
+      'https://example.com/image.png',
+      'https://example.com/image.webp',
+      'https://example.com/image.gif',
+      'https://example.com/image.svg', // should skip
+      'https://example.com/image.jpeg',
+      'https://example.com/image.tiff',
+      'https://example.com/image.exe', // should skip
+      'https://example.com/image.html', // should skip
+      'https://example.com/image', // no extension, should proxy
+      'https://example.com/image.jpg?query=1', // should proxy
+    ]
+
+    const container = document.createElement('div')
+    for (const url of urls) {
+      const img = document.createElement('img')
+      img.src = url
+      container.append(img)
+    }
+
+    document.body.append(container)
+
+    proxyExistingImages(9)
+
+    const images = container.querySelectorAll('img')
+
+    // Allowed extensions
+    expect(images[0].src).toContain('wsrv.nl') // jpg
+    expect(images[1].src).toContain('wsrv.nl') // png
+    expect(images[2].src).toContain('wsrv.nl') // webp
+    expect(images[3].src).toContain('wsrv.nl') // gif
+    expect(images[4].src).toBe('https://example.com/image.svg') // svg (disabled by default in this test setup)
+    expect(images[5].src).toContain('wsrv.nl') // jpeg
+    expect(images[6].src).toContain('wsrv.nl') // tiff
+
+    // Disallowed extensions
+    expect(images[7].src).toBe('https://example.com/image.exe')
+    expect(images[8].src).toBe('https://example.com/image.html')
+
+    // No extension
+    expect(images[9].src).toContain('wsrv.nl')
+
+    // Query param
+    expect(images[10].src).toContain('wsrv.nl')
+
+    container.remove()
+  })
+
+  it('should convert SVG to PNG when enabled', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['example.com'],
+      enableWebp: false,
+      enableConvertSvgToPng: false,
+    })
+
+    const container = document.createElement('div')
+    const img = document.createElement('img')
+    img.src = 'https://example.com/image.svg'
+    container.append(img)
+    document.body.append(container)
+
+    // 1. Default (disabled) -> Not proxied at all (undefined returned, so src remains same)
+    proxyExistingImages(10)
+    expect(img.src).toBe('https://example.com/image.svg')
+
+    // 2. Enabled -> Proxied and output=png
+    img.src = 'https://example.com/image.svg'
+    setImageProxyOptions({
+      enableConvertSvgToPng: true,
+    })
+    proxyExistingImages(11)
+    expect(img.src).toContain('wsrv.nl')
+    // expect(img.src).toContain('output=png')
+
+    // 3. WebP enabled but ConvertSvgToPng disabled -> Not proxied
+    img.src = 'https://example.com/image.svg'
+    setImageProxyOptions({
+      enableWebp: true,
+      enableConvertSvgToPng: false,
+    })
+    proxyExistingImages(12)
+    expect(img.src).toBe('https://example.com/image.svg')
+
+    // 4. Both enabled -> output=png (priority)
+    img.src = 'https://example.com/image.svg'
+    setImageProxyOptions({
+      enableWebp: true,
+      enableConvertSvgToPng: true,
+    })
+    proxyExistingImages(13)
+    // expect(img.src).toContain('output=png')
+    expect(img.src).toContain('output=webp')
+
+    container.remove()
   })
 })

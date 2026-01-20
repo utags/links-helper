@@ -43,6 +43,7 @@ imgur.com
 *</pre>
   </p>`,
   'settings.enableImageProxyWebp': '将代理图片尽量转换为 WebP 格式',
+  'settings.enableImageProxyConvertSvgToPng': '代理 SVG 图片（转换为 PNG）',
   'settings.convertTextToLinks': '将文本链接转换为超链接',
   'settings.convertLinksToImages': '将图片链接转换为图片标签',
   'settings.eraseLinks': '去除指定区域的链接',

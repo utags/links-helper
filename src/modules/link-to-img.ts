@@ -18,12 +18,14 @@ type ImageProxyOptions = {
   enableProxy: boolean
   domains: string[]
   enableWebp: boolean
+  enableConvertSvgToPng: boolean
 }
 
 let imageProxyOptions: ImageProxyOptions = {
   enableProxy: false,
   domains: [],
   enableWebp: false,
+  enableConvertSvgToPng: false,
 }
 
 export const setImageProxyOptions = (options: Partial<ImageProxyOptions>) => {
@@ -75,6 +77,17 @@ const shouldProxyUrl = (url: string) => {
 }
 
 const toProxyUrlIfNeeded = (url: string) => {
+  const allowedExtensions = imageProxyOptions.enableConvertSvgToPng
+    ? /\.(jpg|jpeg|png|webp|tiff|gif|svg)$/i
+    : /\.(jpg|jpeg|png|webp|tiff|gif)$/i
+
+  const urlWithoutQuery = url.split('?')[0]
+  const lastSegment = urlWithoutQuery.split('/').pop() ?? ''
+
+  if (lastSegment.includes('.') && !allowedExtensions.test(lastSegment)) {
+    return undefined
+  }
+
   if (!shouldProxyUrl(url)) {
     return undefined
   }

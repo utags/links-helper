@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.12.3
+// @version              0.13.0
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -1631,6 +1631,8 @@
       "<p>Image proxy domain list</p>\n  <p>\n  - One domain per line (without http/https)<br>\n  - '*' matches all domains<br>\n  - Exclusion rules: prefix '!' to exclude specific domains<br>\n  <pre>i.imgur.com\nimgur.com\n!abc.com\n*</pre>\n  </p>",
     "settings.enableImageProxyWebp":
       "Convert proxied images to WebP when possible",
+    "settings.enableImageProxyConvertSvgToPng":
+      "Proxy SVG images (convert to PNG)",
     "settings.convertTextToLinks": "Convert text links to hyperlinks",
     "settings.convertLinksToImages": "Convert image links to image tags",
     "settings.eraseLinks": "Erase Links",
@@ -1680,6 +1682,8 @@
       "<p>\u56FE\u7247\u4EE3\u7406\u57DF\u540D\u5217\u8868</p>\n  <p>\n  - \u6BCF\u884C\u4E00\u4E2A\u57DF\u540D\uFF08\u4E0D\u9700\u8981 http/https\uFF09<br>\n  - '*' \u4EE3\u8868\u5339\u914D\u6240\u6709\u57DF\u540D<br>\n  - \u6392\u9664\u89C4\u5219\uFF1A\u4EE5 '!' \u5F00\u5934\u8868\u793A\u6392\u9664\u5BF9\u5E94\u57DF\u540D<br>\n  <pre>i.imgur.com\nimgur.com\n!abc.com\n*</pre>\n  </p>",
     "settings.enableImageProxyWebp":
       "\u5C06\u4EE3\u7406\u56FE\u7247\u5C3D\u91CF\u8F6C\u6362\u4E3A WebP \u683C\u5F0F",
+    "settings.enableImageProxyConvertSvgToPng":
+      "\u4EE3\u7406 SVG \u56FE\u7247\uFF08\u8F6C\u6362\u4E3A PNG\uFF09",
     "settings.convertTextToLinks":
       "\u5C06\u6587\u672C\u94FE\u63A5\u8F6C\u6362\u4E3A\u8D85\u94FE\u63A5",
     "settings.convertLinksToImages":
@@ -1903,6 +1907,7 @@
     enableProxy: false,
     domains: [],
     enableWebp: false,
+    enableConvertSvgToPng: false,
   }
   var setImageProxyOptions = (options) => {
     imageProxyOptions = __spreadValues(
@@ -1947,6 +1952,16 @@
     return false
   }
   var toProxyUrlIfNeeded = (url) => {
+    var _a
+    const allowedExtensions = imageProxyOptions.enableConvertSvgToPng
+      ? /\.(jpg|jpeg|png|webp|tiff|gif|svg)$/i
+      : /\.(jpg|jpeg|png|webp|tiff|gif)$/i
+    const urlWithoutQuery = url.split("?")[0]
+    const lastSegment =
+      (_a = urlWithoutQuery.split("/").pop()) != null ? _a : ""
+    if (lastSegment.includes(".") && !allowedExtensions.test(lastSegment)) {
+      return void 0
+    }
     if (!shouldProxyUrl(url)) {
       return void 0
     }
@@ -2652,6 +2667,11 @@
         tipContent: i2("settings.imageProxyDomainsTipContent"),
         group: groupNumber,
       },
+      enableImageProxyConvertSvgToPng: {
+        title: i2("settings.enableImageProxyConvertSvgToPng"),
+        defaultValue: false,
+        group: groupNumber,
+      },
       enableImageProxyWebp: {
         title: i2("settings.enableImageProxyWebp"),
         defaultValue: false,
@@ -2755,10 +2775,14 @@
         .filter(Boolean)
     }
     enableImageProxyWebp = Boolean(getSettingsValue("enableImageProxyWebp"))
+    const enableImageProxyConvertSvgToPng = Boolean(
+      getSettingsValue("enableImageProxyConvertSvgToPng")
+    )
     setImageProxyOptions({
       enableProxy: enableImageProxy,
       domains: imageProxyDomains,
       enableWebp: enableImageProxyWebp,
+      enableConvertSvgToPng: enableImageProxyConvertSvgToPng,
     })
     {
       const siteSetting = getSettingsValue(
@@ -2987,12 +3011,37 @@
       }
       scanNodes()
     })
+    const observeShadow = (root) => {
+      observer.observe(root, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      })
+    }
+    const originalAttachShadow = Element.prototype.attachShadow
+    if (originalAttachShadow) {
+      Element.prototype.attachShadow = function (init) {
+        const shadowRoot = originalAttachShadow.call(this, init)
+        observeShadow(shadowRoot)
+        return shadowRoot
+      }
+    }
     const startObserver = () => {
       observer.observe(doc.body, {
         childList: true,
         subtree: true,
         characterData: true,
       })
+      const scanAndObserveShadowRoots = (root) => {
+        const elements = root.querySelectorAll("*")
+        for (const element of elements) {
+          if (element.shadowRoot) {
+            observeShadow(element.shadowRoot)
+            scanAndObserveShadowRoots(element.shadowRoot)
+          }
+        }
+      }
+      scanAndObserveShadowRoots(doc.body)
     }
     runWhenBodyExists(() => {
       startObserver()

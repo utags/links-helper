@@ -120,6 +120,11 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
+- 0.13.x
+  - Add setting to proxy SVG images (convert to PNG), default disabled.
+  - Add image extension filtering to prevent proxying non-image files.
+  - Support observing changes inside Shadow DOM for dynamic content updates.
+  - Optimize mutation observer to handle Shadow DOM attachments automatically.
 - 0.12.x
   - Do not use duckduckgo proxy for SVG images.
   - Support proxying `srcset` attribute for responsive images.

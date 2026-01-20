@@ -120,6 +120,11 @@
 
 ## Release Notes
 
+- 0.13.x
+  - 新增“代理 SVG 图片（转换为 PNG）”设置项，默认关闭。
+  - 增加图片扩展名过滤，防止代理非图片文件。
+  - 支持监听 Shadow DOM 内部的动态内容变化。
+  - 优化 MutationObserver 以自动处理 Shadow DOM 的挂载。
 - 0.12.x
   - SVG 图片不走 duckduckgo 代理。
   - 支持代理响应式图片 `srcset` 属性。

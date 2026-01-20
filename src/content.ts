@@ -164,6 +164,11 @@ const getSettingsTable = (): SettingsTable => {
       tipContent: i('settings.imageProxyDomainsTipContent'),
       group: groupNumber,
     },
+    enableImageProxyConvertSvgToPng: {
+      title: i('settings.enableImageProxyConvertSvgToPng'),
+      defaultValue: false,
+      group: groupNumber,
+    },
     enableImageProxyWebp: {
       title: i('settings.enableImageProxyWebp'),
       defaultValue: false,
@@ -284,11 +289,15 @@ function onSettingsChange() {
   enableImageProxyWebp = Boolean(
     getSettingsValue<boolean | undefined>('enableImageProxyWebp')
   )
+  const enableImageProxyConvertSvgToPng = Boolean(
+    getSettingsValue<boolean | undefined>('enableImageProxyConvertSvgToPng')
+  )
 
   setImageProxyOptions({
     enableProxy: enableImageProxy,
     domains: imageProxyDomains,
     enableWebp: enableImageProxyWebp,
+    enableConvertSvgToPng: enableImageProxyConvertSvgToPng,
   })
 
   {
@@ -562,6 +571,23 @@ async function main() {
     scanNodes()
   })
 
+  const observeShadow = (root: ShadowRoot) => {
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    })
+  }
+
+  const originalAttachShadow = Element.prototype.attachShadow
+  if (originalAttachShadow) {
+    Element.prototype.attachShadow = function (init) {
+      const shadowRoot = originalAttachShadow.call(this, init) as ShadowRoot
+      observeShadow(shadowRoot)
+      return shadowRoot
+    }
+  }
+
   const startObserver = () => {
     observer.observe(doc.body, {
       // attributes: true,
@@ -569,6 +595,18 @@ async function main() {
       subtree: true,
       characterData: true,
     })
+
+    const scanAndObserveShadowRoots = (root: ParentNode) => {
+      const elements = root.querySelectorAll('*')
+      for (const element of elements) {
+        if (element.shadowRoot) {
+          observeShadow(element.shadowRoot)
+          scanAndObserveShadowRoots(element.shadowRoot)
+        }
+      }
+    }
+
+    scanAndObserveShadowRoots(doc.body)
   }
 
   runWhenBodyExists(() => {
