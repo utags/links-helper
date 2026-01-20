@@ -534,6 +534,31 @@ async function main() {
 
   const observer = new MutationObserver((mutationsList) => {
     // console.error("mutation", Date.now(), mutationsList)
+    if (enableImageProxy) {
+      let hasImg = false
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeName === 'IMG') {
+              hasImg = true
+              break
+            }
+
+            if (node.nodeType === 1 && (node as Element).querySelector('img')) {
+              hasImg = true
+              break
+            }
+          }
+        }
+
+        if (hasImg) break
+      }
+
+      if (hasImg) {
+        proxyExistingImages(cachedFlag)
+      }
+    }
+
     scanNodes()
   })
 

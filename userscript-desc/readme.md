@@ -120,11 +120,11 @@ Compatible with the following userscript managers
 
 ## Release Notes
 
-- 0.12.2
+- 0.12.x
   - Do not use duckduckgo proxy for SVG images.
   - Support proxying `srcset` attribute for responsive images.
   - Fix relative path resolution for proxy images.
-- 0.12.0
+  - Optimize image proxying to immediately process new image elements.
   - Add image proxy feature with global and per-site settings.
   - Support converting existing image tags to proxy URLs and optional WebP output.
   - Support wildcard `*` and exclusion `!domain` rules in image proxy domain list.
