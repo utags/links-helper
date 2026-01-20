@@ -67,6 +67,26 @@ let enableImageProxyWebp = false
 let imageProxyDomains: string[] = []
 let cachedFlag = 0
 
+const IMAGE_PROXY_BLACKLIST = [
+  'github.com',
+  'developer.mozilla.org',
+  'twitter.com',
+  'x.com',
+  'facebook.com',
+  'instagram.com',
+  'linkedin.com',
+  'whatsapp.com',
+  'telegram.org',
+  'discord.com',
+  'reddit.com',
+  'youtube.com',
+  'google.com',
+]
+
+const isImageProxyBlacklisted = IMAGE_PROXY_BLACKLIST.some(
+  (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
+)
+
 if (
   // eslint-disable-next-line n/prefer-global/process
   process.env.PLASMO_TARGET === 'chrome-mv3' ||
@@ -274,7 +294,9 @@ function onSettingsChange() {
     const globalSetting = getSettingsValue<boolean | undefined>(
       'enableImageProxyForAllSites'
     )
-    enableImageProxy = Boolean(siteSetting ?? globalSetting)
+    enableImageProxy = isImageProxyBlacklisted
+      ? false
+      : Boolean(siteSetting ?? globalSetting)
   }
 
   {
@@ -473,7 +495,16 @@ async function main() {
           const globalSetting = getSettingsValue<boolean | undefined>(
             `enableImageProxyForAllSites`
           )
-          if (globalSetting !== undefined && siteSetting === undefined) {
+
+          if (isImageProxyBlacklisted) {
+            const checkbox = settingsMainView.querySelector(
+              `[data-key="enableImageProxyForCurrentSite_${host}"] input[type="checkbox"]`
+            )
+            if (checkbox) {
+              ;(checkbox as HTMLInputElement).checked = false
+              ;(checkbox as HTMLInputElement).disabled = true
+            }
+          } else if (globalSetting !== undefined && siteSetting === undefined) {
             const checkbox = settingsMainView.querySelector(
               `[data-key="enableImageProxyForCurrentSite_${host}"] input[type="checkbox"]`
             )

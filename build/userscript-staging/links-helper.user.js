@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.13.1
+// @version              0.13.2
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -2572,6 +2572,24 @@
   var enableImageProxyWebp = false
   var imageProxyDomains = []
   var cachedFlag = 0
+  var IMAGE_PROXY_BLACKLIST = [
+    "github.com",
+    "developer.mozilla.org",
+    "twitter.com",
+    "x.com",
+    "facebook.com",
+    "instagram.com",
+    "linkedin.com",
+    "whatsapp.com",
+    "telegram.org",
+    "discord.com",
+    "reddit.com",
+    "youtube.com",
+    "google.com",
+  ]
+  var isImageProxyBlacklisted = IMAGE_PROXY_BLACKLIST.some(
+    (domain) => hostname === domain || hostname.endsWith(".".concat(domain))
+  )
   if (false) {
     const runtime =
       (_c = (_a = globalThis.chrome) == null ? void 0 : _a.runtime) != null
@@ -2765,9 +2783,9 @@
         "enableImageProxyForCurrentSite_".concat(host)
       )
       const globalSetting = getSettingsValue("enableImageProxyForAllSites")
-      enableImageProxy = Boolean(
-        siteSetting != null ? siteSetting : globalSetting
-      )
+      enableImageProxy = isImageProxyBlacklisted
+        ? false
+        : Boolean(siteSetting != null ? siteSetting : globalSetting)
     }
     {
       const domainsValue =
@@ -2930,7 +2948,18 @@
             const globalSetting = getSettingsValue(
               "enableImageProxyForAllSites"
             )
-            if (globalSetting !== void 0 && siteSetting === void 0) {
+            if (isImageProxyBlacklisted) {
+              const checkbox = settingsMainView.querySelector(
+                '[data-key="enableImageProxyForCurrentSite_'.concat(
+                  host,
+                  '"] input[type="checkbox"]'
+                )
+              )
+              if (checkbox) {
+                checkbox.checked = false
+                checkbox.disabled = true
+              }
+            } else if (globalSetting !== void 0 && siteSetting === void 0) {
               const checkbox = settingsMainView.querySelector(
                 '[data-key="enableImageProxyForCurrentSite_'.concat(
                   host,
