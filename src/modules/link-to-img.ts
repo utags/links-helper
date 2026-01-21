@@ -272,6 +272,27 @@ export const linkToImg = (anchor: HTMLAnchorElement) => {
   }
 }
 
+const isReactJsImg = (elemnt: HTMLElement) =>
+  getAttribute(elemnt, 'node') === '[object Object]'
+const cloneImgWithParent = (img: HTMLElement) => {
+  try {
+    const parent = img.parentElement!
+    const newParentElm = parent.cloneNode(true) as HTMLElement
+    parent.after(newParentElm)
+    const newImg = newParentElm.querySelector('img')!
+    if (newImg) {
+      // parent.style.display = 'none'
+      parent.remove()
+      return newImg
+    }
+
+    newParentElm.remove()
+    return undefined
+  } catch {
+    return undefined
+  }
+}
+
 export const proxyExistingImages = (flag: number) => {
   for (const img of getAllImages()) {
     const rawSrc = getAttribute(img, 'src')
@@ -285,11 +306,23 @@ export const proxyExistingImages = (flag: number) => {
 
     const src = img.src || rawSrc
     const proxied = toProxyUrlIfNeeded(src)
+    const orgImg = img
     if (proxied && proxied !== src) {
+      const img = isReactJsImg(orgImg)
+        ? cloneImgWithParent(orgImg) || orgImg
+        : orgImg
+
       setAttribute(img, 'data-lh-src', rawSrc)
       img.removeAttribute('src')
       setAttribute(img, 'loading', 'lazy')
       setAttribute(img, 'referrerpolicy', 'no-referrer')
+      img.addEventListener('error', (e) => {
+        const target = e.target as HTMLImageElement
+        if (target && target.src === src) {
+          e.stopImmediatePropagation()
+          e.stopPropagation()
+        }
+      })
       setAttribute(img, 'src', proxied)
       const parent = img.parentElement
       if (parent && parent.tagName === 'A') {

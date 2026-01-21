@@ -132,6 +132,8 @@ Compatible with the following userscript managers
   - Optimize image proxy chain (using DuckDuckGo proxy for better privacy/availability, with fallback).
   - Fix: Skip DuckDuckGo proxy for specific domains (e.g. `i.ytimg.com`) to prevent loading failures.
   - Improvement: Enhanced proxy reliability with double-layer fallback (wsrv -> ddg -> wsrv -> original).
+  - Fix: Stop error propagation for original image load failures.
+  - Fix: Handle specific React hydration issues by cloning image elements.
 - 0.12.x
   - Do not use duckduckgo proxy for SVG images.
   - Support proxying `srcset` attribute for responsive images.

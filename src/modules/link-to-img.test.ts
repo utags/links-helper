@@ -610,4 +610,86 @@ describe('linkToImg with image proxy', () => {
 
     anchor.remove()
   })
+
+  it('should handle React JS images by cloning and replacing parent', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['example.com'],
+      enableWebp: false,
+    })
+
+    const parent = document.createElement('div')
+    const img = document.createElement('img')
+    img.src = 'https://example.com/react.jpg'
+    img.setAttribute('node', '[object Object]')
+    parent.append(img)
+    document.body.append(parent)
+
+    proxyExistingImages(16)
+
+    expect(document.body.contains(parent)).toBe(false)
+    const newImg = [...document.body.querySelectorAll('img')].find(
+      (i) => i.dataset.lhSrc === 'https://example.com/react.jpg'
+    )
+    expect(newImg).not.toBeUndefined()
+    expect(newImg?.getAttribute('src')).toContain('wsrv.nl')
+    newImg?.remove()
+  })
+
+  it('should attach error listener to stop propagation', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['example.com'],
+      enableWebp: false,
+    })
+
+    const img = document.createElement('img')
+    const originalSrc = 'https://example.com/error.jpg'
+    img.src = originalSrc
+    document.body.append(img)
+
+    const addEventListenerSpy = vi.spyOn(img, 'addEventListener')
+
+    proxyExistingImages(17)
+
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      'error',
+      expect.any(Function)
+    )
+
+    // Verify listener logic
+    const listener = addEventListenerSpy.mock.calls.find(
+      (call) => call[0] === 'error'
+    )?.[1] as EventListener
+    expect(listener).toBeDefined()
+
+    if (listener) {
+      const stopPropagationSpy = vi.fn()
+      const stopImmediatePropagationSpy = vi.fn()
+      // Mock event where target.src matches original
+      const event = {
+        target: { src: originalSrc },
+        stopPropagation: stopPropagationSpy,
+        stopImmediatePropagation: stopImmediatePropagationSpy,
+      } as unknown as Event
+
+      listener(event)
+      expect(stopPropagationSpy).toHaveBeenCalled()
+      expect(stopImmediatePropagationSpy).toHaveBeenCalled()
+
+      // Test mismatch
+      const stopPropagationSpy2 = vi.fn()
+      const stopImmediatePropagationSpy2 = vi.fn()
+      const event2 = {
+        target: { src: 'https://other.com/img.jpg' },
+        stopPropagation: stopPropagationSpy2,
+        stopImmediatePropagation: stopImmediatePropagationSpy2,
+      } as unknown as Event
+      listener(event2)
+      expect(stopPropagationSpy2).not.toHaveBeenCalled()
+      expect(stopImmediatePropagationSpy2).not.toHaveBeenCalled()
+    }
+
+    img.remove()
+  })
 })
