@@ -332,6 +332,31 @@ describe('linkToImg with image proxy', () => {
     expect(src).toContain(encodeURIComponent(href))
   })
 
+  it('should not proxy default blacklisted domains even with * rule', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['*'],
+      enableWebp: false,
+    })
+
+    const urls = [
+      'https://wsrv.nl/test.jpg',
+      'https://localhost/test.jpg',
+      'https://127.0.0.1/test.jpg',
+      'https://cdnfile.sspai.com/test.jpg',
+    ]
+
+    for (const url of urls) {
+      const anchor = createAnchor(url)
+      linkToImg(anchor)
+      const img = anchor.querySelector('img')
+      expect(img).not.toBeNull()
+      // Should remain original src, not proxied
+      expect(img?.getAttribute('src')).toBe(url)
+      anchor.remove()
+    }
+  })
+
   it('should use double proxy chain (wsrv -> ddg -> wsrv -> original) for normal images', () => {
     setImageProxyOptions({
       enableProxy: true,

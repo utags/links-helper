@@ -34,6 +34,13 @@ const DDG_BLACK_LIST = [
   'i.ytimg.com',
 ]
 
+const DEFAULT_BLOCK_DOMAINS = new Set([
+  'wsrv.nl',
+  'localhost',
+  '127.0.0.1',
+  'cdnfile.sspai.com',
+])
+
 const isDdgBlacklisted = (hostname: string) =>
   DDG_BLACK_LIST.some(
     (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
@@ -54,12 +61,7 @@ const shouldProxyUrl = (url: string) => {
   }
 
   const hostname = getHostname(url)
-  if (
-    !hostname ||
-    hostname === 'wsrv.nl' ||
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1'
-  ) {
+  if (!hostname || DEFAULT_BLOCK_DOMAINS.has(hostname)) {
     return false
   }
 

@@ -134,6 +134,7 @@ Compatible with the following userscript managers
   - Improvement: Enhanced proxy reliability with double-layer fallback (wsrv -> ddg -> wsrv -> original).
   - Fix: Stop error propagation for original image load failures.
   - Fix: Handle specific React hydration issues by cloning image elements.
+  - Optimization: Built-in blacklist domains (e.g. localhost, cdnfile.sspai.com) are now strictly excluded even when the wildcard `*` rule is enabled.
 - 0.12.x
   - Do not use duckduckgo proxy for SVG images.
   - Support proxying `srcset` attribute for responsive images.

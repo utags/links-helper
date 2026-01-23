@@ -79,6 +79,7 @@ const IMAGE_PROXY_BLACKLIST = [
   'instagram.com',
   'whatsapp.com',
   'discord.com',
+  'image.baidu.com',
 ]
 
 const STORAGE_KEY_CSP_RESTRICTED = 'links-helper:csp-restricted'
