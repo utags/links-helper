@@ -283,8 +283,8 @@ const cloneImgWithParent = (img: HTMLElement) => {
     parent.after(newParentElm)
     const newImg = newParentElm.querySelector('img')!
     if (newImg) {
-      // parent.style.display = 'none'
-      parent.remove()
+      parent.style.display = 'none'
+      // parent.remove()
       return newImg
     }
 
