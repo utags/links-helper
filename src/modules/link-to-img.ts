@@ -285,6 +285,7 @@ const cloneImgWithParent = (img: HTMLElement) => {
     if (newImg) {
       parent.style.display = 'none'
       // parent.remove()
+      newImg.style.opacity = '1'
       return newImg
     }
 
