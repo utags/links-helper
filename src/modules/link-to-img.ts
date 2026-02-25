@@ -50,7 +50,7 @@ export const setImageProxyOptions = (options: Partial<ImageProxyOptions>) => {
   imageProxyOptions = { ...imageProxyOptions, ...options }
 }
 
-const getHostname = (url: string) => (/https?:\/\/([^/]+)/.exec(url) || [])[1]
+const getHostname = (url: string) => (/^https?:\/\/([^/]+)/.exec(url) || [])[1]
 
 const shouldProxyUrl = (url: string) => {
   if (
