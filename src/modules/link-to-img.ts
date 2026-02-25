@@ -114,6 +114,16 @@ const toProxyUrlIfNeeded = (url: string) => {
   const enableWebp = imageProxyOptions.enableWebp
   const hostname = getHostname(url)
   const urlEncoded = encodeURIComponent(url)
+  let defaultUrlEncoded = urlEncoded
+  // Fix 2libra.com avatar urls - https://2libra.com/post/community/tveeqdJ
+  // https://r2.2libra.com/cdn-cgi/image/width=256,height=256,fit=cover,format=auto/avatars/14b1/b1ce/41da86fa-782d-4925-ab72-a76065d9cd17.jpg?t=1772010098019
+  // =>
+  // https://r2.2libra.com/avatars/14b1/b1ce/41da86fa-782d-4925-ab72-a76065d9cd17.jpg?t=1772010098019
+  if (url.startsWith('https://r2.2libra.com/cdn-cgi/image/')) {
+    defaultUrlEncoded = encodeURIComponent(
+      url.replace(/\/cdn-cgi\/image\/.*\/avatars\//, '/avatars/')
+    )
+  }
 
   const buildWsrvProxyUrl = (urlEncoded: string, defaultUrlEncoded: string) => {
     const qp = `${isGif ? '&n=-1' : ''}${
@@ -122,7 +132,7 @@ const toProxyUrlIfNeeded = (url: string) => {
     return `https://wsrv.nl/?url=${urlEncoded}${qp}`
   }
 
-  const level1 = buildWsrvProxyUrl(urlEncoded, urlEncoded)
+  const level1 = buildWsrvProxyUrl(urlEncoded, defaultUrlEncoded)
   if (isSvg || isDdgBlacklisted(hostname)) {
     return level1
   }

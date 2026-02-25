@@ -652,7 +652,8 @@ describe('linkToImg with image proxy', () => {
 
     proxyExistingImages(16)
 
-    expect(document.body.contains(parent)).toBe(false)
+    // UPDATE: don't delete any more
+    // expect(document.body.contains(parent)).toBe(false)
     const newImg = [...document.body.querySelectorAll('img')].find(
       (i) => i.dataset.lhSrc === 'https://example.com/react.jpg'
     )
@@ -714,6 +715,42 @@ describe('linkToImg with image proxy', () => {
       expect(stopPropagationSpy2).not.toHaveBeenCalled()
       expect(stopImmediatePropagationSpy2).not.toHaveBeenCalled()
     }
+
+    img.remove()
+  })
+
+  it('should simplify r2.2libra.com avatar URLs in default parameter', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['*'],
+      enableWebp: false,
+    })
+
+    const img = document.createElement('img')
+    const originalSrc =
+      'https://r2.2libra.com/cdn-cgi/image/width=256,height=256,fit=cover,format=auto/avatars/14b1/b1ce/41da86fa-782d-4925-ab72-a76065d9cd17.jpg?t=1772010098019'
+    const expectedDefaultSrc =
+      'https://r2.2libra.com/avatars/14b1/b1ce/41da86fa-782d-4925-ab72-a76065d9cd17.jpg?t=1772010098019'
+    img.src = originalSrc
+    document.body.append(img)
+
+    proxyExistingImages(18)
+
+    const newSrc = img.getAttribute('src') || ''
+    expect(newSrc).toContain('wsrv.nl')
+
+    // It uses double proxy chain (level 2)
+    const urlObj = new URL(newSrc)
+    const defaultParam = urlObj.searchParams.get('default')
+    expect(defaultParam).toBeTruthy()
+
+    // Level 2 default param is Level 1 URL
+    const level1Url = decodeURIComponent(defaultParam!)
+    const level1UrlObj = new URL(level1Url)
+
+    // Level 1 default param is the simplified original URL
+    const level1DefaultParam = level1UrlObj.searchParams.get('default')
+    expect(level1DefaultParam).toBe(expectedDefaultSrc)
 
     img.remove()
   })

@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.13.9
+// @version              0.13.10
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -1979,14 +1979,20 @@
     const enableWebp = imageProxyOptions.enableWebp
     const hostname2 = getHostname(url)
     const urlEncoded = encodeURIComponent(url)
-    const buildWsrvProxyUrl = (urlEncoded2, defaultUrlEncoded) => {
+    let defaultUrlEncoded = urlEncoded
+    if (url.startsWith("https://r2.2libra.com/cdn-cgi/image/")) {
+      defaultUrlEncoded = encodeURIComponent(
+        url.replace(/\/cdn-cgi\/image\/.*\/avatars\//, "/avatars/")
+      )
+    }
+    const buildWsrvProxyUrl = (urlEncoded2, defaultUrlEncoded2) => {
       const qp = ""
         .concat(isGif ? "&n=-1" : "")
         .concat(enableWebp ? "&output=webp" : "", "&default=")
-        .concat(defaultUrlEncoded)
+        .concat(defaultUrlEncoded2)
       return "https://wsrv.nl/?url=".concat(urlEncoded2).concat(qp)
     }
-    const level1 = buildWsrvProxyUrl(urlEncoded, urlEncoded)
+    const level1 = buildWsrvProxyUrl(urlEncoded, defaultUrlEncoded)
     if (isSvg || isDdgBlacklisted(hostname2)) {
       return level1
     }
