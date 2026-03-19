@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.13.10
+// @version              0.13.11
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -457,13 +457,20 @@
       element.removeEventListener(type, listener, options)
     }
   }
-  var getAttribute = (element, name) =>
-    element && element.getAttribute
-      ? element.getAttribute(name) || void 0
+  var getAttribute = (element, name) => {
+    var _a
+    return element && element.getAttribute
+      ? (_a = element.getAttribute(name)) != null
+        ? _a
+        : void 0
       : void 0
+  }
   var setAttribute = (element, name, value) => {
     if (element && element.setAttribute) {
-      element.setAttribute(name, value)
+      const orgValue = getAttribute(element, name)
+      if (orgValue !== value) {
+        element.setAttribute(name, value)
+      }
     }
   }
   var removeAttribute = (element, name) => {
@@ -1151,7 +1158,7 @@
     }
     removeEventListener(doc, "click", onDocumentClick, true)
     removeEventListener(doc, "keydown", onDocumentKeyDown, true)
-    removeEventListener(win, "beforeShowSettings", onBeforeShowSettings, true)
+    removeEventListener(doc, "beforeShowSettings", onBeforeShowSettings, true)
   }
   function hideSettings() {
     var _a
@@ -1385,7 +1392,7 @@
                     if (textArea) {
                       await saveSettingsValue(key, textArea.value.trim())
                     }
-                  }, 100)
+                  }, 2e3)
                 },
               })
               break
@@ -1515,8 +1522,8 @@
     }
     closeModal()
     const event = new CustomEvent("beforeShowSettings")
-    win.dispatchEvent(event)
-    addEventListener(win, "beforeShowSettings", onBeforeShowSettings, true)
+    doc.dispatchEvent(event)
+    addEventListener(doc, "beforeShowSettings", onBeforeShowSettings, true)
     createSettingsElement()
     await updateOptions()
     addEventListener(doc, "click", onDocumentClick, true)
