@@ -50,6 +50,7 @@ imgur.com
   'settings.restoreLinks': 'Restore Links',
 
   'settings.title': '🔗 Links Helper',
+  'settings.reloadPageToApply': 'Reload page to apply changes',
   'settings.information': 'After changing the settings, reload the page to take effect',
   'settings.report': 'Report and Issue...',
   'popup.settings': 'Settings',

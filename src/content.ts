@@ -54,6 +54,8 @@ declare global {
 const origin = location.origin
 const host = location.host
 const hostname = location.hostname
+let enabled = false
+let enabledInitialValue = false
 let currentUrl: string | undefined
 let currentCanonicalId: string | undefined
 let enableCustomRules = false
@@ -167,18 +169,26 @@ const getSettingsTable = (): SettingsTable => {
     },
     [`enableCurrentSite_${host}`]: {
       title: i('settings.enableCurrentSite'),
-      defaultValue: true,
+      defaultValue: undefined as any as boolean,
+    },
+    reloadPage: {
+      title: i('settings.reloadPageToApply'),
+      type: 'action',
+      async onclick() {
+        location.reload()
+      },
     },
     [`enableCustomRulesForCurrentSite_${host}`]: {
       title: i('settings.enableCustomRulesForTheCurrentSite'),
       defaultValue: false,
+      group: ++groupNumber,
     },
     [`customRulesForCurrentSite_${host}`]: {
       title: i('settings.enableCustomRulesForTheCurrentSite'),
       defaultValue: '',
       placeholder: i('settings.customRulesPlaceholder'),
       type: 'textarea',
-      group: ++groupNumber,
+      group: groupNumber,
     },
     customRulesTip: {
       title: i('settings.customRulesTipTitle'),
@@ -321,6 +331,14 @@ function onSettingsChange() {
     getSettingsValue<string | undefined>('locale') || getPrefferedLocale()
   resetI18n(locale)
 
+  // {
+  //   const siteSetting = getSettingsValue<boolean | undefined>(
+  //     `enableCurrentSite_${host}`
+  //   )
+  //   const globalSetting = getSettingsValue<boolean | undefined>(`enable`)
+  //   enabled = Boolean(siteSetting ?? globalSetting)
+  // }
+
   enableCustomRules = Boolean(
     getSettingsValue<boolean | undefined>(
       `enableCustomRulesForCurrentSite_${host}`
@@ -414,7 +432,9 @@ function onSettingsChange() {
     )
   )
 
-  scanNodes()
+  if (enabled) {
+    scanNodes()
+  }
 }
 
 const scanAnchors = () => {
@@ -496,13 +516,44 @@ async function main() {
         onSettingsChange()
       },
       onViewUpdate(settingsMainView) {
-        const group2 = $(`.option_groups:nth-of-type(2)`, settingsMainView)
-        if (group2) {
-          group2.style.display = getSettingsValue(
+        {
+          const siteSetting = getSettingsValue<boolean | undefined>(
+            `enableCurrentSite_${host}`
+          )
+          const globalSetting = getSettingsValue<boolean | undefined>(`enable`)
+          if (globalSetting !== undefined && siteSetting === undefined) {
+            const checkbox = settingsMainView.querySelector(
+              `[data-key="enableCurrentSite_${host}"] input[type="checkbox"]`
+            )
+            if (checkbox) {
+              ;(checkbox as HTMLInputElement).checked = globalSetting
+            }
+          }
+
+          const element = settingsMainView.querySelector<HTMLDivElement>(
+            `[data-key="reloadPage"]`
+          )
+          if (element) {
+            element.style.display =
+              enabledInitialValue === Boolean(siteSetting ?? globalSetting)
+                ? 'none'
+                : 'block'
+          }
+        }
+
+        {
+          const enableCustomRules = getSettingsValue(
             `enableCustomRulesForCurrentSite_${host}`
           )
-            ? 'block'
-            : 'none'
+          const textarea = $(`.bes_textarea`, settingsMainView)
+          if (textarea) {
+            textarea.style.display = enableCustomRules ? 'block' : 'none'
+          }
+
+          const tip = $(`.bes_tip`, settingsMainView)
+          if (tip) {
+            tip.style.display = enableCustomRules ? 'block' : 'none'
+          }
         }
 
         {
@@ -596,10 +647,16 @@ async function main() {
     }
   })
 
-  if (
-    !getSettingsValue('enable') ||
-    !getSettingsValue(`enableCurrentSite_${host}`)
-  ) {
+  {
+    const siteSetting = getSettingsValue<boolean | undefined>(
+      `enableCurrentSite_${host}`
+    )
+    const globalSetting = getSettingsValue<boolean | undefined>(`enable`)
+    enabled = Boolean(siteSetting ?? globalSetting)
+  }
+
+  enabledInitialValue = enabled
+  if (!enabled) {
     return
   }
 

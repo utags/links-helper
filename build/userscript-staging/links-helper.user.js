@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.13.11
+// @version              0.14.0
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -254,9 +254,9 @@
   var lastKnownValues = /* @__PURE__ */ new Map()
   var pollingIntervalId = null
   var pollingEnabled = false
-  function setPolling(enabled) {
-    pollingEnabled = enabled
-    if (!enabled) {
+  function setPolling(enabled2) {
+    pollingEnabled = enabled2
+    if (!enabled2) {
       if (pollingIntervalId) {
         clearInterval(pollingIntervalId)
         pollingIntervalId = null
@@ -525,7 +525,7 @@
   var tt = globalThis.trustedTypes
   var escapeHTMLPolicy =
     tt !== void 0 && typeof tt.createPolicy === "function"
-      ? tt.createPolicy("beuEscapePolicy", {
+      ? tt.createPolicy("dompurify", {
           createHTML: (string) => string,
         })
       : void 0
@@ -1645,6 +1645,7 @@
     "settings.eraseLinks": "Erase Links",
     "settings.restoreLinks": "Restore Links",
     "settings.title": "\u{1F517} Links Helper",
+    "settings.reloadPageToApply": "Reload page to apply changes",
     "settings.information":
       "After changing the settings, reload the page to take effect",
     "settings.report": "Report and Issue...",
@@ -1699,6 +1700,8 @@
       "\u53BB\u9664\u6307\u5B9A\u533A\u57DF\u7684\u94FE\u63A5",
     "settings.restoreLinks": "\u6062\u590D\u53BB\u9664\u7684\u94FE\u63A5",
     "settings.title": "\u{1F517} \u94FE\u63A5\u52A9\u624B",
+    "settings.reloadPageToApply":
+      "\u91CD\u65B0\u52A0\u8F7D\u9875\u9762\u4EE5\u751F\u6548",
     "settings.information":
       "\u66F4\u6539\u8BBE\u7F6E\u540E\uFF0C\u91CD\u65B0\u52A0\u8F7D\u9875\u9762\u5373\u53EF\u751F\u6548",
     "settings.report": "\u53CD\u9988\u95EE\u9898",
@@ -2646,6 +2649,8 @@
   var origin = location.origin
   var host = location.host
   var hostname = location.hostname
+  var enabled = false
+  var enabledInitialValue = false
   var currentUrl
   var currentCanonicalId
   var enableCustomRules = false
@@ -2730,18 +2735,26 @@
       },
       ["enableCurrentSite_".concat(host)]: {
         title: i2("settings.enableCurrentSite"),
-        defaultValue: true,
+        defaultValue: void 0,
+      },
+      reloadPage: {
+        title: i2("settings.reloadPageToApply"),
+        type: "action",
+        async onclick() {
+          location.reload()
+        },
       },
       ["enableCustomRulesForCurrentSite_".concat(host)]: {
         title: i2("settings.enableCustomRulesForTheCurrentSite"),
         defaultValue: false,
+        group: ++groupNumber,
       },
       ["customRulesForCurrentSite_".concat(host)]: {
         title: i2("settings.enableCustomRulesForTheCurrentSite"),
         defaultValue: "",
         placeholder: i2("settings.customRulesPlaceholder"),
         type: "textarea",
-        group: ++groupNumber,
+        group: groupNumber,
       },
       customRulesTip: {
         title: i2("settings.customRulesTipTitle"),
@@ -2940,7 +2953,9 @@
     enableTextToLinks = Boolean(
       getSettingsValue("enableTextToLinksForCurrentSite_".concat(host))
     )
-    scanNodes()
+    if (enabled) {
+      scanNodes()
+    }
   }
   var scanAnchors = () => {
     if (currentUrl !== location.href) {
@@ -3005,13 +3020,45 @@
           onSettingsChange()
         },
         onViewUpdate(settingsMainView) {
-          const group2 = $(".option_groups:nth-of-type(2)", settingsMainView)
-          if (group2) {
-            group2.style.display = getSettingsValue(
+          {
+            const siteSetting = getSettingsValue(
+              "enableCurrentSite_".concat(host)
+            )
+            const globalSetting = getSettingsValue("enable")
+            if (globalSetting !== void 0 && siteSetting === void 0) {
+              const checkbox = settingsMainView.querySelector(
+                '[data-key="enableCurrentSite_'.concat(
+                  host,
+                  '"] input[type="checkbox"]'
+                )
+              )
+              if (checkbox) {
+                checkbox.checked = globalSetting
+              }
+            }
+            const element = settingsMainView.querySelector(
+              '[data-key="reloadPage"]'
+            )
+            if (element) {
+              element.style.display =
+                enabledInitialValue ===
+                Boolean(siteSetting != null ? siteSetting : globalSetting)
+                  ? "none"
+                  : "block"
+            }
+          }
+          {
+            const enableCustomRules2 = getSettingsValue(
               "enableCustomRulesForCurrentSite_".concat(host)
             )
-              ? "block"
-              : "none"
+            const textarea = $(".bes_textarea", settingsMainView)
+            if (textarea) {
+              textarea.style.display = enableCustomRules2 ? "block" : "none"
+            }
+            const tip = $(".bes_tip", settingsMainView)
+            if (tip) {
+              tip.style.display = enableCustomRules2 ? "block" : "none"
+            }
           }
           {
             const siteSetting = getSettingsValue(
@@ -3106,10 +3153,13 @@
         },
       }
     })
-    if (
-      !getSettingsValue("enable") ||
-      !getSettingsValue("enableCurrentSite_".concat(host))
-    ) {
+    {
+      const siteSetting = getSettingsValue("enableCurrentSite_".concat(host))
+      const globalSetting = getSettingsValue("enable")
+      enabled = Boolean(siteSetting != null ? siteSetting : globalSetting)
+    }
+    enabledInitialValue = enabled
+    if (!enabled) {
       return
     }
     onSettingsChange()

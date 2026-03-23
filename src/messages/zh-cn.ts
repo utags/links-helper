@@ -50,6 +50,7 @@ imgur.com
   'settings.restoreLinks': '恢复去除的链接',
 
   'settings.title': '🔗 链接助手',
+  'settings.reloadPageToApply': '重新加载页面以生效',
   'settings.information': '更改设置后，重新加载页面即可生效',
   'settings.report': '反馈问题',
   'popup.settings': '设置',
