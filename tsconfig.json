@@ -9,13 +9,13 @@
     "./**/*.tsx"
   ],
   "compilerOptions": {
+    "moduleResolution": "bundler",
     "paths": {
       "~*": [
         "./src/*"
       ]
     },
     "strictNullChecks": true,
-    "baseUrl": ".",
     "skipLibCheck": true
   }
 }

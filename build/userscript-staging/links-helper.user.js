@@ -4,7 +4,7 @@
 // @namespace            https://github.com/utags/links-helper
 // @homepageURL          https://github.com/utags/links-helper#readme
 // @supportURL           https://github.com/utags/links-helper/issues
-// @version              0.14.0
+// @version              0.14.1
 // @description          Open external links in a new tab, open internal links matching the specified rules in a new tab, convert text to hyperlinks, convert image links to image tags(<img>), parse Markdown style links and image tags, parse BBCode style links and image tags
 // @description:zh-CN    支持所有网站在新标签页中打开第三方网站链接（外链），在新标签页中打开符合指定规则的本站链接，解析文本链接为超链接，微信公众号文本转可点击的超链接，图片链接转图片标签，解析 Markdown 格式链接与图片标签，解析 BBCode 格式链接与图片标签
 // @icon                 https://wsrv.nl/?w=128&h=128&url=https%3A%2F%2Fraw.githubusercontent.com%2Futags%2Flinks-helper%2Frefs%2Fheads%2Fmain%2Fassets%2Ficon.png
@@ -1989,18 +1989,23 @@
     const enableWebp = imageProxyOptions.enableWebp
     const hostname2 = getHostname(url)
     const urlEncoded = encodeURIComponent(url)
-    let defaultUrlEncoded = urlEncoded
-    if (url.startsWith("https://r2.2libra.com/cdn-cgi/image/")) {
-      defaultUrlEncoded = encodeURIComponent(
-        url.replace(/\/cdn-cgi\/image\/.*\/avatars\//, "/avatars/")
-      )
-    }
-    const buildWsrvProxyUrl = (urlEncoded2, defaultUrlEncoded2) => {
+    const defaultUrlEncoded = urlEncoded
+    const buildWsrvProxyUrl = (urlEncoded2, defaultUrlEncoded2, size) => {
       const qp = ""
         .concat(isGif ? "&n=-1" : "")
+        .concat(size ? "&w=".concat(size, "&fit=cover") : "")
         .concat(enableWebp ? "&output=webp" : "", "&default=")
         .concat(defaultUrlEncoded2)
       return "https://wsrv.nl/?url=".concat(urlEncoded2).concat(qp)
+    }
+    if (url.startsWith("https://r2.2libra.com/cdn-cgi/image/")) {
+      const orgUrl = url.replace(/\/cdn-cgi\/image\/.*\/avatars\//, "/avatars/")
+      const level12 = buildWsrvProxyUrl(
+        encodeURIComponent(orgUrl),
+        encodeURIComponent(orgUrl),
+        256
+      )
+      return level12
     }
     const level1 = buildWsrvProxyUrl(urlEncoded, defaultUrlEncoded)
     if (isSvg || isDdgBlacklisted(hostname2)) {
@@ -2139,11 +2144,32 @@
     try {
       const parent = img.parentElement
       const newParentElm = parent.cloneNode(true)
-      parent.after(newParentElm)
+      parent.before(newParentElm)
       const newImg = newParentElm.querySelector("img")
       if (newImg) {
         parent.style.display = "none"
-        newImg.style.opacity = "1"
+        newImg.style.removeProperty("position")
+        newImg.style.removeProperty("top")
+        newImg.style.removeProperty("left")
+        newImg.style.removeProperty("opacity")
+        newImg.addEventListener(
+          "load",
+          (e) => {
+            const target = e.currentTarget
+            const previousSibling = target.previousElementSibling
+            if (previousSibling && previousSibling.matches("span.skeleton")) {
+              previousSibling.remove()
+              target.style.removeProperty("position")
+              target.style.removeProperty("top")
+              target.style.removeProperty("left")
+              target.style.removeProperty("opacity")
+              target.style.maxWidth = "100%"
+              target.style.maxHeight = "500px"
+              target.style.objectFit = "contain"
+            }
+          },
+          true
+        )
         return newImg
       }
       newParentElm.remove()
@@ -2172,13 +2198,17 @@
         img2.removeAttribute("src")
         setAttribute(img2, "loading", "lazy")
         setAttribute(img2, "referrerpolicy", "no-referrer")
-        img2.addEventListener("error", (e) => {
-          const target = e.target
-          if (target && target.src === src) {
-            e.stopImmediatePropagation()
-            e.stopPropagation()
-          }
-        })
+        img2.addEventListener(
+          "error",
+          (e) => {
+            const target = e.target
+            if (target && target.src === src) {
+              e.stopImmediatePropagation()
+              e.stopPropagation()
+            }
+          },
+          true
+        )
         setAttribute(img2, "src", proxied)
         const parent = img2.parentElement
         if (parent && parent.tagName === "A") {
@@ -2203,6 +2233,7 @@
         }
       }
       img.__links_helper_scaned = flag
+      orgImg.__links_helper_scaned = flag
     }
   }
   var restoreProxiedImages = () => {

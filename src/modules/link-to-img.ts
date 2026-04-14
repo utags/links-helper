@@ -114,22 +114,32 @@ const toProxyUrlIfNeeded = (url: string) => {
   const enableWebp = imageProxyOptions.enableWebp
   const hostname = getHostname(url)
   const urlEncoded = encodeURIComponent(url)
-  let defaultUrlEncoded = urlEncoded
+  const defaultUrlEncoded = urlEncoded
+
+  const buildWsrvProxyUrl = (
+    urlEncoded: string,
+    defaultUrlEncoded: string,
+    size?: number
+  ) => {
+    const qp = `${isGif ? '&n=-1' : ''}${size ? `&w=${size}&fit=cover` : ''}${enableWebp ? '&output=webp' : ''}&default=${defaultUrlEncoded}`
+    return `https://wsrv.nl/?url=${urlEncoded}${qp}`
+  }
+
   // Fix 2libra.com avatar urls - https://2libra.com/post/community/tveeqdJ
   // https://r2.2libra.com/cdn-cgi/image/width=256,height=256,fit=cover,format=auto/avatars/14b1/b1ce/41da86fa-782d-4925-ab72-a76065d9cd17.jpg?t=1772010098019
   // =>
   // https://r2.2libra.com/avatars/14b1/b1ce/41da86fa-782d-4925-ab72-a76065d9cd17.jpg?t=1772010098019
   if (url.startsWith('https://r2.2libra.com/cdn-cgi/image/')) {
-    defaultUrlEncoded = encodeURIComponent(
-      url.replace(/\/cdn-cgi\/image\/.*\/avatars\//, '/avatars/')
-    )
-  }
+    const orgUrl = url.replace(/\/cdn-cgi\/image\/.*\/avatars\//, '/avatars/')
 
-  const buildWsrvProxyUrl = (urlEncoded: string, defaultUrlEncoded: string) => {
-    const qp = `${isGif ? '&n=-1' : ''}${
-      enableWebp ? '&output=webp' : ''
-    }&default=${defaultUrlEncoded}`
-    return `https://wsrv.nl/?url=${urlEncoded}${qp}`
+    const level1 = buildWsrvProxyUrl(
+      encodeURIComponent(orgUrl),
+      encodeURIComponent(orgUrl),
+      256
+    )
+    // const level2 = buildWsrvProxyUrl(urlEncoded, encodeURIComponent(level1))
+    // return level2
+    return level1
   }
 
   const level1 = buildWsrvProxyUrl(urlEncoded, defaultUrlEncoded)
@@ -290,12 +300,37 @@ const cloneImgWithParent = (img: HTMLElement) => {
   try {
     const parent = img.parentElement!
     const newParentElm = parent.cloneNode(true) as HTMLElement
-    parent.after(newParentElm)
+    parent.before(newParentElm)
     const newImg = newParentElm.querySelector('img')!
     if (newImg) {
       parent.style.display = 'none'
       // parent.remove()
-      newImg.style.opacity = '1'
+      newImg.style.removeProperty('position')
+      newImg.style.removeProperty('top')
+      newImg.style.removeProperty('left')
+      newImg.style.removeProperty('opacity')
+
+      newImg.addEventListener(
+        'load',
+        (e) => {
+          const target = e.currentTarget as HTMLImageElement
+          const previousSibling = target.previousElementSibling
+          // 2libra.com 图片加载完成后，移除 skeleton 样式
+          if (previousSibling && previousSibling.matches('span.skeleton')) {
+            previousSibling.remove()
+
+            target.style.removeProperty('position')
+            target.style.removeProperty('top')
+            target.style.removeProperty('left')
+            target.style.removeProperty('opacity')
+            target.style.maxWidth = '100%'
+            target.style.maxHeight = '500px'
+            target.style.objectFit = 'contain'
+          }
+        },
+        true
+      )
+
       return newImg
     }
 
@@ -329,13 +364,17 @@ export const proxyExistingImages = (flag: number) => {
       img.removeAttribute('src')
       setAttribute(img, 'loading', 'lazy')
       setAttribute(img, 'referrerpolicy', 'no-referrer')
-      img.addEventListener('error', (e) => {
-        const target = e.target as HTMLImageElement
-        if (target && target.src === src) {
-          e.stopImmediatePropagation()
-          e.stopPropagation()
-        }
-      })
+      img.addEventListener(
+        'error',
+        (e) => {
+          const target = e.target as HTMLImageElement
+          if (target && target.src === src) {
+            e.stopImmediatePropagation()
+            e.stopPropagation()
+          }
+        },
+        true
+      )
       setAttribute(img, 'src', proxied)
       const parent = img.parentElement
       if (parent && parent.tagName === 'A') {
@@ -363,6 +402,7 @@ export const proxyExistingImages = (flag: number) => {
     }
 
     img.__links_helper_scaned = flag
+    orgImg.__links_helper_scaned = flag
   }
 }
 

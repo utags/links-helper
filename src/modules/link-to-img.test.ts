@@ -680,7 +680,8 @@ describe('linkToImg with image proxy', () => {
 
     expect(addEventListenerSpy).toHaveBeenCalledWith(
       'error',
-      expect.any(Function)
+      expect.any(Function),
+      true
     )
 
     // Verify listener logic
@@ -738,19 +739,21 @@ describe('linkToImg with image proxy', () => {
 
     const newSrc = img.getAttribute('src') || ''
     expect(newSrc).toContain('wsrv.nl')
+    expect(newSrc).toContain('&w=256&fit=cover')
 
     // It uses double proxy chain (level 2)
     const urlObj = new URL(newSrc)
     const defaultParam = urlObj.searchParams.get('default')
     expect(defaultParam).toBeTruthy()
+    expect(defaultParam).toBe(expectedDefaultSrc)
 
-    // Level 2 default param is Level 1 URL
-    const level1Url = decodeURIComponent(defaultParam!)
-    const level1UrlObj = new URL(level1Url)
+    // // Level 2 default param is Level 1 URL
+    // const level1Url = decodeURIComponent(defaultParam!)
+    // const level1UrlObj = new URL(level1Url)
 
-    // Level 1 default param is the simplified original URL
-    const level1DefaultParam = level1UrlObj.searchParams.get('default')
-    expect(level1DefaultParam).toBe(expectedDefaultSrc)
+    // // Level 1 default param is the simplified original URL
+    // const level1DefaultParam = level1UrlObj.searchParams.get('default')
+    // expect(level1DefaultParam).toBe(expectedDefaultSrc)
 
     img.remove()
   })
