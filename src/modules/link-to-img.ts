@@ -309,6 +309,8 @@ const cloneImgWithParent = (img: HTMLElement) => {
       newImg.style.removeProperty('top')
       newImg.style.removeProperty('left')
       newImg.style.removeProperty('opacity')
+      newImg.style.removeProperty('pointer-events')
+
 
       newImg.addEventListener(
         'load',
@@ -323,6 +325,7 @@ const cloneImgWithParent = (img: HTMLElement) => {
             target.style.removeProperty('top')
             target.style.removeProperty('left')
             target.style.removeProperty('opacity')
+            target.style.removeProperty('pointer-events')
             target.style.maxWidth = '100%'
             target.style.maxHeight = '500px'
             target.style.objectFit = 'contain'
