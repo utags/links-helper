@@ -357,6 +357,23 @@ describe('linkToImg with image proxy', () => {
     }
   })
 
+  it('should not proxy URLs containing captcha even with * rule', () => {
+    setImageProxyOptions({
+      enableProxy: true,
+      domains: ['*'],
+      enableWebp: false,
+    })
+
+    const href = 'https://example.com/assets/CAPTCHA/image.jpg?token=123'
+    const anchor = createAnchor(href)
+
+    linkToImg(anchor)
+
+    const img = anchor.querySelector('img')
+    expect(img).not.toBeNull()
+    expect(img?.getAttribute('src')).toBe(href)
+  })
+
   it('should use double proxy chain (wsrv -> ddg -> wsrv -> original) for normal images', () => {
     setImageProxyOptions({
       enableProxy: true,
