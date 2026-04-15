@@ -65,6 +65,10 @@ const shouldProxyUrl = (url: string) => {
     return false
   }
 
+  if (url.toLowerCase().includes('captcha')) {
+    return false
+  }
+
   for (let domain of imageProxyOptions.domains) {
     domain = domain.trim()
     if (!domain) {
@@ -310,7 +314,6 @@ const cloneImgWithParent = (img: HTMLElement) => {
       newImg.style.removeProperty('left')
       newImg.style.removeProperty('opacity')
       newImg.style.removeProperty('pointer-events')
-
 
       newImg.addEventListener(
         'load',
